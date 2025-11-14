@@ -14,8 +14,8 @@ nav:
 - Electronic boxes: 06-electronic-boxes.md
 - Electrical wiring and connect components: 07-electrical-wiring-and-connect-components.md
 - Wasteboard: 08-wasteboard.md
-- Dust shoe (updated Feb 4, 2022): 09-dust-shoe-updated-feb-4-2022.md
-- Install CNC software (grbl) on Arduino Uno: 10-install-cnc-software-grbl-on-arduino-uno.md
+- Dust shoe: 09-dust-shoe.md
+- Software: 10-software.md
 - G-Code sender: 11-g-code-sender.md
 - Final notes: 12-final-notes.md
 markdown_extensions:
