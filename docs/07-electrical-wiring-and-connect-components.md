@@ -1,11 +1,9 @@
-## Electrical wiring and connect components
+# Electrical wiring and connect components
 
-### Main power supply
-
-**NOTE: THIS PART INCLUDES WIRING OF HIGH VOLTAGE ELECTRICITY THAT CAN BE LETHAL IF NOT DONE PROPERLY. THE COLORS OF THE CABLES CAN VARY DEPENDING ON REGION/COUNTRY AND YOUR COMPONENTS/PINOUT NUMBERS MIGHT LOOK DIFFERENT. BEFORE YOU CONNECT THE POWER CORD TO THE POWER OUTLET, YOU MUST CONSULT WITH A LICENSED ELECTRICIAN TO MAKE SURE THAT EVERYTHING IS PROPERLY WIRED AND THAT IT IS IN LINE WITH YOUR LOCAL LEGISLATIONS.**
+## Main power supply
 
 !!! danger
-    THIS PART INCLUDES WIRING OF HIGH VOLTAGE ELECTRICITY THAT CAN BE LETHAL IF NOT DONE PROPERLY. THE COLORS OF THE CABLES CAN VARY DEPENDING ON REGION/COUNTRY AND YOUR COMPONENTS/PINOUT NUMBERS MIGHT LOOK DIFFERENT. BEFORE      YOU CONNECT THE POWER CORD TO THE POWER OUTLET, YOU MUST CONSULT WITH A LICENSED ELECTRICIAN TO MAKE SURE THAT EVERYTHING IS PROPERLY WIRED AND THAT IT IS IN LINE WITH YOUR LOCAL LEGISLATIONS.
+    **THIS PART INCLUDES WIRING OF HIGH VOLTAGE ELECTRICITY THAT CAN BE LETHAL IF NOT DONE PROPERLY. THE COLORS OF THE CABLES CAN VARY DEPENDING ON REGION/COUNTRY AND YOUR COMPONENTS/PINOUT NUMBERS MIGHT LOOK DIFFERENT. BEFORE      YOU CONNECT THE POWER CORD TO THE POWER OUTLET, YOU MUST CONSULT WITH A LICENSED ELECTRICIAN TO MAKE SURE THAT EVERYTHING IS PROPERLY WIRED AND THAT IT IS IN LINE WITH YOUR LOCAL LEGISLATIONS.**
 
 The large electronic box was detached from the frame.
 
@@ -117,7 +115,7 @@ Shrink tubes (**O24**) were cut out at an appropriate length, one for each spade
 
 ![connect_main_electronic_box_32](./images/build/frame/connect_main_electronic_box_32.jpg)
 
-### Prepare power to steppers and connect fans and LED
+## Prepare power to steppers and connect fans and LED
 
 To prepare the power for the stepper motors, one black and one red wire (**E03**) were cut out (approx. 300 mm long) to reach between the 12V terminals on the power supply and the small electronic box containing the Arduino and CNC shield. One side of each wire was then stripped and twisted, and 2x M3 ring terminals (**E23**) were attached. 
 
@@ -181,7 +179,7 @@ The red and black 12V power wires intended for the stepper motors were inserted 
 
 ![attach_fans_led_18](./images/build/frame/attach_fans_led_18.jpg)
 
-### Assemble stepper motor drivers and tune VRef
+## Assemble stepper motor drivers and tune VRef
 
 One small heatsink was attached to each DRV8825 stepper driver (**E16**).
 
@@ -235,7 +233,7 @@ To measure the VRef of each stepper driver, the red test probe was connected to 
 
 ![vref_stepper_drivers_10](./images/build/frame/vref_stepper_drivers_10.jpg)
 
-### Attach Arduino and solder USB cable
+## Attach Arduino and solder USB cable
 
 The CNC shield was removed from the Arduino and the Arduino was attached to the back plate of the small electronic box using the 4x 5mm M3 screws (**S07**) unscrewed from the geared stepper motors. The USB cable was left inserted in the Arduino, as there was no space to insert it afterwards.
 
@@ -292,7 +290,7 @@ Finally, a 3d-printed block (**P33**) was glued to the female USB-A connector an
 
 ![arduino_and_usb_14](./images/build/frame/arduino_and_usb_14.jpg)
 
-### Stepper and end-stop cable management to small electronic box
+## Stepper and end-stop cable management to small electronic box
 
 The CNC shield was attached to the Arduino and 6x 3d-printed strain relief halves (**P11**) were inserted into the holes on the sides of the small electronic box.
 
@@ -328,7 +326,7 @@ The end of the conduits were then placed between the strain relief halves and th
 
 ![steppers_to_cnc_shield_11](./images/build/frame/steppers_to_cnc_shield_11.jpg)
 
-### Connect steppers to CNC shield
+## Connect steppers to CNC shield
 
 To keep a good structure of the wires inside the small box, electrical crimp sleeves (**E15**) and contact housings (**E13**) were used. This also reduced the risks of shortings and loose wires.
 
@@ -374,7 +372,7 @@ Finally, two jumpers (**E19**) were attached to the blue and yellow column on th
 
 ![steppers_to_cnc_shield_23](./images/build/frame/steppers_to_cnc_shield_23.jpg)
 
-### Connect end-stops to CNC shield
+## Connect end-stops to CNC shield
 
 As with the stepper motor wires, electrical crimp connectors were used to keep a good structure in the small electornic box.
 
@@ -396,7 +394,7 @@ This was done for all end-stops (X+, X-, Y+, Y- and Z+). Tape and a sharpie was 
 
 ![endstops_to_cnc_shield_6](./images/build/frame/endstops_to_cnc_shield_6.jpg)
 
-### Set microstepping
+## Set microstepping
 
 Microstepping is a way to control the stepper motors in a smoother way and at a higher resolution, but usually at a lower speed and torque. 
 
@@ -417,9 +415,11 @@ The 4 stepper drivers were carefully removed. The microstepping was set to `1/16
 
 ![set_microstepping_2](./images/build/frame/set_microstepping_2.jpg)
 
-### Router cable management and connect to main power supply
+## Router cable management and connect to main power supply
 
-**NOTE: THIS PART INCLUDES WIRING OF HIGH VOLTAGE ELECTRICITY THAT CAN BE LETHAL IF NOT DONE PROPERLY. THE COLORS OF THE CABLES CAN VARY DEPENDING ON REGION/COUNTRY AND YOUR COMPONENTS/PINOUT NUMBERS MIGHT LOOK DIFFERENT. BEFORE YOU CONNECT THE POWER CORD TO THE POWER OUTLET, YOU MUST CONSULT WITH A LICENSED ELECTRICIAN TO MAKE SURE THAT EVERYTHING IS PROPERLY WIRED AND THAT IT IS IN LINE WITH YOUR LOCAL LEGISLATIONS.**
+!!! danger
+    **THIS PART INCLUDES WIRING OF HIGH VOLTAGE ELECTRICITY THAT CAN BE LETHAL IF NOT DONE PROPERLY. THE COLORS OF THE CABLES CAN VARY DEPENDING ON REGION/COUNTRY AND YOUR COMPONENTS/PINOUT NUMBERS MIGHT LOOK DIFFERENT.
+      BEFORE YOU CONNECT THE POWER CORD TO THE POWER OUTLET, YOU MUST CONSULT WITH A LICENSED ELECTRICIAN TO MAKE SURE THAT EVERYTHING IS PROPERLY WIRED AND THAT IT IS IN LINE WITH YOUR LOCAL LEGISLATIONS.**
 
 As I wanted the emergency stop switch to kill the router as well, the router cable was inserted into the small electronic box to reach the emergency stop switch in the large electronic box.
 
@@ -479,7 +479,7 @@ The large electronic box was then carefully closed once more. It's really import
 
 ![router_small_box_18](./images/build/frame/router_small_box_18.jpg)
 
-### Final test of electrical wiring
+## Final test of electrical wiring
 
 The electrical wiring was tested by plugging in a C13 cable (**E30**) into the C14 socket and the C14 switch and emergency stop switch were turned on. But before this was done, I made sure that the router was turned off.
 
