@@ -1,3 +1,5 @@
+# DIY-CNC-machine
+
 ![main_gif](./images/main_gif.gif)
 
 This guide goes through all the steps to build your own CNC machine from scratch. It includes a complete bill of materials (BOM), STL/OBJ-files for all the 3d-printed parts and detailed instructions of how everything is assembled. It also includes instructions of how all the necessary open-source softwares are installed.
@@ -28,7 +30,7 @@ or
 * Weekly robotics newsletter: [https://weeklyrobotics.com/weekly-robotics-168](https://weeklyrobotics.com/weekly-robotics-168)
 
 
-# License
+## License
 The following license is included when buying Ivan Miranda's blueprints of the CNC machine:
 
 ```
@@ -43,7 +45,7 @@ Ivan does an amazing job putting these DIY builds together. I've posted his STL-
 
 Also, the Z-axis end-stop trigger, the ordinary end-stops and the rail supports all come from cello4's GitHub: [https://github.com/4cello/mirandacnc-community](https://github.com/4cello/mirandacnc-community).
 
-# Parts (bill of materials)
+## Parts (bill of materials)
 
 **CLICK HERE TO OPEN THE BILL OF MATERIALS (BOM) MARKDOWN: [Bill of materials](./BILLOFMATERIAL.md)**
 
