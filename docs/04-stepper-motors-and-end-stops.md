@@ -1,6 +1,6 @@
-## Stepper motors and end-stops
+# Stepper motors and end-stops
 
-### Extend stepper motor wires
+## Extend stepper motor wires
 
 All 4 stepper motors (2x Y-axis, 1x X-axis and 1x Z-axis) get their power and movement instructions from the Arduino + CNC shield that in a later step will be attached in the small electronic box. Therefore, the stepper motor cables needed to be extended to reach through the cable chains all the way to the front of the machine, where the small electronic box will be located.
 
@@ -15,7 +15,7 @@ AWG22 cables (**E08**) of matching colors were used when increasing the length o
 7. A handful of larger shrinking tubes were shrunk around all 4 wires to keep them together.
 8. Finally, the wires were marked using tape and a penn, indicating which stepper motor the wires belonged to. This is important as it will help a lot later on, when the stepper motors are connected to the Arduino.
 
-#### Y-axis 1
+### Y-axis 1
 
 The extended wires of the first Y-axis stepper motor were cut at a length so that they reached through the lower front bridge beam (see red arrow on the next image) and through the Y-axis cable chain going to the front of the CNC machine.
 
@@ -41,7 +41,7 @@ The extended wires of the first Y-axis stepper motor were cut at a length so tha
 
 ![solder_steppers_y_axis_10_1](./images/build/frame/solder_steppers_y_axis_10_1.jpg)
 
-#### Y-axis 2
+### Y-axis 2
 
 The extended wires of the second Y-axis stepper motor were cut at a length so that they reached through the Y-axis cable chain going to the front of the CNC machine.
 
@@ -65,7 +65,7 @@ The extended wires of the second Y-axis stepper motor were cut at a length so th
 
 ![solder_steppers_y_axis_20](./images/build/frame/solder_steppers_y_axis_20.jpg)
 
-#### X-axis
+### X-axis
 
 I ran out of AWG22 wires when soldering the X-axis stepper motor cables, therefore you will see different type of cables in the upcoming images. Because of this, I had to insert the shrinking tubes before I soldered the cables. Please disregard this and follow the previous instructions.
 
@@ -87,7 +87,7 @@ The extended wire of the X-axis stepper motor were cut at a length so that they 
 
 ![solder_steppers_x_axis_8.jpg](./images/build/frame/solder_steppers_x_axis_8.jpg)
 
-#### Z-axis
+### Z-axis
 
 The non-geared NEMA17 motor used for the Z-axis had removable wires, in contrast to the 1:19 geared NEMA17 motors that had non-removable wires. The first step was therefore to connect the wires to the NEMA17 motor and cut of the connector on the other side using a scissor. Otherwise, the same procedure was followed as for the other motors.
 
@@ -113,13 +113,13 @@ The extended wires of the Z-axis stepper motor were cut at a length so that they
 
 ![solder_steppers_z_axis_9.jpg](./images/build/frame/solder_steppers_z_axis_10.jpg)
 
-### End-stops and end-stop wires
+## End-stops and end-stop wires
 
 End-stops are important, as they do not only enable you to home the CNC machine, but they also limit the CNC machine from moving past what is physically possible. When the end-stops are triggered, an alarm is fired and the machine automatically stops.
 
 The wires used for end-stops were 0.75 mm^2 (**E03**).
 
-#### X-axis (max)
+### X-axis (max)
 
 A microswitch (**E21**) was attached to the thick X-axis (+) end-stop mount (**P10**) using 2x 12mm M3 screws (**S02**).
 
@@ -199,7 +199,7 @@ Finally, the open end of the wires were marked using tape (**O23**) and a penn, 
 
 ![attach_endstoppers_x_axis_31](./images/build/frame/attach_endstoppers_x_axis_31.jpg)
 
-#### X-axis (min)
+### X-axis (min)
 
 A microswitch (**E21**) was attached to the X-axis end-stop (-) mount (**P08**) using 2x 12mm M3 screws (**S02**).
 
@@ -231,7 +231,7 @@ Finally, the open end of the wires were marked using tape and a penn, indicating
 
 ![attach_endstoppers_x_axis_39](./images/build/frame/attach_endstoppers_x_axis_39.jpg)
 
-#### Y-axis (max)
+### Y-axis (max)
 
 The tall Y-axis end-stop (+) mount (**P09**) was clamped to the inner side of the upper frame and a sharpie was used to indicate the center of the holes. Note that this end-stop mount can probably be redesigned to gain an extra ~10 mm of Y-axis movement, something I will probably do in the future.
 
@@ -295,7 +295,7 @@ Finally, the open end of the wires were marked using tape and a penn, indicating
 
 ![attach_endstoppers_y_axis_16](./images/build/frame/attach_endstoppers_y_axis_16.jpg)
 
-#### Y-axis (min)
+### Y-axis (min)
 
 A microswitch (**E21**) was attached to the Y-axis end-stop (-) mount (**P08**) using 2x 12mm M3 screws (**S02**).
 
@@ -329,7 +329,7 @@ A flexible conduit/hose (**O13**) was cut out and the wires were inserted throug
 
 Finally, the open end of the wires were marked using tape and a penn, indicating which end-stop the cables belonged to.
 
-#### Z-axis (max)
+### Z-axis (max)
 
 The main purpose of the Z-axis end-stop (+) is, apart from homing the machine, to limit the CNC machine from moving past what the length of the rails allow. As the MGN12H blocks contains a lot of small bearing balls, there's a high risk of them falling out if the blocks move past the rail.
 
@@ -391,11 +391,11 @@ Finally, the open end of the wires were marked using tape and a penn, indicating
 
 ![attach_endstoppers_z_axis_20](./images/build/frame/attach_endstoppers_z_axis_20.jpg)
 
-### Stepper motor and end-stop cable management
+## Stepper motor and end-stop cable management
 
 To keep a nice structure of all the wires, braided cable sleeves (**O08**) and flexible conduits/hoses (**O13**) were used.
 
-#### Y-axis steppers and X-axis end-stops
+### Y-axis steppers and X-axis end-stops
 
 First, the wires from the right-side Y-axis stepper motor were inserted into a small flexible conduit and pushed through the lower bridge beam closest to the carriage.
 
@@ -427,7 +427,7 @@ A cable tie (**O11**) was used to close the entrence of the cable sleeve.
 
 ![stepper_motor_cable_management_6_6](./images/build/frame/stepper_motor_cable_management_6_6.jpg)
 
-#### X-axis stepper, Z-axis stepper and Z-axis end-stop
+### X-axis stepper, Z-axis stepper and Z-axis end-stop
 
 First, the wires from the X-axis stepper motor were inserted into a flexible conduit (**O13**). The conduit was then bent over the upper bridge beam, strapped to the vaccum mount and Z motor mount, and then pushed behind the Z-axis stepper motor.
 
