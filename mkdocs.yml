@@ -1,0 +1,14 @@
+nav:
+- Main frame: 01-main-frame.md
+- Y-axis: 02-y-axis.md
+- X-axis and Z-axis: 03-x-axis-and-z-axis.md
+- Stepper motors and end-stops: 04-stepper-motors-and-end-stops.md
+- Router: 05-router.md
+- Electronic boxes: 06-electronic-boxes.md
+- Electrical wiring and connect components: 07-electrical-wiring-and-connect-components.md
+- Wasteboard: 08-wasteboard.md
+- Dust shoe (updated Feb 4, 2022): 09-dust-shoe-updated-feb-4-2022.md
+- Install CNC software (grbl) on Arduino Uno: 10-install-cnc-software-grbl-on-arduino-uno.md
+- G-Code sender: 11-g-code-sender.md
+- Final notes: 12-final-notes.md
+site_name: CNC Manual
