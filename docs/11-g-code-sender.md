@@ -1,8 +1,8 @@
-## G-Code sender
+# G-Code sender
 
 To be able to send G-Code instructions from the computer to `grbl` on the Arduino, a G-Code sender is needed. `grbl's` official list of recommended G-Code senders can be found here: [https://github.com/gnea/grbl/wiki/Using-Grbl](https://github.com/gnea/grbl/wiki/Using-Grbl) (Sep 26, 2021)
 
-### Install G-Code sender
+## Install G-Code sender
 
 In this project a G-code sender called `Universal G-Code Sender (UGS)` was used. The program was downloaded from UGS's official website and the instructions were followed: 
 
@@ -12,7 +12,7 @@ After starting the program, you should see something like this:
 
 ![gcode_sender_1](./images/build/frame/gcode_sender_1.jpg)
 
-### Connect G-Code sender to GRBL
+## Connect G-Code sender to GRBL
 
 To let UGS know where to connect to, the correct firmware (GRBL) and serial port (cu.usbmodem\<NUMBER>) were chosen. If you can't find the correct serial port, click the spinning arrows to refresh the ports.
 
@@ -26,7 +26,7 @@ UGS was then connected to the Arduino by clicking on plug/socket icon in the top
 
 ![gcode_sender_5](./images/build/frame/gcode_sender_5.jpg)
 
-### Adjust GRBL configuration
+## Adjust GRBL configuration
 
 The GRBL configuration enables you to adjust important settings, such as the maximum mm/min rates for different axes and if the end-stops should be used. A full description of all settings can be found here:
 
@@ -36,7 +36,7 @@ To update a setting, the new setting is inputted into the console command line, 
 
 ![gcode_sender_6](./images/build/frame/gcode_sender_6.jpg)
 
-#### Enable end-stops/hard limits
+### Enable end-stops/hard limits
 
 The end-stops/hard limits were enabled by updating the following setting:
 
@@ -52,7 +52,7 @@ After the alarm was triggered, UGS was reset by clicking `Soft reset` and `Unloc
 
 ![gcode_sender_9](./images/build/frame/gcode_sender_9.jpg)
 
-#### Calculate and set travel resolutions
+### Calculate and set travel resolutions
 
 The most important settings to adjust is the X-axis, Y-axis and Z-axis travel resolutions. These settings tells GRBL how many steps it should take to move one millimeter. The travel resolution depends on the stepper motor's steps per revolution, the microstepping, the teeth spacing and the number of teeth on the timing pulley(s).
 
@@ -83,7 +83,7 @@ The calculated travel resolutions were validated by moving each axis 10 mm in UG
 
 ![gcode_sender_13](./images/build/frame/gcode_sender_13.jpg)
 
-#### Other configurations
+### Other configurations
 
 The homing cycle is when the CNC machine automatically moves all axises to it's limits to home itself before starting the job. I disabled this as I will manually jog the router to it's position:
 
@@ -98,4 +98,3 @@ The X-axis and Y-axis maximum travel were increased to 500:
 
 * X-axis maximum travel: `$130=200.000` -> `$130 = 500.000`
 * Y-axis maximum travel: `$131=200.000` -> `$131 = 500.000`
-
