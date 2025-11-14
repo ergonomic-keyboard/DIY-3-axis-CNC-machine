@@ -2,6 +2,8 @@ site_name: DIY-CNC-machine
 site_url: https://sohnemann.github.io/DIY-CNC-machine/
 theme:
   name: material
+  scheme: default
+  palette: red
 nav:
 - Main frame: 01-main-frame.md
 - Y-axis: 02-y-axis.md
@@ -15,3 +17,7 @@ nav:
 - Install CNC software (grbl) on Arduino Uno: 10-install-cnc-software-grbl-on-arduino-uno.md
 - G-Code sender: 11-g-code-sender.md
 - Final notes: 12-final-notes.md
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
