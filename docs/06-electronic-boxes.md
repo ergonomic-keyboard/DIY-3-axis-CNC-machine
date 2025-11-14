@@ -1,8 +1,8 @@
-## Electronic boxes
+# Electronic boxes
 
 Two electronic boxes were attached to the front side of the CNC machine, a large box to encapsulate the power supply and a small box to encapsulate the Arduino and the CNC shield.
 
-### Small electronic box
+## Small electronic box
 
 The small electronic box consisted of 4 parts (**P02**, **P04**, **P13**, **P15**). The two middle parts were clamped together on the front-left side of the frame, closest to the Y-axis cable chain. A finger was used to feel that the two parts were perfectly lined up.
 
@@ -46,7 +46,7 @@ The back-middle part was again clamped to the frame and aligned with the now att
 
 ![attach_small_electronic_box_16](./images/build/frame/attach_small_electronic_box_16.jpg)
 
-### Large electronic box
+## Large electronic box
 
 As the small box, the large electronic box consisted of 4 parts (**P01**, **P03**, **P12**, **P14**). The two middle parts were clamped together to the right of the small box. A finger was used to feel that the two parts were perfectly lined up. 
 
