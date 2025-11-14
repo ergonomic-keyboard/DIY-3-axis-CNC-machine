@@ -1,4 +1,4 @@
-## Final notes
+# Final notes
 I have a couple of things I want to improve with this build:
 
 * [ ] Build a wasteboard using wasteboard clamps
