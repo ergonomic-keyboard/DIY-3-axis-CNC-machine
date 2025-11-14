@@ -1,6 +1,6 @@
-## Main frame
+# Main frame
 
-### Drill holes in 900 mm profiles
+## Drill holes in 900 mm profiles
 The main frame consists of two separate frames, the lower and the upper frame. The two frames are kept together using threaded rods, washers and nuts. To enable the threaded rods to slide through the aluminium profiles, holes needed to be drilled.
 
 First, a sharpie was used to indicate where all the holes were going in the 900mm profiles (**O07**). This was done by using a set square and a penn. A bradawl and a hammer were then used to make indentations at the center of the holes.
@@ -85,7 +85,7 @@ Finally, the rails were attached using 48x 16 mm M3 screws (**S03**).
 
 ![rails_main_frame_17](./images/build/frame/rails_main_frame_17.jpg)
 
-### Assemble upper and lower frames
+## Assemble upper and lower frames
 
 The two frames were assembled using the 4x 717 mm M8 threaded rods (**T03**), 8x (20mm, 10mm, 2mm) washers (**W04**) and 8x M8 lock nuts (**N03**).
 
@@ -105,7 +105,7 @@ The profiles were first placed in their correct place and clamps were used to ke
 
 ![assemble_frames_7](./images/build/frame/assemble_frames_7.jpg)
 
-### Interlock upper and lower frames
+## Interlock upper and lower frames
 
 The upper and lower frames and the 8x 80 mm vertical aluminium beams (**O06**) were first layed out in their correct place. The 803 mm horizontal bridge beams (used later in the tutorial) (**O05**) and clamps were then used to align the frames on top of each other.
 
