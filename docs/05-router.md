@@ -1,6 +1,6 @@
-## Router
+# Router
 
-### Attach router to carriage
+## Attach router to carriage
 
 A Makita RT0700CJ (**E20**) trimming router was used as I was not able to get my hands on the Makita RT0700C that Ivan is using. To my knowledge, the RT0700CJ is just an upgraded European version of the RT0700C, with the same dimensions.
 
@@ -18,7 +18,7 @@ The trimming router was locked in place by using the router bracket (**P24**), 4
 
 ![attach_router_to_carriage_7](./images/build/frame/attach_router_to_carriage_7.jpg)
 
-### Router cable management
+## Router cable management
 
 **NOTE: THIS PART INCLUDES WIRING OF HIGH VOLTAGE ELECTRICITY THAT CAN BE LETHAL IF NOT DONE PROPERLY. THE COLORS OF THE CABLES CAN VARY DEPENDING ON REGION/COUNTRY AND YOUR COMPONENTS/PINOUT NUMBERS MIGHT LOOK DIFFERENT. BEFORE YOU CONNECT THE POWER CORD TO THE POWER OUTLET, YOU MUST CONSULT WITH A LICENSED ELECTRICIAN TO MAKE SURE THAT EVERYTHING IS PROPERLY WIRED AND THAT IT IS IN LINE WITH YOUR LOCAL LEGISLATIONS.**
 
