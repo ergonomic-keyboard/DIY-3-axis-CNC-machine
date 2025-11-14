@@ -1,6 +1,6 @@
-## X-axis and Z-axis
+# X-axis and Z-axis
 
-### Rails to bridge beams
+## Rails to bridge beams
 
 The last two 600 mm MGN12H rails (**O21**) were attached to two of the 803 mm aluminium bridge beams (**O05**, used for the X-axis). First, the MGN12H blocks (**O22**) were carefully removed from the rails.
 
@@ -40,7 +40,7 @@ The rails were finally attached using 16 mm M3 screws (**S03**) and the MGN12H  
 
 ![attach_rails_to_beams_15](./images/build/frame/attach_rails_to_beams_15.jpg)
 
-### X-axis tensioner and end-stop mount to lower bridge beam
+## X-axis tensioner and end-stop mount to lower bridge beam
 
 The fixed tensioner (**P28**) and end-stop mount (**P08**) were attached to the lower bridge beam in the same fashion as on the 900 mm aluminium profiles, using 4x 20mm M5 screws (**S12**). When aligning the fixed tensioner, make sure that the "belt opening" is pointing in the direction of the rail. A bradawl and a hammer were used to make indentations at the center of the holes. Cutting fluid was applied and a 4 mm drill was used to drill the holes, followed by a M5 drill tap.
 
@@ -68,7 +68,7 @@ The fixed tensioner (**P28**) and end-stop mount (**P08**) were attached to the 
 
 ![attach_tensioners_to_beams_12](./images/build/frame/attach_tensioners_to_beams_12.jpg)
 
-### Bridge beams to side plates
+## Bridge beams to side plates
 
 All three bridge beams (**O05**) were then inserted into the slots on the side plates. Make sure that the two beams with the rails are on top of each other, with the rails pointing outwards. Also, make sure that you insert them in the correct orientation, so that the rails are lined up (due to the rails being 3 mm off center).
 
@@ -112,7 +112,7 @@ The bridge beams were then inserted into the slots on the side plates once more,
 
 ![attach_beams_to_side_plates_1](./images/build/frame/attach_beams_to_side_plates_17.jpg)
 
-### Rod bearings to carriage
+## Rod bearings to carriage
 
 Before attaching the carriage (**P07**) to the bridge beams, two KFL08 rod bearings (**O19**) were attached on the top and the bottom of the carriage (inside) using 4x 20 mm M5 screws (**S12**) and 4x M5 nuts (**N02**). A tip is to temporarily use the acme rod (used in an upcoming step) to vertically align the two bearings.
 
@@ -126,7 +126,7 @@ Before attaching the carriage (**P07**) to the bridge beams, two KFL08 rod beari
 
 ![assemble_carriage_5](./images/build/frame/assemble_carriage_5.jpg)
 
-### Carriage to bridge beams
+## Carriage to bridge beams
 
 The carriage was attached to the 4x MGN12H blocks (**O22**) on the bridge beams, using 16x 25 mm M3 screws (**S05**).
 
@@ -138,7 +138,7 @@ The carriage was attached to the 4x MGN12H blocks (**O22**) on the bridge beams,
 
 ![attach_carriage_to_beams_4](./images/build/frame/attach_carriage_to_beams_4.jpg)
 
-### X-axis motor, idlers and pulley to carriage
+## X-axis motor, idlers and pulley to carriage
 
 Each idler were made up out of 1x 60 mm fully threaded M8 screw (**S15**), 3x 698zz bearings (**O01**) and 4x (15 mm x 8.5 mm x 1.5mm) washers (**W03**) (1 closest to the idler blocker and 3 closest to the side plate). 2x idlers were then attached to each side plate using 2x M8 nuts (**N03**). Make sure that the bearings are spinning freely.
 
@@ -180,7 +180,7 @@ The stepper motor was then inserted into the large hole on the carriage, facing 
 
 ![attach_idlers_motor_to_carriage_13](./images/build/frame/attach_idlers_motor_to_carriage_13.jpg)
 
-### X-axis HTD5M belt
+## X-axis HTD5M belt
 
 The HTD5M belt (**O17**) was first inserted into the fixed belt tensioner using a flat screw driver. It was then stretched along the aluminium profile, below the first idler, around the timing pulley, below the second idler and all the way to the other side.
 
@@ -206,7 +206,7 @@ Make sure that the belt is not too loose and not too tight.
 
 ![attach_x_axis_belt_8](./images/build/frame/attach_x_axis_belt_8.jpg)
 
-### Acme nut and rails to carriage slider
+## Acme nut and rails to carriage slider
 
 1x acme nut (**O03**) was inserted from the outside, into the the center hole at the top of the vertical carriage slider (**P36**). It was locked in place using 4x 25mm M3 screws (**S05**).
 
@@ -230,7 +230,7 @@ Make sure that the belt is not too loose and not too tight.
 
 ![assemble_carriage_13](./images/build/frame/assemble_carriage_13.jpg)
 
-### Acme rod and vertical slider to carriage
+## Acme rod and vertical slider to carriage
 
 To attach the vertical slider to the carriage, 16x 25 mm M3 screws (**S05**) were first inserted into the holes on the carriage. You might need to "open up" the holes using a narrow tool (depending on the direction you 3d-printed the carriage).
 
@@ -254,7 +254,7 @@ The vertical slider was finally attached to the carriage by attaching the previo
 
 ![assemble_carriage_21](./images/build/frame/assemble_carriage_21.jpg)
 
-### Z motor mount and X-axis cable chain
+## Z motor mount and X-axis cable chain
 
 The first step was to find a good length of the X-axis cable chain (**O09**). To simplify this process, the X-axis belt was removed to easier move the carriage along the X-axis.
 
@@ -358,7 +358,7 @@ Finally, the X-axis belt was reattached and tightened.
 
 ![assemble_carriage_61](./images/build/frame/assemble_carriage_61.jpg)
 
-### Y-axis cable chain
+## Y-axis cable chain
 
 The Y-axis cable chain (**O09**) was attached to the frame using 1x cable chain mount (**P05**) and 1x cable chain support (**P06**). The cable chain mount was clamped to the left side of the lower frame and aligned with the last vertial beam. A bradawl and a hammer were used to make indentations at the center of the two holes. Cutting fluid was applied and a 4 mm drill was used to drill the holes, followed by a M5 drill tap. The cable chain mount was then attached to the lower frame using 2x 20 mm M5 screws (**S12**).
 
@@ -404,7 +404,7 @@ The Y-axis cable chain (**O09**) was then attached to the left side plate (**P20
 
 ![assemble_cable_support_y_axis_17](./images/build/frame/assemble_cable_support_y_axis_17.jpg)
 
-### Z stepper motor, pulleys and belt
+## Z stepper motor, pulleys and belt
 
 The non-geared NEMA17 stepper motor (**E11**) was attached to the Z-axis motor mount using 4x 8mm M3 screws (**S08**) and 4x M3 washers (**W06**). Make sure that the motor cable connector is pointing in the same direction as the opening of the X-axis cable chain.
 
@@ -431,4 +431,3 @@ The non-geared NEMA17 stepper motor (**E11**) was attached to the Z-axis motor m
 ![attach_z_stepper_pulleys_belt_9](./images/build/frame/attach_z_stepper_pulleys_belt_9.jpg)
 
 ![attach_z_stepper_pulleys_belt_10](./images/build/frame/attach_z_stepper_pulleys_belt_10.jpg)
-
