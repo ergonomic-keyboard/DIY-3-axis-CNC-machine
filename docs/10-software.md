@@ -1,8 +1,10 @@
+# Software
+
 ## Install CNC software (grbl) on Arduino Uno
 
 The software used in this project to control the CNC machine is called `grbl`. It's an open source and high performance g-code-parser and CNC milling controller that can run on a straight Arduino Uno. To be able to install the software on the Arduino, an external computer was needed.
 
-### Install Arduino Software (IDE)
+## Install Arduino Software (IDE)
 To be able to install `grbl` on the Arduino, `Arduino Software (IDE)` was installed on the computer. This program is used to upload code to the Arduino. The program was downloaded from Arduino's official website and the instructions were followed: 
 
 [https://www.arduino.cc/en/software](https://www.arduino.cc/en/software)
@@ -11,7 +13,7 @@ After starting the program, you should see something like this:
 
 ![install_software_1](./images/build/frame/install_software_1.jpg)
 
-### Install GRBL
+## Install GRBL
 After installing the Arduino Software, the latest stable version of `grbl` was downloaded (as zip-format) from their official GitHub release page: 
 
 [https://github.com/gnea/grbl/releases](https://github.com/gnea/grbl/releases)
