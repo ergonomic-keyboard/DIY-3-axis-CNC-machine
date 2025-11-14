@@ -1,6 +1,6 @@
-## Y-axis
+# Y-axis
 
-### Side plates to upper frame
+## Side plates to upper frame
 
 Before attaching the side plates, the MGN12H blocks (**O22**) were added back onto the rails, 2x on each side. Be careful when sliding them onto the rails, there are multiple small bearing balls that easily fall out of the blocks.
 
@@ -24,7 +24,7 @@ I had to redesign the left side plate and reprint it later in the build (after t
 
 ![assemble_side_plates_8](./images/build/frame/assemble_side_plates_8.jpg)
 
-### Y-axis motors, idlers and pulleys to side plates
+## Y-axis motors, idlers and pulleys to side plates
 
 Each idler were made up out of 1x idler blocker (**P16**), 2x 60 mm fully threaded M8 screws (**S15**), 6x 698zz bearings (**O01**) and 8x (15 mm x 8.5 mm x 1.5mm) washers (**W03**) (2x closest to the idler blocker and 6x closest to the side plate). The idlers were then attached to each side plate using two M8 nuts (**N03**). Make sure that the bearings are spinning freely.
 
@@ -78,7 +78,7 @@ The 2x geared stepper motors (**E18**) were then inserted into the large holes o
 
 ![attach_side_plate_motors_1](./images/build/frame/attach_side_plate_motors_18.jpg)
 
-### Y-axis belt tensioners and end-stop mounts
+## Y-axis belt tensioners and end-stop mounts
 
 2x fixed belt tensioners (**P19**, **P28**) were attached to the longer aluminium profiles of the upper frame using 4x 20mm M5 screws (**S12**) (2x for each fixed belt tensioner). When aligning the fixed belt tensioners, make sure that the "belt opening" is pointing in the direction of the rails (1x fixed belt tensioner for each rail). Also make sure that the fixed belt tensioners are positioned on the correct side of the rail (see images). Similar to before, a bradawl and a hammer were used to make indentations at the center of the holes. Cutting fluid was applied and a 4 mm drill was used to drill the holes, followed by a M5 drill tap.
 
@@ -146,7 +146,7 @@ The belt tensioners (**P18**, **P27**) were loosely attached to the belt tension
 
 ![attach_tensioners_and_belts_29](./images/build/frame/attach_tensioners_and_belts_29.jpg)
 
-### Y-axis HTD5M belts
+## Y-axis HTD5M belts
 
 The HTD5M belt (**O17**) was first inserted into one of the fixed belt tensioners using a flat screw driver. It was then stretched along the aluminium profile, below the first idler, around the timing pulley, below the second idler and all the way to the belt tensioner.
 
@@ -179,4 +179,3 @@ Make sure that the belt is not too loose and not too tight.
 ![attach_tensioners_and_belts_41](./images/build/frame/attach_tensioners_and_belts_41.jpg)
 
 Repeat on the other side.
-
