@@ -3,7 +3,8 @@ site_url: https://sohnemann.github.io/DIY-CNC-machine/
 theme:
   name: material
   scheme: default
-  palette: red
+  palette:
+    primary: red
 nav:
 - Main frame: 01-main-frame.md
 - Y-axis: 02-y-axis.md
