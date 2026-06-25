@@ -148,6 +148,8 @@
   font-family: var(--md-code-font, monospace);
   font-size: 0.7rem;
   color: var(--shopping-muted);
+  border-style: dashed;
+  background: transparent;
 }
 
 .shopping-item__title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.5rem; }
@@ -191,6 +193,11 @@
 .shopping-shop.is-chosen {
   border-color: var(--shopping-accent);
   background: rgba(0, 0, 0, 0.04);
+}
+.shopping-shop.is-stale .shopping-shop__price {
+  color: var(--shopping-muted);
+  text-decoration: underline dotted;
+  text-underline-offset: 0.25em;
 }
 .shopping-shop__radio { transform: translateY(1px); }
 .shopping-shop__name { display: inline-flex; gap: 0.5rem; align-items: baseline; min-width: 0; }
