@@ -6,6 +6,7 @@ theme:
   palette:
     primary: red
 nav:
+- Bill of materials: BILLOFMATERIAL.md
 - Main frame: 01-main-frame.md
 - Y-axis: 02-y-axis.md
 - X-axis and Z-axis: 03-x-axis-and-z-axis.md

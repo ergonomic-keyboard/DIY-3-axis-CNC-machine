@@ -87,7 +87,7 @@ The three M4 ring terminals were then connected to the power supply's input term
 
 ![connect_main_electronic_box_26](./images/build/frame/connect_main_electronic_box_26.jpg)
 
-Power was connected to the C14 connector (read [this](#connect-main-electronic-box) note before connecting the power) and a multimeter was used to verify that the power supply outputted 12V. The multimeter was also used to verify that the C14 connector worked properly (cut power when using the switch) and that the emergency stop switch worked propertly (cut power when pushed. Also that the emegency stop switch remains off when C14 connector is switched off and on again).
+Power was connected to the C14 connector (read [this](#main-power-supply) note before connecting the power) and a multimeter was used to verify that the power supply outputted 12V. The multimeter was also used to verify that the C14 connector worked properly (cut power when using the switch) and that the emergency stop switch worked propertly (cut power when pushed. Also that the emegency stop switch remains off when C14 connector is switched off and on again).
 
 ![connect_main_electronic_box_26](./images/build/frame/connect_main_electronic_box_24_1.jpg)
 
