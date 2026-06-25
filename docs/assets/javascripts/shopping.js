@@ -36,6 +36,21 @@
     manual: 'Manual'
   };
 
+  // SL-9.d: local helper for the per-bot "Refresh now" toolbar. The page polls
+  // GET /api/health once; if the helper is up, a third toolbar row appears with
+  // one button per refreshable shop. If not, a quiet "↻ Refresh prices…" chip
+  // in the meta row reveals the start command on click.
+  var REFRESH_HELPER_URL = 'http://127.0.0.1:8765';
+  var REFRESH_HEALTH_TIMEOUT_MS = 1500;
+  var REFRESH_COMMAND = 'python3 tools/refresh_server.py';
+  var refreshHelper = {
+    state: 'unknown',   // 'unknown' | 'online' | 'offline'
+    bots: [],
+    cooldownUntil: {},  // bot_id → epoch ms when local cooldown expires
+    inFlight: {}        // bot_id → true while POST is in flight
+  };
+  var refreshTickHandle = null;
+
   function loadState() {
     var fallback = {
       version: 5,
@@ -116,13 +131,15 @@
     Promise.all([
       fetchJSON(DATA_BASE + 'shops.json'),
       fetchJSON(DATA_BASE + 'items.json'),
-      fetchJSON(DATA_BASE + 'prices.json')
+      fetchJSON(DATA_BASE + 'prices.json'),
+      pollRefreshHelper()  // never rejects; populates refreshHelper.state
     ]).then(function (results) {
       ingest(results[0], results[1], results[2]);
       syncUserAlternativesIntoData();
       applyDefaultSelection();
       snapActiveConfigFromCustom();
       render();
+      ensureRefreshTick();
     }).catch(function (err) {
       root.innerHTML = '<p class="shopping-error">Could not load shopping data: ' +
         escapeHtml(err.message) + '</p>';
@@ -561,8 +578,210 @@
     });
     right.appendChild(clearBtn);
 
+    // SL-9.d: when the local helper isn't running, expose the start command
+    // here as a small details/summary chip rather than a dead disabled row.
+    var offlineChip = renderRefreshOfflineChip();
+    if (offlineChip) right.appendChild(offlineChip);
+
     bottomRow.appendChild(right);
+
+    // SL-9.d: third row — per-bot "Refresh now" buttons. Returns null and
+    // the row is omitted entirely when the helper isn't running.
+    var refreshRow = renderRefreshRow();
+    if (refreshRow) header.appendChild(refreshRow);
+
     return header;
+  }
+
+  // SL-9.d: local helper integration ----------------------------------------
+
+  function pollRefreshHelper() {
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, REFRESH_HEALTH_TIMEOUT_MS);
+    var opts = { cache: 'no-store' };
+    if (ctrl) opts.signal = ctrl.signal;
+    return fetch(REFRESH_HELPER_URL + '/api/health', opts).then(function (r) {
+      clearTimeout(timer);
+      if (!r.ok) throw new Error('helper status ' + r.status);
+      return r.json();
+    }).then(function (json) {
+      refreshHelper.state = 'online';
+      refreshHelper.bots = json.bots || [];
+    }).catch(function () {
+      clearTimeout(timer);
+      refreshHelper.state = 'offline';
+      refreshHelper.bots = [];
+    });
+  }
+
+  function renderRefreshRow() {
+    if (refreshHelper.state !== 'online') return null;
+    var bots = refreshHelper.bots || [];
+    if (bots.length === 0) return null;
+    var row = el('div', 'shopping-header__row shopping-refresh');
+    var label = el('span', 'shopping-label', 'Refresh now');
+    row.appendChild(label);
+    var btns = el('div', 'shopping-refresh__buttons');
+    bots.forEach(function (bot) { btns.appendChild(renderRefreshButton(bot)); });
+    row.appendChild(btns);
+    return row;
+  }
+
+  function renderRefreshButton(bot) {
+    var btn = el('button', 'shopping-refresh__btn');
+    btn.type = 'button';
+    btn.setAttribute('data-bot-id', bot.id);
+    btn.setAttribute('data-cooldown-s', String(bot.cooldown_s || 30));
+    btn.setAttribute('data-last-run-at', bot.last_run_at || '');
+    updateRefreshButton(btn);
+    btn.addEventListener('click', function () { triggerRefresh(bot.id); });
+    return btn;
+  }
+
+  function updateRefreshButton(btn) {
+    var botId = btn.getAttribute('data-bot-id');
+    var cooldownUntil = refreshHelper.cooldownUntil[botId] || 0;
+    var remaining = Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000));
+    var inFlight = !!refreshHelper.inFlight[botId];
+
+    btn.innerHTML = '';
+    btn.appendChild(el('span', 'shopping-refresh__icon', inFlight ? '⏳' : '↻'));
+    btn.appendChild(el('span', 'shopping-refresh__name', botId));
+    var status = el('span', 'shopping-refresh__status');
+    if (inFlight) {
+      status.textContent = 'refreshing…';
+      btn.disabled = true;
+    } else if (remaining > 0) {
+      status.textContent = 'wait ' + remaining + 's';
+      btn.disabled = true;
+    } else {
+      var lastRunAt = btn.getAttribute('data-last-run-at');
+      status.textContent = lastRunAt ? ('last ' + relativeAgeShort(lastRunAt)) : 'never run';
+      btn.disabled = false;
+    }
+    btn.appendChild(status);
+  }
+
+  function relativeAgeShort(iso) {
+    var then = Date.parse(iso);
+    if (isNaN(then)) return 'unknown';
+    var deltaSec = Math.max(0, (Date.now() - then) / 1000);
+    if (deltaSec < 60)    return Math.round(deltaSec) + 's ago';
+    if (deltaSec < 3600)  return Math.round(deltaSec / 60) + 'm ago';
+    if (deltaSec < 86400) return Math.round(deltaSec / 3600) + 'h ago';
+    return Math.round(deltaSec / 86400) + 'd ago';
+  }
+
+  function ensureRefreshTick() {
+    if (refreshTickHandle) return;
+    refreshTickHandle = setInterval(function () {
+      var btns = document.querySelectorAll('.shopping-refresh__btn');
+      if (btns.length === 0) return;
+      btns.forEach(updateRefreshButton);
+    }, 1000);
+  }
+
+  function triggerRefresh(botId) {
+    if (refreshHelper.inFlight[botId]) return;
+    refreshHelper.inFlight[botId] = true;
+    document.querySelectorAll('.shopping-refresh__btn').forEach(updateRefreshButton);
+
+    var url = REFRESH_HELPER_URL + '/api/refresh?bot=' + encodeURIComponent(botId);
+    fetch(url, { method: 'POST', cache: 'no-store' }).then(function (r) {
+      if (r.status === 429) {
+        var ra = parseInt(r.headers.get('Retry-After') || '0', 10);
+        refreshHelper.cooldownUntil[botId] = Date.now() + Math.max(1, ra) * 1000;
+        return null;
+      }
+      if (!r.ok) {
+        return r.json().catch(function () { return null; }).then(function (body) {
+          flashRefreshError(botId, (body && body.detail) || ('helper error ' + r.status));
+          return null;
+        });
+      }
+      return r.json();
+    }).then(function (body) {
+      var cooldownS = cooldownForBot(botId);
+      // On success and on 4xx error alike, hold the button for the cooldown so
+      // the user doesn't hammer it.
+      if (!refreshHelper.cooldownUntil[botId] || refreshHelper.cooldownUntil[botId] < Date.now()) {
+        refreshHelper.cooldownUntil[botId] = Date.now() + cooldownS * 1000;
+      }
+      if (body && body.appended != null) {
+        return pollRefreshHelper().then(reloadPrices);
+      }
+    }).catch(function (err) {
+      flashRefreshError(botId, (err && err.message) ? err.message : 'request failed');
+    }).then(function () {
+      refreshHelper.inFlight[botId] = false;
+      render();
+    });
+  }
+
+  function cooldownForBot(botId) {
+    var bots = refreshHelper.bots || [];
+    for (var i = 0; i < bots.length; i++) {
+      if (bots[i].id === botId) return bots[i].cooldown_s || 30;
+    }
+    return 30;
+  }
+
+  function reloadPrices() {
+    return fetchJSON(DATA_BASE + 'prices.json').then(function (pricesFile) {
+      data.prices = {};
+      (pricesFile.entries || []).forEach(function (entry) {
+        if (!data.prices[entry.item_code]) data.prices[entry.item_code] = [];
+        data.prices[entry.item_code].push(entry);
+      });
+      data.lastUpdatedAt = pricesFile.last_updated_at || data.lastUpdatedAt;
+    }).catch(function () {});
+  }
+
+  function flashRefreshError(botId, msg) {
+    if (window.console && console.error) console.error('refresh ' + botId + ':', msg);
+    var btn = document.querySelector('.shopping-refresh__btn[data-bot-id="' + botId + '"]');
+    if (!btn) return;
+    btn.setAttribute('data-error', msg);
+    setTimeout(function () { if (btn) btn.removeAttribute('data-error'); }, 4000);
+  }
+
+  function renderRefreshOfflineChip() {
+    if (refreshHelper.state !== 'offline') return null;
+    // Plain button + sibling body — avoids <details>/<summary> getting picked
+    // up by Material's admonition styling.
+    var wrap = el('div', 'shopping-refresh-offline');
+    var toggle = el('button', 'shopping-refresh-offline__toggle');
+    toggle.type = 'button';
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.title = 'Local refresh helper isn’t running.';
+    toggle.appendChild(el('span', 'shopping-refresh-offline__icon', '↻'));
+    toggle.appendChild(el('span', null, 'Refresh prices…'));
+    wrap.appendChild(toggle);
+
+    var body = el('div', 'shopping-refresh-offline__body');
+    body.appendChild(el('p', 'shopping-refresh-offline__hint',
+      'Start the helper alongside your local mkdocs server to refresh prices from this page:'));
+    var cmdRow = el('div', 'shopping-refresh-offline__cmd-row');
+    cmdRow.appendChild(el('code', 'shopping-refresh-offline__cmd', REFRESH_COMMAND));
+    var copy = el('button', 'shopping-link shopping-refresh-offline__copy', 'Copy');
+    copy.type = 'button';
+    copy.addEventListener('click', function () {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(REFRESH_COMMAND).then(function () {
+          copy.textContent = 'Copied!';
+          setTimeout(function () { copy.textContent = 'Copy'; }, 1500);
+        });
+      }
+    });
+    cmdRow.appendChild(copy);
+    body.appendChild(cmdRow);
+    wrap.appendChild(body);
+
+    toggle.addEventListener('click', function () {
+      var open = wrap.classList.toggle('is-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    return wrap;
   }
 
   function renderConfigRow() {

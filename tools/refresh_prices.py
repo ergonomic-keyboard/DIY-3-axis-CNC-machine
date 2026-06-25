@@ -290,66 +290,115 @@ def observation_changed(old: dict[str, Any] | None, new: dict[str, Any]) -> bool
     return any(old.get(k) != new.get(k) for k in keys)
 
 
+def now_iso_utc() -> str:
+    return dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def load_prices() -> dict[str, Any]:
+    return json.loads(PRICES_PATH.read_text(encoding="utf-8"))
+
+
+def save_prices(prices: dict[str, Any]) -> None:
+    PRICES_PATH.write_text(json.dumps(prices, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def refresh_entry(entry: dict[str, Any], *, today: str | None = None) -> dict[str, Any]:
+    """Refresh a single (item_code, shop) entry in-place.
+
+    Mutates `entry` only when status == 'appended'. Returns:
+        {"status": "appended"|"skipped"|"failed", "reason": str, "observation": dict|None}
+
+    Used both by `refresh()` (CLI loop) and by `tools/refresh_server.py` (SL-9.d
+    local helper). The caller is responsible for `time.sleep` between calls
+    when iterating, and for writing prices.json back to disk.
+    """
+    if today is None:
+        today = now_iso_utc()
+
+    shop = entry.get("shop", "?")
+    url = entry.get("url")
+
+    if shop in SKIP_SHOPS:
+        return {"status": "skipped", "reason": "not auto-fetchable", "observation": None}
+    if looks_like_listing_url(url):
+        return {"status": "skipped", "reason": "listing/search/category URL, not a product page", "observation": None}
+
+    html = fetch_html(url)
+    if html is None:
+        return {"status": "failed", "reason": "fetch failed", "observation": None}
+
+    product = extract_offer(html)
+    if product is None:
+        return {"status": "failed", "reason": "no Product JSON-LD / Open Graph price found", "observation": None}
+
+    new_obs = {
+        "ts": today,
+        "price": product["price"],
+        "currency": product["currency"],
+        "in_stock": product["in_stock"],
+        "eta_days": (latest_observation(entry) or {}).get("eta_days"),
+        "technique": product.get("technique", "jsonld"),
+    }
+    if product.get("partial"):
+        # SL-8.h: product page existed but no price could be parsed. Persist a
+        # partial observation so the UI can prompt the user to complete it.
+        new_obs["partial"] = True
+        entry.setdefault("observations", []).insert(0, new_obs)
+        return {"status": "appended", "reason": "partial (product found, no price)", "observation": new_obs}
+
+    if not observation_changed(latest_observation(entry), new_obs):
+        return {"status": "skipped", "reason": "unchanged", "observation": new_obs}
+
+    entry.setdefault("observations", []).insert(0, new_obs)
+    return {"status": "appended", "reason": "new observation", "observation": new_obs}
+
+
 def refresh(prices: dict[str, Any], *, dry_run: bool) -> tuple[int, int, int]:
     appended = skipped = failed = 0
-    today = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    today = now_iso_utc()
 
     for entry in prices.get("entries", []):
         item = entry.get("item_code", "?")
         shop = entry.get("shop", "?")
-        url = entry.get("url")
         label = f"{item} @ {shop}"
 
+        # Pre-fetch skips get their own log line so the user sees why nothing happened.
         if shop in SKIP_SHOPS:
             skipped += 1
             print(f"[skip ] {label}: not auto-fetchable")
             continue
-        if looks_like_listing_url(url):
+        if looks_like_listing_url(entry.get("url")):
             skipped += 1
             print(f"[skip ] {label}: listing/search/category URL, not a product page")
             continue
 
-        print(f"[fetch] {label}: {url}")
-        html = fetch_html(url)
-        if html is None:
-            failed += 1
-            continue
+        print(f"[fetch] {label}: {entry.get('url')}")
+        result = refresh_entry(entry, today=today)
+        status = result["status"]
+        obs = result.get("observation") or {}
 
-        product = extract_offer(html)
-        if product is None:
+        if status == "failed":
             failed += 1
-            print(f"  no Product JSON-LD / Open Graph price found")
-            continue
-
-        new_obs = {
-            "ts": today,
-            "price": product["price"],
-            "currency": product["currency"],
-            "in_stock": product["in_stock"],
-            "eta_days": (latest_observation(entry) or {}).get("eta_days"),
-            "technique": product.get("technique", "jsonld"),
-        }
-        if product.get("partial"):
-            # SL-8.h: product page existed but no price could be parsed. Persist a
-            # partial observation so the UI can prompt the user to complete it.
-            new_obs["partial"] = True
-            entry.setdefault("observations", []).insert(0, new_obs)
-            appended += 1
-            print(f"  appended partial (product found, no price; technique={product['technique']})")
-        elif not observation_changed(latest_observation(entry), new_obs):
+            print(f"  {result['reason']}")
+        elif status == "skipped":
             skipped += 1
-            print(f"  unchanged ({product['currency']} {product['price']})")
-        else:
-            entry.setdefault("observations", []).insert(0, new_obs)
+            if obs.get("currency") and obs.get("price") is not None:
+                print(f"  unchanged ({obs['currency']} {obs['price']})")
+            else:
+                print(f"  {result['reason']}")
+        else:  # appended
             appended += 1
-            print(f"  appended {product['currency']} {product['price']} (in_stock={product['in_stock']})")
+            if obs.get("partial"):
+                print(f"  appended partial (product found, no price; technique={obs.get('technique')})")
+            else:
+                print(f"  appended {obs.get('currency')} {obs.get('price')} (in_stock={obs.get('in_stock')})")
 
         time.sleep(INTER_REQUEST_SLEEP_S)
 
     if appended > 0:
         prices["last_updated_at"] = today
     if not dry_run:
-        PRICES_PATH.write_text(json.dumps(prices, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        save_prices(prices)
     return appended, skipped, failed
 
 
@@ -358,7 +407,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dry-run", action="store_true", help="Print changes without writing prices.json")
     args = parser.parse_args(argv)
 
-    prices = json.loads(PRICES_PATH.read_text(encoding="utf-8"))
+    prices = load_prices()
     appended, skipped, failed = refresh(prices, dry_run=args.dry_run)
 
     print()
