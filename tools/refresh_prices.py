@@ -50,6 +50,7 @@ SKIP_SHOPS = {
     "aliexpress",  # URLs are search queries, per-seller variant pricing
     "amazon_nl",   # bot wall; needs PA-API
     "bol_nl",      # bot wall; needs Plaza/affiliate API
+    "conrad_nl",   # bot wall; product pages 403 with anything that looks like a script
     "3dhubs_print_service",  # quote-only, no fixed price
 }
 
