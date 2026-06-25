@@ -356,11 +356,20 @@
     return wrap;
   }
 
+  function observationAgeDays(obs) {
+    if (!obs || !obs.ts) return null;
+    var t = Date.parse(obs.ts);
+    if (isNaN(t)) return null;
+    return Math.floor((Date.now() - t) / 86400000);
+  }
+
   function renderShopRow(item, shop, entry, obs, isChosen, isBest) {
     var row = el('label', 'shopping-shop');
     row.htmlFor = 'shop-' + item.code + '-' + shop.id;
     if (isChosen) row.classList.add('is-chosen');
     if (isBest) row.classList.add('is-best');
+    var ageDays = observationAgeDays(obs);
+    if (ageDays != null && ageDays > 30) row.classList.add('is-stale');
 
     var radio = document.createElement('input');
     radio.type = 'radio';
@@ -389,7 +398,11 @@
     var priceText = obs && typeof obs.price === 'number'
       ? formatMoney(obs.price, obs.currency || shop.currency)
       : 'Quote';
-    row.appendChild(el('span', 'shopping-shop__price', priceText));
+    var priceEl = el('span', 'shopping-shop__price', priceText);
+    if (ageDays != null) {
+      priceEl.title = 'Captured ' + ageDays + ' day' + (ageDays === 1 ? '' : 's') + ' ago';
+    }
+    row.appendChild(priceEl);
 
     var stockDot = el('span', 'shopping-dot');
     var inStock = obs && obs.in_stock;
