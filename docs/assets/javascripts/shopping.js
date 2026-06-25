@@ -1,22 +1,62 @@
 (function () {
   'use strict';
 
-  var STATE_KEY = 'cnc-shopping-state-v1';
+  var STATE_KEY = 'cnc-shopping-state-v3';
+  var DEFAULT_CONFIG_ID = 'default';
+  var CUSTOM_CONFIG_ID  = 'custom';
   var DATA_BASE = null; // resolved at init from current page URL
   var SITE_BASE = null; // DATA_BASE without trailing "data/" — used for image src
   var OVERRIDE_SHOP_ID = '__override';
 
-  var data = { shops: [], shopsById: {}, countries: [], items: [], itemsByCode: {}, prices: {}, lastUpdatedAt: null };
+  var data = {
+    shops: [], shopsById: {}, countries: [],
+    items: [], itemsByCode: {},
+    // alternatives keyed by parent (canonical) code → array of alternative item objects.
+    // Each alternative carries its own unique `code` used as the key in prices.json.
+    alternativesByParent: {},
+    parentOfAlt: {},        // alternative code → parent code
+    altByCode: {},          // alternative code → alternative object (with .parent set)
+    configurations: [],     // built-in configurations from items.json
+    prices: {},
+    lastUpdatedAt: null
+  };
   var state = loadState();
 
+  var THUMB_MIN_REM = 2;
+  var THUMB_MAX_REM = 24;
+  var THUMB_DEFAULT_REM = 3;
+
   function loadState() {
-    var fallback = { version: 1, country: 'NL', selected: {}, shopOverride: {}, itemOverride: {} };
+    var fallback = {
+      version: 3,
+      country: 'NL',
+      selected: {},
+      shopOverride: {},
+      itemOverride: {},
+      defaultsApplied: false,
+      thumbRem: THUMB_DEFAULT_REM,
+      activeConfig: DEFAULT_CONFIG_ID,
+      customUses: {},
+      savedConfigurations: []
+    };
     try {
       var raw = localStorage.getItem(STATE_KEY);
       if (!raw) return fallback;
       var parsed = JSON.parse(raw);
       return Object.assign(fallback, parsed);
     } catch (e) { return fallback; }
+  }
+
+  // SL-8.b: every non-3D-printed item starts selected; 3D-printed parts start
+  // deselected. Runs once per user (gated by state.defaultsApplied) so the
+  // user's later deselections aren't reset on every load.
+  function applyDefaultSelection() {
+    if (state.defaultsApplied) return;
+    data.items.forEach(function (item) {
+      if (item.category !== 'printed') state.selected[item.code] = true;
+    });
+    state.defaultsApplied = true;
+    saveState();
   }
 
   function saveState() {
@@ -51,6 +91,7 @@
       fetchJSON(DATA_BASE + 'prices.json')
     ]).then(function (results) {
       ingest(results[0], results[1], results[2]);
+      applyDefaultSelection();
       render();
     }).catch(function (err) {
       root.innerHTML = '<p class="shopping-error">Could not load shopping data: ' +
@@ -66,8 +107,29 @@
 
     data.items = itemsFile.items || [];
     data.categories = itemsFile.categories || [];
+    data.configurations = itemsFile.configurations || [];
     data.itemsByCode = {};
-    data.items.forEach(function (i) { data.itemsByCode[i.code] = i; });
+    data.alternativesByParent = {};
+    data.parentOfAlt = {};
+    data.altByCode = {};
+    data.items.forEach(function (i) {
+      data.itemsByCode[i.code] = i;
+      var alts = i.alternatives || [];
+      if (alts.length === 0) return;
+      data.alternativesByParent[i.code] = alts.map(function (a) {
+        var enriched = Object.assign({
+          // Inherit display defaults from the parent when the alternative omits them.
+          category: i.category,
+          qty: i.qty,
+          image: a.image != null ? a.image : i.image,
+          parent: i.code
+        }, a);
+        enriched.parent = i.code;
+        data.parentOfAlt[enriched.code] = i.code;
+        data.altByCode[enriched.code] = enriched;
+        return enriched;
+      });
+    });
 
     data.prices = {};
     (pricesFile.entries || []).forEach(function (entry) {
@@ -75,6 +137,44 @@
       data.prices[entry.item_code].push(entry);
     });
     data.lastUpdatedAt = pricesFile.last_updated_at || null;
+  }
+
+  // -- Configurations & alternatives -------------------------------------
+
+  function builtInConfigs() {
+    var defaults = [{ id: DEFAULT_CONFIG_ID, label: 'Default (stock build)', uses: {} }];
+    return defaults.concat(data.configurations || []);
+  }
+
+  function allKnownConfigs() {
+    return builtInConfigs().concat(state.savedConfigurations || []);
+  }
+
+  function configById(id) {
+    var all = allKnownConfigs();
+    for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
+    return null;
+  }
+
+  // Map { parentCode → effectiveCode } describing the currently active substitutions.
+  function activeUses() {
+    if (state.activeConfig === CUSTOM_CONFIG_ID) return state.customUses || {};
+    var cfg = configById(state.activeConfig);
+    return cfg && cfg.uses ? cfg.uses : {};
+  }
+
+  // Given a canonical (parent) code, return the code that should currently be
+  // displayed and priced in that slot — either the parent or one of its alternatives.
+  function effectiveCodeFor(parentCode) {
+    var uses = activeUses();
+    var sub = uses[parentCode];
+    if (sub && (data.altByCode[sub] || data.itemsByCode[sub])) return sub;
+    return parentCode;
+  }
+
+  // Resolve a code (parent or alternative) to its renderable item object.
+  function itemByAnyCode(code) {
+    return data.itemsByCode[code] || data.altByCode[code] || null;
   }
 
   // -- Pricing helpers ---------------------------------------------------
@@ -136,17 +236,19 @@
     var perShop = {};
     var unassigned = [];
 
-    Object.keys(state.selected).forEach(function (code) {
-      if (!state.selected[code]) return;
-      var item = data.itemsByCode[code];
-      if (!item) return;
-      var shopId = chosenShopForItem(code);
-      if (!shopId) { unassigned.push(item); return; }
+    Object.keys(state.selected).forEach(function (parentCode) {
+      if (!state.selected[parentCode]) return;
+      var parent = data.itemsByCode[parentCode];
+      if (!parent) return;
+      var effCode = effectiveCodeFor(parentCode);
+      var eff = itemByAnyCode(effCode) || parent;
+      var shopId = chosenShopForItem(effCode);
+      if (!shopId) { unassigned.push(eff); return; }
 
       if (!perShop[shopId]) perShop[shopId] = { shopId: shopId, lines: [], subtotal: 0, missingPrice: false };
-      var qty = item.qty || 1;
-      var unit = unitPriceFor(code, shopId);
-      var line = { item: item, unitPrice: unit, qty: qty, lineTotal: (unit != null ? unit * qty : null) };
+      var qty = eff.qty || 1;
+      var unit = unitPriceFor(effCode, shopId);
+      var line = { item: eff, unitPrice: unit, qty: qty, lineTotal: (unit != null ? unit * qty : null) };
       perShop[shopId].lines.push(line);
       if (unit == null) perShop[shopId].missingPrice = true;
       else perShop[shopId].subtotal += line.lineTotal;
@@ -190,13 +292,31 @@
     var root = document.getElementById('shopping-app');
     root.removeAttribute('data-empty');
     root.innerHTML = '';
+    applyThumbSize(root);
     root.appendChild(renderHeader());
     root.appendChild(renderItemSections());
     root.appendChild(renderOrderSummary());
   }
 
+  function applyThumbSize(root) {
+    var rem = clampThumbRem(state.thumbRem);
+    root.style.setProperty('--shopping-thumb-size', rem + 'rem');
+  }
+
+  function clampThumbRem(v) {
+    var n = Number(v);
+    if (!isFinite(n)) return THUMB_DEFAULT_REM;
+    if (n < THUMB_MIN_REM) return THUMB_MIN_REM;
+    if (n > THUMB_MAX_REM) return THUMB_MAX_REM;
+    return n;
+  }
+
   function renderHeader() {
     var header = el('div', 'shopping-header');
+    header.appendChild(renderConfigRow());
+
+    var bottomRow = el('div', 'shopping-header__row');
+    header.appendChild(bottomRow);
 
     var left = el('div', 'shopping-header__controls');
     var label = el('label', 'shopping-label', 'Ship to');
@@ -217,7 +337,10 @@
     });
     left.appendChild(label);
     left.appendChild(sel);
-    header.appendChild(left);
+
+    left.appendChild(renderThumbSizeControl());
+
+    bottomRow.appendChild(left);
 
     var right = el('div', 'shopping-header__meta');
     if (data.lastUpdatedAt) {
@@ -239,13 +362,97 @@
     });
     right.appendChild(clearBtn);
 
-    header.appendChild(right);
+    bottomRow.appendChild(right);
     return header;
+  }
+
+  function renderConfigRow() {
+    var row = el('div', 'shopping-config-row');
+    var label = el('label', 'shopping-label', 'Configuration');
+    label.htmlFor = 'shopping-config';
+    var sel = el('select', 'shopping-select shopping-config__select');
+    sel.id = 'shopping-config';
+
+    var configs = allKnownConfigs();
+    configs.forEach(function (cfg) {
+      var opt = document.createElement('option');
+      opt.value = cfg.id;
+      opt.textContent = cfg.label;
+      if (cfg.id === state.activeConfig) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    // The "Custom" entry only appears when the user has made an ad-hoc swap that
+    // doesn't match any saved configuration. It can't be selected via the dropdown
+    // because picking an alternative is what creates it.
+    if (state.activeConfig === CUSTOM_CONFIG_ID) {
+      var opt = document.createElement('option');
+      opt.value = CUSTOM_CONFIG_ID;
+      opt.textContent = 'Custom (unsaved)';
+      opt.selected = true;
+      sel.appendChild(opt);
+    }
+    sel.addEventListener('change', function () {
+      state.activeConfig = sel.value;
+      saveState();
+      render();
+    });
+
+    row.appendChild(label);
+    row.appendChild(sel);
+
+    // When in Custom state, expose a button to discard the swaps and return to Default.
+    if (state.activeConfig === CUSTOM_CONFIG_ID) {
+      var resetBtn = el('button', 'shopping-link', 'Reset to default');
+      resetBtn.type = 'button';
+      resetBtn.addEventListener('click', function () {
+        state.customUses = {};
+        state.activeConfig = DEFAULT_CONFIG_ID;
+        saveState();
+        render();
+      });
+      row.appendChild(resetBtn);
+    }
+
+    return row;
+  }
+
+  function renderThumbSizeControl() {
+    var wrap = el('div', 'shopping-thumb-control');
+    var label = el('label', 'shopping-label', 'Thumbnails');
+    label.htmlFor = 'shopping-thumb-size';
+    var slider = document.createElement('input');
+    slider.type = 'range';
+    slider.id = 'shopping-thumb-size';
+    slider.className = 'shopping-thumb-slider';
+    slider.min = String(THUMB_MIN_REM);
+    slider.max = String(THUMB_MAX_REM);
+    slider.step = '0.25';
+    slider.value = String(clampThumbRem(state.thumbRem));
+    slider.setAttribute('aria-label', 'Thumbnail size');
+    // Live-update the CSS custom property during the drag for a smooth scrub,
+    // and only persist on commit (`change`) so we don't thrash localStorage.
+    slider.addEventListener('input', function () {
+      var root = document.getElementById('shopping-app');
+      if (root) root.style.setProperty('--shopping-thumb-size', slider.value + 'rem');
+    });
+    slider.addEventListener('change', function () {
+      state.thumbRem = clampThumbRem(slider.value);
+      saveState();
+    });
+    wrap.appendChild(label);
+    wrap.appendChild(slider);
+    return wrap;
   }
 
   function renderItemSections() {
     var wrap = el('div', 'shopping-items');
-    data.categories.forEach(function (cat) {
+    // SL-8.b: 3D-printed parts render at the bottom; all other categories keep their authored order.
+    var orderedCategories = data.categories.slice().sort(function (a, b) {
+      var aPrinted = a.id === 'printed' ? 1 : 0;
+      var bPrinted = b.id === 'printed' ? 1 : 0;
+      return aPrinted - bPrinted;
+    });
+    orderedCategories.forEach(function (cat) {
       var itemsInCat = data.items.filter(function (i) { return i.category === cat.id; });
       if (itemsInCat.length === 0) return;
       var section = el('section', 'shopping-category');
@@ -263,9 +470,48 @@
       section.appendChild(headerRow);
 
       itemsInCat.forEach(function (item) { section.appendChild(renderItemRow(item)); });
+      section.appendChild(renderCategoryFooter(itemsInCat));
       wrap.appendChild(section);
     });
     return wrap;
+  }
+
+  function renderCategoryFooter(itemsInCat) {
+    var summary = buildSectionSummary(itemsInCat);
+    var foot = el('div', 'shopping-category__footer');
+    foot.appendChild(el('span', null,
+      summary.selectedCount + ' of ' + summary.totalCount + ' selected'));
+    if (summary.unsourced > 0) {
+      foot.appendChild(el('span', 'shopping-category__footer-warn',
+        summary.unsourced + ' unsourced'));
+    }
+    var totalLabel = summary.selectedCount === 0 ? '—' : formatMoney(summary.subtotal, 'EUR');
+    var totalEl = el('span', 'shopping-category__footer-total',
+      'Subtotal ' + totalLabel);
+    foot.appendChild(totalEl);
+    return foot;
+  }
+
+  function buildSectionSummary(itemsInCat) {
+    var selectedCount = 0;
+    var subtotal = 0;
+    var unsourced = 0;
+    itemsInCat.forEach(function (parent) {
+      if (!state.selected[parent.code]) return;
+      selectedCount++;
+      var effCode = effectiveCodeFor(parent.code);
+      var eff = itemByAnyCode(effCode) || parent;
+      var shopId = chosenShopForItem(effCode);
+      var unit = shopId ? unitPriceFor(effCode, shopId) : null;
+      if (unit == null) { unsourced++; return; }
+      subtotal += unit * (eff.qty || 1);
+    });
+    return {
+      selectedCount: selectedCount,
+      totalCount: itemsInCat.length,
+      subtotal: subtotal,
+      unsourced: unsourced
+    };
   }
 
   function selectAllLabel(itemsInCat) {
@@ -273,40 +519,112 @@
     return allOn ? 'Deselect all' : 'Select all';
   }
 
-  function renderItemRow(item) {
+  function renderItemRow(parentItem) {
+    var effectiveCode = effectiveCodeFor(parentItem.code);
+    var effective = itemByAnyCode(effectiveCode) || parentItem;
+    var isAlt = effectiveCode !== parentItem.code;
+
     var row = el('div', 'shopping-item');
-    if (state.selected[item.code]) row.classList.add('is-selected');
+    if (state.selected[parentItem.code]) row.classList.add('is-selected');
+    if (isAlt) row.classList.add('is-alternative');
 
     var head = el('label', 'shopping-item__head');
-    head.htmlFor = 'sel-' + item.code;
+    head.htmlFor = 'sel-' + parentItem.code;
     var cb = document.createElement('input');
     cb.type = 'checkbox';
-    cb.id = 'sel-' + item.code;
+    cb.id = 'sel-' + parentItem.code;
     cb.className = 'shopping-item__checkbox';
-    cb.checked = !!state.selected[item.code];
+    cb.checked = !!state.selected[parentItem.code];
     cb.addEventListener('change', function () {
-      state.selected[item.code] = cb.checked;
+      state.selected[parentItem.code] = cb.checked;
       saveState();
       render();
     });
     head.appendChild(cb);
 
-    head.appendChild(renderItemThumb(item));
+    head.appendChild(renderItemThumb(effective));
 
     var titleWrap = el('div', 'shopping-item__title');
-    titleWrap.appendChild(el('span', 'shopping-item__code', item.code));
-    titleWrap.appendChild(el('span', 'shopping-item__name', item.name));
-    var qtyText = 'Qty ' + (item.qty != null ? item.qty : '?') + (item.qty_note ? ' (' + item.qty_note + ')' : '');
+    titleWrap.appendChild(el('span', 'shopping-item__code', parentItem.code));
+    titleWrap.appendChild(el('span', 'shopping-item__name', effective.name));
+    if (isAlt) {
+      titleWrap.appendChild(el('span', 'shopping-item__alt-badge', 'Alternative'));
+    }
+    var qtyText = 'Qty ' + (effective.qty != null ? effective.qty : '?') +
+      (effective.qty_note ? ' (' + effective.qty_note + ')' : '');
     titleWrap.appendChild(el('span', 'shopping-item__qty', qtyText));
     head.appendChild(titleWrap);
 
     row.appendChild(head);
 
-    if (state.selected[item.code]) {
-      row.appendChild(renderShopOptions(item));
-      row.appendChild(renderItemOverride(item));
+    if (state.selected[parentItem.code]) {
+      row.appendChild(renderAlternativesPicker(parentItem, effectiveCode));
+      row.appendChild(renderShopOptions(effective));
+      row.appendChild(renderItemOverride(effective));
     }
     return row;
+  }
+
+  function renderAlternativesPicker(parentItem, effectiveCode) {
+    var alts = data.alternativesByParent[parentItem.code] || [];
+    if (alts.length === 0) return el('span', 'shopping-alts-empty'); // no-op placeholder
+
+    var wrap = el('details', 'shopping-alts');
+    wrap.open = effectiveCode !== parentItem.code; // open by default when an alternative is active
+    var summary = el('summary', 'shopping-alts__summary',
+      'Alternatives (' + alts.length + ')');
+    wrap.appendChild(summary);
+
+    var list = el('div', 'shopping-alts__list');
+    var groupName = 'alt-pick-' + parentItem.code;
+
+    // The first row is the canonical (parent) item as the "default" choice.
+    list.appendChild(renderAltChoice({
+      name: groupName,
+      id: 'alt-' + parentItem.code + '-default',
+      label: parentItem.name + ' (default)',
+      isChecked: effectiveCode === parentItem.code,
+      onPick: function () { setEffectiveAlternative(parentItem.code, null); }
+    }));
+
+    alts.forEach(function (a) {
+      list.appendChild(renderAltChoice({
+        name: groupName,
+        id: 'alt-' + parentItem.code + '-' + a.code,
+        label: a.name,
+        isChecked: effectiveCode === a.code,
+        onPick: function () { setEffectiveAlternative(parentItem.code, a.code); }
+      }));
+    });
+
+    wrap.appendChild(list);
+    return wrap;
+  }
+
+  function renderAltChoice(opts) {
+    var row = el('label', 'shopping-alts__choice');
+    row.htmlFor = opts.id;
+    if (opts.isChecked) row.classList.add('is-chosen');
+    var radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = opts.name;
+    radio.id = opts.id;
+    radio.checked = opts.isChecked;
+    radio.addEventListener('change', function () { opts.onPick(); });
+    row.appendChild(radio);
+    row.appendChild(el('span', 'shopping-alts__choice-label', opts.label));
+    return row;
+  }
+
+  // Picking an alternative (or the default) updates state.customUses and switches
+  // the active config to "custom" so the user can compare against built-in bundles.
+  function setEffectiveAlternative(parentCode, altCode) {
+    if (!state.customUses) state.customUses = {};
+    if (altCode == null) delete state.customUses[parentCode];
+    else state.customUses[parentCode] = altCode;
+    state.activeConfig = CUSTOM_CONFIG_ID;
+    saveState();
+    render();
   }
 
   function renderItemThumb(item) {
@@ -466,42 +784,40 @@
     return row;
   }
 
-  function renderItemOverride(item) {
-    var wrap = el('details', 'shopping-override');
-    var summary = el('summary', 'shopping-override__summary',
-      state.itemOverride[item.code] ? 'Edit override' : 'Add your own (EAN / product link)');
-    wrap.appendChild(summary);
-
-    var ov = state.itemOverride[item.code] || {};
-    var form = el('div', 'shopping-override__form');
-
+  // SL-8.e: single-line form reused for the per-item override and (later, SL-8.d)
+  // the "add alternative product" flow. Both collect the same five fields.
+  function renderInlineProductForm(opts) {
+    var values = opts.values || {};
     var fields = [
-      { key: 'shop_label', label: 'Shop name / label', type: 'text', placeholder: 'e.g. Local hardware store' },
-      { key: 'url',        label: 'Product link',     type: 'url',  placeholder: 'https://…' },
-      { key: 'ean',        label: 'EAN (optional)',   type: 'text', placeholder: 'e.g. 8718469556175' },
-      { key: 'price',      label: 'Price (EUR)',      type: 'number', step: '0.01', placeholder: '0.00' },
-      { key: 'eta_days',   label: 'ETA (days)',       type: 'number', step: '1',    placeholder: 'e.g. 3' }
+      { key: 'shop_label', label: 'Shop name / label', type: 'text',   placeholder: 'Shop',          size: 'shop'  },
+      { key: 'url',        label: 'Product link',      type: 'url',    placeholder: 'https://…',     size: 'url'   },
+      { key: 'ean',        label: 'EAN (optional)',    type: 'text',   placeholder: 'EAN',           size: 'ean'   },
+      { key: 'price',      label: 'Price (EUR)',       type: 'number', step: '0.01', placeholder: '€',   size: 'price' },
+      { key: 'eta_days',   label: 'ETA (days)',        type: 'number', step: '1',    placeholder: 'days',size: 'eta'   }
     ];
 
+    var form = el('div', 'shopping-inline-form');
     var inputs = {};
     fields.forEach(function (f) {
-      var row = el('div', 'shopping-override__field');
-      var lbl = el('label', null, f.label);
+      var fieldId = opts.idPrefix + '-' + f.key;
+      var field = el('label', 'shopping-inline-form__field shopping-inline-form__field--' + f.size);
+      field.htmlFor = fieldId;
+      field.appendChild(el('span', 'shopping-inline-form__label', f.label));
       var inp = document.createElement('input');
       inp.type = f.type;
+      inp.id = fieldId;
+      inp.className = 'shopping-inline-form__input';
       if (f.step) inp.step = f.step;
       if (f.placeholder) inp.placeholder = f.placeholder;
-      if (ov[f.key] != null) inp.value = ov[f.key];
-      lbl.htmlFor = 'ov-' + item.code + '-' + f.key;
-      inp.id = 'ov-' + item.code + '-' + f.key;
+      if (values[f.key] != null && values[f.key] !== '') inp.value = values[f.key];
+      inp.setAttribute('aria-label', f.label);
       inputs[f.key] = inp;
-      row.appendChild(lbl);
-      row.appendChild(inp);
-      form.appendChild(row);
+      field.appendChild(inp);
+      form.appendChild(field);
     });
 
-    var actions = el('div', 'shopping-override__actions');
-    var saveBtn = el('button', 'shopping-btn shopping-btn--primary', 'Save override');
+    var actions = el('div', 'shopping-inline-form__actions');
+    var saveBtn = el('button', 'shopping-btn shopping-btn--primary', opts.submitLabel || 'Save');
     saveBtn.type = 'button';
     saveBtn.addEventListener('click', function () {
       var url = inputs.url.value.trim();
@@ -512,36 +828,61 @@
       }
       var price = parseFloat(inputs.price.value);
       var eta = parseInt(inputs.eta_days.value, 10);
-      state.itemOverride[item.code] = {
-        shop_label: inputs.shop_label.value.trim() || 'Custom shop',
+      opts.onSave({
+        shop_label: inputs.shop_label.value.trim() || null,
         url: url,
         ean: ean || null,
         price: isFinite(price) ? price : null,
         currency: 'EUR',
-        eta_days: isFinite(eta) ? eta : null,
-        in_stock: true
-      };
-      // Make the override the active pick for this item.
-      delete state.shopOverride[item.code];
-      saveState();
-      render();
+        eta_days: isFinite(eta) ? eta : null
+      });
     });
     actions.appendChild(saveBtn);
 
-    if (state.itemOverride[item.code]) {
-      var clear = el('button', 'shopping-btn', 'Remove override');
+    if (typeof opts.onRemove === 'function') {
+      var clear = el('button', 'shopping-btn', opts.removeLabel || 'Remove');
       clear.type = 'button';
-      clear.addEventListener('click', function () {
-        delete state.itemOverride[item.code];
-        saveState();
-        render();
-      });
+      clear.addEventListener('click', function () { opts.onRemove(); });
       actions.appendChild(clear);
     }
     form.appendChild(actions);
-    wrap.appendChild(form);
+    return form;
+  }
 
-    if (state.itemOverride[item.code]) wrap.open = true;
+  function renderItemOverride(item) {
+    var wrap = el('details', 'shopping-override');
+    var hasOverride = !!state.itemOverride[item.code];
+    var summary = el('summary', 'shopping-override__summary',
+      hasOverride ? 'Edit override' : 'Add your own (EAN / product link)');
+    wrap.appendChild(summary);
+
+    wrap.appendChild(renderInlineProductForm({
+      idPrefix: 'ov-' + item.code,
+      values: state.itemOverride[item.code] || {},
+      submitLabel: 'Save override',
+      removeLabel: 'Remove override',
+      onSave: function (vals) {
+        state.itemOverride[item.code] = {
+          shop_label: vals.shop_label || 'Custom shop',
+          url: vals.url,
+          ean: vals.ean,
+          price: vals.price,
+          currency: vals.currency,
+          eta_days: vals.eta_days,
+          in_stock: true
+        };
+        delete state.shopOverride[item.code];
+        saveState();
+        render();
+      },
+      onRemove: hasOverride ? function () {
+        delete state.itemOverride[item.code];
+        saveState();
+        render();
+      } : null
+    }));
+
+    if (hasOverride) wrap.open = true;
     return wrap;
   }
 
