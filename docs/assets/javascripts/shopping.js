@@ -9,6 +9,9 @@
   var SITE_BASE = null; // DATA_BASE without trailing "data/" — used for image src
   var OVERRIDE_SHOP_ID = '__override';
   var USER_SHOP_PREFIX = '__user_';
+  // SL-10.O: prefix for user-added shops attached to an existing item.
+  // Kept distinct from USER_SHOP_PREFIX so sync routines don't tread on each other.
+  var ADDED_SHOP_PREFIX = '__addedshop_';
 
   var data = {
     shops: [], shopsById: {}, countries: [],
@@ -83,17 +86,20 @@
       itemOverridePrefill: {},
       // SL-10.a: TOC fold state — group id → true if collapsed. Default unfolded.
       collapsedCategories: {},
-      // SL-10.E: per-item expansion — parent code → true if the row's full
-      // shop list / override form is visible. Default collapsed (1 line).
+      // SL-10.N + SL-10.O: per-item add-form state, parent code → 'alt' | 'shop'
+      // (or absent when no form is open). At most one form is open per row.
+      openAdd: {},
+      // Deprecated, kept for one-shot migration to state.openAdd on load.
       expandedItems: {},
-      // SL-10.I: global toggle — when true, every item renders its full shop
-      // list inline below the head (without the override/add-alt forms).
-      showAllShops: false,
       // SL-10.K: per-user manual price observations keyed by "<item>::<shop>".
       // Each value is { price, currency, eta_days, ts } and gets injected as
       // a manual observation into data.prices so the existing pricing,
       // picker, and history machinery picks it up.
-      userPriceObservations: {}
+      userPriceObservations: {},
+      // SL-10.O: user-added shops for an existing item — { itemCode: [shop, ...] }.
+      // Each shop object includes a synthesized id (ADDED_SHOP_PREFIX + …) and
+      // becomes a real shop entry in data.shops + data.prices via sync.
+      userShops: {}
     };
     try {
       var raw = localStorage.getItem(STATE_KEY);
@@ -109,8 +115,10 @@
         merged.validations = merged.validations || {};
         merged.itemOverridePrefill = merged.itemOverridePrefill || {};
         merged.collapsedCategories = merged.collapsedCategories || {};
+        merged.openAdd = merged.openAdd || {};
         merged.expandedItems = merged.expandedItems || {};
         merged.userPriceObservations = merged.userPriceObservations || {};
+        merged.userShops = merged.userShops || {};
         return merged;
       }
       return fallback;
@@ -163,9 +171,12 @@
     ]).then(function (results) {
       ingest(results[0], results[1], results[2]);
       syncUserAlternativesIntoData();
+      syncUserShopsIntoData();
       // SL-10.L: legacy state.itemOverride data is preserved as manual
       // user-price observations against the first scoped shop, then cleared.
       migrateItemOverridesToUserPrices();
+      // Migrate state.expandedItems (boolean) → state.openAdd[code]='alt'.
+      migrateExpandedItemsToOpenAdd();
       syncUserPriceObservationsIntoData();
       applyDefaultSelection();
       snapActiveConfigFromCustom();
@@ -351,6 +362,105 @@
       };
     }
     syncUserPriceObservationsIntoData();
+    saveState();
+    render();
+  }
+
+  function migrateExpandedItemsToOpenAdd() {
+    if (!state.expandedItems || Object.keys(state.expandedItems).length === 0) return;
+    if (!state.openAdd) state.openAdd = {};
+    var moved = false;
+    Object.keys(state.expandedItems).forEach(function (code) {
+      if (state.expandedItems[code] && !state.openAdd[code]) {
+        state.openAdd[code] = 'alt';
+        moved = true;
+      }
+    });
+    state.expandedItems = {};
+    if (moved) saveState();
+  }
+
+  // SL-10.O: weave user-added shops into data.shops + data.prices so they
+  // show up in the shop dropdown alongside seeded shops. Each user shop
+  // becomes a synthetic shop entry (ADDED_SHOP_PREFIX + …) and a price
+  // entry with one manual observation.
+  function syncUserShopsIntoData() {
+    data.shops = data.shops.filter(function (s) {
+      return s.id.indexOf(ADDED_SHOP_PREFIX) !== 0;
+    });
+    Object.keys(data.shopsById).forEach(function (id) {
+      if (id.indexOf(ADDED_SHOP_PREFIX) === 0) delete data.shopsById[id];
+    });
+    Object.keys(data.prices).forEach(function (itemCode) {
+      data.prices[itemCode] = data.prices[itemCode].filter(function (e) {
+        return e.shop.indexOf(ADDED_SHOP_PREFIX) !== 0;
+      });
+    });
+    var nowIso = new Date().toISOString();
+    Object.keys(state.userShops || {}).forEach(function (itemCode) {
+      (state.userShops[itemCode] || []).forEach(function (us) {
+        var synth = {
+          id: us.id,
+          name: us.shop_label || 'Custom shop',
+          country: state.country,
+          currency: us.currency || 'EUR',
+          home_url: us.url || '#',
+          shipping: {
+            standard_cost: typeof us.shipping_cost === 'number' ? us.shipping_cost : 0,
+            default_eta_days: typeof us.eta_days === 'number' ? us.eta_days : null
+          },
+          userAdded: true
+        };
+        data.shops.push(synth);
+        data.shopsById[us.id] = synth;
+        if (!data.prices[itemCode]) data.prices[itemCode] = [];
+        data.prices[itemCode].push({
+          item_code: itemCode,
+          shop: us.id,
+          url: us.url || null,
+          observations: [{
+            ts: us.ts || nowIso,
+            price: typeof us.price === 'number' ? us.price : null,
+            currency: us.currency || 'EUR',
+            in_stock: us.in_stock != null ? us.in_stock : true,
+            eta_days: typeof us.eta_days === 'number' ? us.eta_days : null,
+            technique: 'manual'
+          }]
+        });
+      });
+    });
+  }
+
+  function generateAddedShopId(itemCode) {
+    var bytes = new Uint8Array(2);
+    var src = window.crypto || window.msCrypto;
+    if (src && src.getRandomValues) src.getRandomValues(bytes);
+    else { bytes[0] = Math.floor(Math.random() * 256); bytes[1] = Math.floor(Math.random() * 256); }
+    var hex = ('0' + bytes[0].toString(16)).slice(-2) + ('0' + bytes[1].toString(16)).slice(-2);
+    var id = ADDED_SHOP_PREFIX + itemCode + '_' + hex;
+    if (data.shopsById[id]) return generateAddedShopId(itemCode);  // collision retry
+    return id;
+  }
+
+  function addUserShop(itemCode, vals) {
+    if (!state.userShops) state.userShops = {};
+    if (!state.userShops[itemCode]) state.userShops[itemCode] = [];
+    var id = generateAddedShopId(itemCode);
+    state.userShops[itemCode].push({
+      id: id,
+      shop_label: vals.shop_label,
+      url: vals.url,
+      price: vals.price,
+      currency: vals.currency || 'EUR',
+      eta_days: typeof vals.eta_days === 'number' ? vals.eta_days : null,
+      shipping_cost: typeof vals.shipping_cost === 'number' ? vals.shipping_cost : null,
+      in_stock: true,
+      ts: new Date().toISOString()
+    });
+    syncUserShopsIntoData();
+    // Select the newly-added shop so the user immediately sees their price on the row.
+    state.shopOverride[itemCode] = id;
+    if (state.openAdd) delete state.openAdd[itemCode];
     saveState();
     render();
   }
@@ -1223,33 +1333,36 @@
   }
 
   // SL-10.E + SL-10.M: per-item row is a single line at most thumbnail-tall.
-  // The head presents every primary affordance (checkbox, thumb, code+name+qty,
-  // alts dropdown, shop dropdown + meta, history icon, + Add icon, price).
-  // SL-10.N: the only bar that may appear below the row is the add-alt form,
-  // shown when the user clicks "+ Add" on this item.
+  // SL-10.N + SL-10.O: at most one of the add-alt / add-shop forms may appear
+  // directly below the row, gated by state.openAdd[parentCode].
   function renderItemRow(parentItem) {
     var effectiveCode = effectiveCodeFor(parentItem.code);
     var effective = itemByAnyCode(effectiveCode) || parentItem;
     var isAlt = effectiveCode !== parentItem.code;
     var isSelected = !!state.selected[parentItem.code];
-    var addAltOpen = !!(state.expandedItems && state.expandedItems[parentItem.code]);
+    var openKind = state.openAdd && state.openAdd[parentItem.code]; // 'alt' | 'shop' | undefined
 
     var row = el('div', 'shopping-item');
     if (isSelected) row.classList.add('is-selected');
     if (isAlt) row.classList.add('is-alternative');
-    if (addAltOpen) row.classList.add('is-add-alt-open');
+    if (openKind === 'alt') row.classList.add('is-add-alt-open');
+    if (openKind === 'shop') row.classList.add('is-add-shop-open');
 
-    row.appendChild(renderItemHead(parentItem, effective, effectiveCode, isAlt, isSelected, addAltOpen));
+    row.appendChild(renderItemHead(parentItem, effective, effectiveCode, isAlt, isSelected, openKind));
 
-    if (addAltOpen) {
-      var body = el('div', 'shopping-item__body');
-      body.appendChild(renderAddAlternativeForm(parentItem));
-      row.appendChild(body);
+    if (openKind === 'alt') {
+      var altBody = el('div', 'shopping-item__body shopping-item__body--alt');
+      altBody.appendChild(renderAddAlternativeForm(parentItem));
+      row.appendChild(altBody);
+    } else if (openKind === 'shop') {
+      var shopBody = el('div', 'shopping-item__body shopping-item__body--shop');
+      shopBody.appendChild(renderAddShopForm(parentItem, effective));
+      row.appendChild(shopBody);
     }
     return row;
   }
 
-  function renderItemHead(parentItem, effective, effectiveCode, isAlt, isSelected, addAltOpen) {
+  function renderItemHead(parentItem, effective, effectiveCode, isAlt, isSelected, openKind) {
     var head = el('div', 'shopping-item__head');
 
     var cbLabel = el('label', 'shopping-item__check');
@@ -1283,39 +1396,62 @@
     // History popover for the currently-selected shop (SL-8.f/g preservation).
     var historyEl = renderHeadHistoryControl(effective);
     if (historyEl) head.appendChild(historyEl);
-    head.appendChild(renderAddItemButton(parentItem, addAltOpen));
+    head.appendChild(renderAddAltButton(parentItem, openKind === 'alt'));
+    head.appendChild(renderAddShopButton(parentItem, effective, openKind === 'shop'));
     // SL-10.G: price lives at the rightmost edge of the row, "—" when missing.
     head.appendChild(renderItemPrice(effective));
 
     return head;
   }
 
-  // SL-10.N: single "+ Add" icon on the head. Clicking toggles the
-  // add-alternative form (the only bar permitted directly below the row).
-  function renderAddItemButton(parentItem, isOpen) {
-    var btn = el('button', 'shopping-item__add' + (isOpen ? ' is-open' : ''));
+  // SL-10.N: "+ Alt" icon — toggles the add-alternative form below the row.
+  function renderAddAltButton(parentItem, isOpen) {
+    var btn = el('button', 'shopping-item__add shopping-item__add--alt' + (isOpen ? ' is-open' : ''));
     btn.type = 'button';
     btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     btn.setAttribute('aria-controls', 'add-alt-body-' + parentItem.code);
     var label = isOpen
       ? 'Close add-alternative form for ' + parentItem.name
-      : 'Add an alternative for ' + parentItem.name + ' (EAN / product link / price)';
+      : 'Add an alternative product for ' + parentItem.name + ' (EAN / product link / price)';
     btn.setAttribute('aria-label', label);
     btn.title = label;
     btn.appendChild(el('span', 'shopping-item__add-icon', isOpen ? '×' : '+'));
-    btn.appendChild(el('span', 'shopping-item__add-text', 'Add'));
-    btn.addEventListener('click', function () {
-      if (!state.expandedItems) state.expandedItems = {};
-      if (state.expandedItems[parentItem.code]) delete state.expandedItems[parentItem.code];
-      else state.expandedItems[parentItem.code] = true;
-      saveState();
-      render();
-      requestAnimationFrame(function () {
-        var f = document.getElementById('add-alt-' + parentItem.code + '-name');
-        if (f) f.focus();
-      });
-    });
+    btn.appendChild(el('span', 'shopping-item__add-text', 'Alt'));
+    btn.addEventListener('click', function () { toggleOpenAdd(parentItem.code, 'alt'); });
     return btn;
+  }
+
+  // SL-10.O: "+ Shop" icon — toggles the add-shop form below the row. Distinct
+  // styling from "+ Alt" so the user sees which they're adding.
+  function renderAddShopButton(parentItem, effective, isOpen) {
+    var btn = el('button', 'shopping-item__add shopping-item__add--shop' + (isOpen ? ' is-open' : ''));
+    btn.type = 'button';
+    btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    btn.setAttribute('aria-controls', 'add-shop-body-' + parentItem.code);
+    var label = isOpen
+      ? 'Close add-shop form for ' + parentItem.name
+      : 'Add a shop for ' + parentItem.name + ' (URL / shop name / price)';
+    btn.setAttribute('aria-label', label);
+    btn.title = label;
+    btn.appendChild(el('span', 'shopping-item__add-icon', isOpen ? '×' : '+'));
+    btn.appendChild(el('span', 'shopping-item__add-text', 'Shop'));
+    btn.addEventListener('click', function () { toggleOpenAdd(parentItem.code, 'shop'); });
+    return btn;
+  }
+
+  function toggleOpenAdd(code, kind) {
+    if (!state.openAdd) state.openAdd = {};
+    if (state.openAdd[code] === kind) delete state.openAdd[code];
+    else state.openAdd[code] = kind;
+    saveState();
+    render();
+    requestAnimationFrame(function () {
+      var firstFieldId = kind === 'alt'
+        ? 'add-alt-' + code + '-name'
+        : 'add-shop-' + code + '-shop_label';
+      var f = document.getElementById(firstFieldId);
+      if (f) f.focus();
+    });
   }
 
   // SL-8.f / SL-8.g preserved on the slim head row: a small sparkline-or-glyph
@@ -1595,6 +1731,75 @@
     input.addEventListener('blur', commit);
     // Stop double-click on the input itself from bubbling and reopening.
     input.addEventListener('dblclick', function (e) { e.stopPropagation(); });
+  }
+
+  // SL-10.O: dedicated add-shop form — only 5 fields, distinct from add-alt.
+  function renderAddShopForm(parentItem, effective) {
+    var wrap = el('div', 'shopping-add-shop');
+    wrap.id = 'add-shop-body-' + parentItem.code;
+    wrap.appendChild(el('h4', 'shopping-add-shop__title',
+      'Add a shop for ' + parentItem.name));
+    wrap.appendChild(renderInlineShopForm({
+      idPrefix: 'add-shop-' + parentItem.code,
+      onSave: function (vals) { addUserShop(effective.code, vals); }
+    }));
+    return wrap;
+  }
+
+  function renderInlineShopForm(opts) {
+    var fields = [
+      { key: 'shop_label',    label: 'Shop name *',    type: 'text',   placeholder: 'Shop *',       size: 'shop',  required: true },
+      { key: 'url',           label: 'Product link *', type: 'url',    placeholder: 'https://… *',  size: 'url',   required: true },
+      { key: 'price',         label: 'Price (EUR) *',  type: 'number', step: '0.01', placeholder: '€ *', size: 'price', required: true },
+      { key: 'eta_days',      label: 'Available in (days)', type: 'number', step: '1', placeholder: 'days', size: 'eta' },
+      { key: 'shipping_cost', label: 'Shipping cost',  type: 'number', step: '0.01', placeholder: 'ship €', size: 'price' }
+    ];
+    var values = opts.values || {};
+    var form = el('div', 'shopping-inline-form shopping-inline-form--shop');
+    var inputs = {};
+    fields.forEach(function (f) {
+      var fieldId = opts.idPrefix + '-' + f.key;
+      var field = el('label', 'shopping-inline-form__field shopping-inline-form__field--' + f.size);
+      field.htmlFor = fieldId;
+      field.appendChild(el('span', 'shopping-inline-form__label', f.label));
+      var inp = document.createElement('input');
+      inp.type = f.type;
+      inp.id = fieldId;
+      inp.className = 'shopping-inline-form__input';
+      if (f.step) inp.step = f.step;
+      if (f.placeholder) inp.placeholder = f.placeholder;
+      if (values[f.key] != null && values[f.key] !== '') inp.value = values[f.key];
+      inp.setAttribute('aria-label', f.label);
+      if (f.required) inp.required = true;
+      inputs[f.key] = inp;
+      field.appendChild(inp);
+      form.appendChild(field);
+    });
+
+    var actions = el('div', 'shopping-inline-form__actions');
+    var saveBtn = el('button', 'shopping-btn shopping-btn--primary', opts.submitLabel || 'Add shop');
+    saveBtn.type = 'button';
+    saveBtn.addEventListener('click', function () {
+      var shop_label = (inputs.shop_label.value || '').trim();
+      var url = (inputs.url.value || '').trim();
+      var price = parseFloat(inputs.price.value);
+      if (!shop_label) { alert('Shop name is required.'); inputs.shop_label.focus(); return; }
+      if (!url) { alert('Product URL is required.'); inputs.url.focus(); return; }
+      if (!isFinite(price) || price < 0) { alert('Price is required (a non-negative number).'); inputs.price.focus(); return; }
+      var eta = parseInt(inputs.eta_days.value, 10);
+      var ship = parseFloat(inputs.shipping_cost.value);
+      opts.onSave({
+        shop_label: shop_label,
+        url: url,
+        price: price,
+        currency: 'EUR',
+        eta_days: isFinite(eta) ? eta : null,
+        shipping_cost: isFinite(ship) ? ship : null
+      });
+    });
+    actions.appendChild(saveBtn);
+    form.appendChild(actions);
+    return form;
   }
 
   function renderAddAlternativeForm(parentItem) {
