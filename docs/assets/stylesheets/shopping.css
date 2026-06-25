@@ -580,9 +580,10 @@
   cursor: help;
 }
 
-/* SL-10.N: single "+ Add" icon button on the head row. Toggling opens the
-   one-and-only bar permitted directly below the row — the add-alternative
-   form. */
+/* SL-10.N + SL-10.O: two side-by-side add buttons on the head — "+ Alt"
+   for an alternative product, "+ Shop" for a new shop on this item.
+   The two buttons are colored differently so the user can see at a glance
+   which action they're triggering. */
 .shopping-item__add {
   display: inline-flex;
   align-items: center;
@@ -606,7 +607,35 @@
   color: var(--shopping-accent);
   background: rgba(0, 0, 0, 0.02);
 }
+/* "+ Shop" picks up a green accent so it visually differs from "+ Alt". */
+.shopping-item__add--shop { border-color: rgba(46, 164, 79, 0.55); color: #2ea44f; }
+.shopping-item__add--shop:hover { border-color: #2ea44f; color: #2ea44f; background: rgba(46, 164, 79, 0.06); }
+.shopping-item__add--shop.is-open { border-color: #2ea44f; color: #2ea44f; background: rgba(46, 164, 79, 0.08); }
 .shopping-item__add-icon { font-size: 0.85rem; font-weight: 700; line-height: 1; }
+
+/* SL-10.O: dedicated add-shop body picks up the same green accent. */
+.shopping-item__body--shop {
+  border-top-color: rgba(46, 164, 79, 0.45);
+}
+.shopping-add-shop {
+  padding: 0.55rem;
+  border: 1px solid rgba(46, 164, 79, 0.35);
+  background: rgba(46, 164, 79, 0.04);
+  border-radius: var(--shopping-radius);
+}
+.shopping-add-shop__title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #2ea44f;
+  margin: 0 0 0.4rem 0;
+}
+.shopping-inline-form--shop .shopping-btn--primary {
+  background: #2ea44f;
+  border-color: #2ea44f;
+}
+.shopping-inline-form--shop .shopping-btn--primary:hover { filter: brightness(1.05); }
 
 /* Expanded body (full shop list, override form, add-alt form). Rendered
    only when state.expandedItems[code] is true. */
