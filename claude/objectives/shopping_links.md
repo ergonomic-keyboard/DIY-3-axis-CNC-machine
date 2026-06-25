@@ -60,3 +60,13 @@ sl-10.B The line "No shops listed yet for O07. Use “Add your own” below." sh
 SL-10.C The alternatives dropdown shall be on the same line as the image as a dropdown.
 SL-10.D The "Add your own EAN" shall be on the same line as the image.
 SL-10.E 1 article/item shall just consume one line with all its features, at most the height of its thumbnail (so that it is a way shorter to scroll page).
+SL-10.F The TOC shall be in the bottom left just like all the other TOCs of the page.
+SL-10.G Each item, including e.g. E01, shall have its price at the right side of the line or a - if no price for the article has been found yet.
+sl-10.H The shop shall be a dropdown (with price  and availablility and shipping duration and costs besides it, if that data is available).
+SL-10.I A toggle shall be available on top to toggle: show all shops (which shows all shops, along with the price and shipping costs (and availability/shipping duration)) per item.
+SL-10.J Each per-shop row in the "show all shops" list shall show a price placeholder when no price has been captured, matching the placeholder shown on the item's main row (instead of words like "Quote").
+SL-10.K The user shall be able to set the price of an item at a specific shop (e.g. the bol.com price of E02) by double-clicking the price placeholder/value. This shall work both on the item's main row (for the shop currently selected in the dropdown) and on each per-shop row in the "show all shops" list (for that specific shop). The entered price persists in the user's browser and is treated as a manual observation.
+SL-10.L There shall be no separate "Your override" row or option. Editing the price for a shop happens inline on the item's row for whichever shop is currently picked in the dropdown — selecting bol.com and editing the price sets the bol.com price for that item.
+SL-10.M Each item shall consume exactly one row regardless of how many shops it has; the shop dropdown cycles through the shops slot-machine style (one shop's data visible on the row at a time). Switching to a different item shows that item's own set of shops in its dropdown.
+SL-10.N Directly below an item's row, the only bar that may appear is the "add an alternative" form (with EAN / product link / shop / price / ETA fields), triggered by a single add/edit icon on the row.
+
