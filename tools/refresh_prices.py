@@ -169,7 +169,7 @@ def _walk_jsonld(node: Any):
 
 
 def extract_product_offer(html: str) -> dict[str, Any] | None:
-    """Return {price, currency, in_stock} from the first Product JSON-LD with an Offer."""
+    """Return {price, currency, in_stock, technique='jsonld'} from the first Product JSON-LD with an Offer."""
     for node in iter_jsonld_objects(html):
         types = node.get("@type")
         if isinstance(types, list):
@@ -205,12 +205,13 @@ def extract_product_offer(html: str) -> dict[str, Any] | None:
                 "price": round(price_f, 2),
                 "currency": str(currency).upper(),
                 "in_stock": bool(in_stock),
+                "technique": "jsonld",
             }
     return None
 
 
 def extract_meta_offer(html: str) -> dict[str, Any] | None:
-    """Fallback: look for OpenGraph `og:price:*` or microdata `itemprop=price` meta tags."""
+    """Fallback: look for OpenGraph `og:price:*` or microdata `itemprop=price` meta tags. technique='opengraph'."""
     parser = MetaTagCollector()
     try:
         parser.feed(html)
@@ -248,6 +249,7 @@ def extract_meta_offer(html: str) -> dict[str, Any] | None:
         "price": round(price_f, 2),
         "currency": (currency_raw or "EUR").upper(),
         "in_stock": bool(in_stock),
+        "technique": "opengraph",
     }
 
 
@@ -307,6 +309,7 @@ def refresh(prices: dict[str, Any], *, dry_run: bool) -> tuple[int, int, int]:
             "currency": product["currency"],
             "in_stock": product["in_stock"],
             "eta_days": (latest_observation(entry) or {}).get("eta_days"),
+            "technique": product.get("technique", "jsonld"),
         }
         if not observation_changed(latest_observation(entry), new_obs):
             skipped += 1

@@ -1,7 +1,7 @@
 {
-  "$schema_version": 1,
+  "$schema_version": 2,
   "last_updated_at": "2026-06-25T12:42:59Z",
-  "notes": "One entry per (item_code, shop) pair. The newest observation in `observations` is what the UI displays; history is appended, never overwritten. Refresh via tools/refresh_prices.py or the refresh-prices GitHub Action. Only add entries whose `url` points at a concrete product page — the refresh tool skips listing / search / category URLs by design (see SL-9.b).",
+  "notes": "One entry per (item_code, shop) pair. The newest observation in `observations` is what the UI displays; history is appended, never overwritten. Each observation carries a `technique` (jsonld | opengraph | affiliate-api | manual) per SL-9.e. Refresh via tools/refresh_prices.py or the refresh-prices GitHub Action. Only add entries whose `url` points at a concrete product page — the refresh tool skips listing / search / category URLs by design (see SL-9.b).",
   "entries": [
     {
       "item_code": "E09",
@@ -9,8 +9,8 @@
       "url": "https://www.tinytronics.nl/nl/development-boards/microcontroller-boards/arduino-compatible/arduino-uno-r3",
       "ean": null,
       "observations": [
-        { "ts": "2026-06-25T12:42:59Z", "price": 25.00, "currency": "EUR", "in_stock": false, "eta_days": 1 },
-        { "ts": "2026-06-25T00:00:00Z", "price": 25.00, "currency": "EUR", "in_stock": true,  "eta_days": 1 }
+        { "ts": "2026-06-25T12:42:59Z", "price": 25.00, "currency": "EUR", "in_stock": false, "eta_days": 1, "technique": "jsonld" },
+        { "ts": "2026-06-25T00:00:00Z", "price": 25.00, "currency": "EUR", "in_stock": true,  "eta_days": 1, "technique": "manual" }
       ]
     },
     {
@@ -19,7 +19,7 @@
       "url": "https://www.tinytronics.nl/nl/mechanica-en-actuatoren/motoraansturingen-en-drivers/adapter-boards/cnc-shield-v3",
       "ean": null,
       "observations": [
-        { "ts": "2026-06-25T12:42:59Z", "price": 5.00, "currency": "EUR", "in_stock": true, "eta_days": 1 }
+        { "ts": "2026-06-25T12:42:59Z", "price": 5.00, "currency": "EUR", "in_stock": true, "eta_days": 1, "technique": "jsonld" }
       ]
     },
     {
@@ -28,7 +28,7 @@
       "url": "https://www.tinytronics.nl/nl/mechanica-en-actuatoren/motoraansturingen-en-drivers/stappen-motoraansturingen-en-drivers/drv8825-motor-driver-module",
       "ean": null,
       "observations": [
-        { "ts": "2026-06-25T12:42:59Z", "price": 5.00, "currency": "EUR", "in_stock": true, "eta_days": 1 }
+        { "ts": "2026-06-25T12:42:59Z", "price": 5.00, "currency": "EUR", "in_stock": true, "eta_days": 1, "technique": "jsonld" }
       ]
     },
     {
@@ -37,7 +37,7 @@
       "url": "https://www.tinytronics.nl/nl/mechanica-en-actuatoren/motoren/stappenmotoren/stappenmotor-0.41n.m-1.7a-nema17",
       "ean": null,
       "observations": [
-        { "ts": "2026-06-25T12:42:59Z", "price": 10.50, "currency": "EUR", "in_stock": true, "eta_days": 1, "note": "Closest match to BOM `Bipolar stepper motor NEMA 17, no gear, 5mm shaft` — verify torque/shaft spec before ordering." }
+        { "ts": "2026-06-25T12:42:59Z", "price": 10.50, "currency": "EUR", "in_stock": true, "eta_days": 1, "technique": "jsonld", "note": "Closest match to BOM `Bipolar stepper motor NEMA 17, no gear, 5mm shaft` — verify torque/shaft spec before ordering." }
       ]
     },
     {
@@ -46,7 +46,7 @@
       "url": "https://www.tinytronics.nl/nl/schakelaars/manuele-schakelaars/drukknoppen-en-schakelaars/auspicious-noodstopschakelaar-druk-draai",
       "ean": null,
       "observations": [
-        { "ts": "2026-06-25T12:42:59Z", "price": 5.50, "currency": "EUR", "in_stock": true, "eta_days": 1, "note": "Closest match (Auspicious noodstop) — verify spec against KJD17B." }
+        { "ts": "2026-06-25T12:42:59Z", "price": 5.50, "currency": "EUR", "in_stock": true, "eta_days": 1, "technique": "jsonld", "note": "Closest match (Auspicious noodstop) — verify spec against KJD17B." }
       ]
     },
     {
@@ -55,7 +55,7 @@
       "url": "https://craftcloud3d.com/",
       "ean": null,
       "observations": [
-        { "ts": "2026-06-25T00:00:00Z", "price": null, "currency": "EUR", "in_stock": true, "eta_days": 10, "note": "Quote per part — varies with size. Ask a friend with a 3D printer first." }
+        { "ts": "2026-06-25T00:00:00Z", "price": null, "currency": "EUR", "in_stock": true, "eta_days": 10, "technique": "manual", "note": "Quote per part — varies with size. Ask a friend with a 3D printer first." }
       ]
     },
     {
@@ -64,7 +64,7 @@
       "url": "https://craftcloud3d.com/",
       "ean": null,
       "observations": [
-        { "ts": "2026-06-25T00:00:00Z", "price": null, "currency": "EUR", "in_stock": true, "eta_days": 10, "note": "Quote per part. Ask a friend with a 3D printer first." }
+        { "ts": "2026-06-25T00:00:00Z", "price": null, "currency": "EUR", "in_stock": true, "eta_days": 10, "technique": "manual", "note": "Quote per part. Ask a friend with a 3D printer first." }
       ]
     }
   ]
