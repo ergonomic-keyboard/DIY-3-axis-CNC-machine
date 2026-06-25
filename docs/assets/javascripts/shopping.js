@@ -28,6 +28,17 @@
   var THUMB_MAX_REM = 24;
   var THUMB_DEFAULT_REM = 3;
 
+  // SL-10.a: ordered TOC groups. Categories not enumerated here are appended at
+  // the end in their authored order, so adding a new category to items.json
+  // still renders without code changes.
+  var CATEGORY_GROUPS = [
+    { id: 'electronics', label: 'Electronics',                  categories: ['electronics'] },
+    { id: 'other',       label: 'Other',                        categories: ['other'] },
+    { id: 'rods',        label: 'Threaded rods',                categories: ['rods'] },
+    { id: 'fasteners',   label: 'Screws, bolts, washers, nuts', categories: ['screws', 'nuts', 'washers'] },
+    { id: 'printed',     label: '3D-printed parts',             categories: ['printed'] }
+  ];
+
   // SL-9.e: per-observation fetching technique. Human-readable labels for the UI.
   var TECHNIQUE_LABELS = {
     jsonld: 'JSON-LD',
@@ -69,7 +80,20 @@
       validations: {},
       // SL-8.h: transient prefill for the override form, populated by clicking
       // "Complete this" on a partial observation. Keyed by effective item code.
-      itemOverridePrefill: {}
+      itemOverridePrefill: {},
+      // SL-10.a: TOC fold state — group id → true if collapsed. Default unfolded.
+      collapsedCategories: {},
+      // SL-10.E: per-item expansion — parent code → true if the row's full
+      // shop list / override form is visible. Default collapsed (1 line).
+      expandedItems: {},
+      // SL-10.I: global toggle — when true, every item renders its full shop
+      // list inline below the head (without the override/add-alt forms).
+      showAllShops: false,
+      // SL-10.K: per-user manual price observations keyed by "<item>::<shop>".
+      // Each value is { price, currency, eta_days, ts } and gets injected as
+      // a manual observation into data.prices so the existing pricing,
+      // picker, and history machinery picks it up.
+      userPriceObservations: {}
     };
     try {
       var raw = localStorage.getItem(STATE_KEY);
@@ -84,6 +108,9 @@
         merged.userAlternatives = merged.userAlternatives || {};
         merged.validations = merged.validations || {};
         merged.itemOverridePrefill = merged.itemOverridePrefill || {};
+        merged.collapsedCategories = merged.collapsedCategories || {};
+        merged.expandedItems = merged.expandedItems || {};
+        merged.userPriceObservations = merged.userPriceObservations || {};
         return merged;
       }
       return fallback;
@@ -136,8 +163,13 @@
     ]).then(function (results) {
       ingest(results[0], results[1], results[2]);
       syncUserAlternativesIntoData();
+      // SL-10.L: legacy state.itemOverride data is preserved as manual
+      // user-price observations against the first scoped shop, then cleared.
+      migrateItemOverridesToUserPrices();
+      syncUserPriceObservationsIntoData();
       applyDefaultSelection();
       snapActiveConfigFromCustom();
+      ensureTocBodyObserver();
       render();
       ensureRefreshTick();
     }).catch(function (err) {
@@ -258,6 +290,98 @@
         }];
       });
     });
+  }
+
+  // SL-10.K: weave manual user-set prices into data.prices so the existing
+  // pricing/picker/history machinery sees them as real observations. Marked
+  // with a non-schema `_userAdded` flag so re-running the sync can clear
+  // prior synthetic observations cleanly.
+  function syncUserPriceObservationsIntoData() {
+    Object.keys(data.prices).forEach(function (itemCode) {
+      data.prices[itemCode].forEach(function (entry) {
+        entry.observations = (entry.observations || []).filter(function (o) {
+          return !o._userAdded;
+        });
+      });
+    });
+    var ups = state.userPriceObservations || {};
+    Object.keys(ups).forEach(function (key) {
+      var sep = key.indexOf('::');
+      if (sep < 0) return;
+      var itemCode = key.slice(0, sep);
+      var shopId = key.slice(sep + 2);
+      var ob = ups[key];
+      if (!ob) return;
+      if (!data.prices[itemCode]) data.prices[itemCode] = [];
+      var entry = data.prices[itemCode].find(function (e) { return e.shop === shopId; });
+      if (!entry) {
+        // User typed a price into a shop row that didn't have an entry yet
+        // (could happen for a synthetic case). Create the entry on the fly.
+        entry = { item_code: itemCode, shop: shopId, url: null, observations: [] };
+        data.prices[itemCode].push(entry);
+      }
+      entry.observations.push({
+        ts: ob.ts || new Date().toISOString(),
+        price: typeof ob.price === 'number' ? ob.price : null,
+        currency: ob.currency || 'EUR',
+        in_stock: ob.in_stock != null ? ob.in_stock : true,
+        eta_days: typeof ob.eta_days === 'number' ? ob.eta_days : null,
+        technique: 'manual',
+        _userAdded: true
+      });
+    });
+  }
+
+  // SL-10.K: write or clear a manual user-price observation for an (item, shop)
+  // pair. Pass price=null to remove the user's manual price for that pair.
+  function recordUserPrice(itemCode, shopId, price, opts) {
+    if (!state.userPriceObservations) state.userPriceObservations = {};
+    var key = itemCode + '::' + shopId;
+    if (price == null) {
+      delete state.userPriceObservations[key];
+    } else {
+      var prev = state.userPriceObservations[key] || {};
+      state.userPriceObservations[key] = {
+        price: price,
+        currency: (opts && opts.currency) || prev.currency || 'EUR',
+        eta_days: (opts && typeof opts.eta_days === 'number') ? opts.eta_days
+                  : (typeof prev.eta_days === 'number' ? prev.eta_days : null),
+        in_stock: true,
+        ts: new Date().toISOString()
+      };
+    }
+    syncUserPriceObservationsIntoData();
+    saveState();
+    render();
+  }
+
+  function migrateItemOverridesToUserPrices() {
+    if (!state.itemOverride) { state.itemOverride = {}; return; }
+    var codes = Object.keys(state.itemOverride);
+    if (codes.length === 0) return;
+    var moved = false;
+    codes.forEach(function (code) {
+      var ov = state.itemOverride[code];
+      if (!ov || typeof ov.price !== 'number') return;
+      var entries = entriesForItem(code);
+      if (entries.length === 0) return;
+      var shopId = entries[0].shop;
+      if (!state.userPriceObservations) state.userPriceObservations = {};
+      var key = code + '::' + shopId;
+      if (state.userPriceObservations[key]) return;
+      state.userPriceObservations[key] = {
+        price: ov.price,
+        currency: ov.currency || 'EUR',
+        eta_days: typeof ov.eta_days === 'number' ? ov.eta_days : null,
+        in_stock: true,
+        ts: new Date().toISOString()
+      };
+      moved = true;
+    });
+    if (moved) {
+      state.itemOverride = {};
+      saveState();
+    }
   }
 
   function generateUserAltCode(parentCode) {
@@ -429,17 +553,15 @@
     return rows[0].shopId;
   }
 
+  // SL-10.L: no more separate "Your override" entity. Whichever shop the
+  // user picks in the dropdown wins; otherwise we default to the cheapest
+  // in-stock pick. Per-shop manual prices live in state.userPriceObservations.
   function chosenShopForItem(itemCode) {
-    if (state.itemOverride[itemCode]) return OVERRIDE_SHOP_ID;
     if (state.shopOverride[itemCode]) return state.shopOverride[itemCode];
     return bestShopForItem(itemCode);
   }
 
   function unitPriceFor(itemCode, shopId) {
-    if (shopId === OVERRIDE_SHOP_ID) {
-      var ov = state.itemOverride[itemCode];
-      return ov && typeof ov.price === 'number' ? ov.price : null;
-    }
     var entry = (data.prices[itemCode] || []).find(function (e) { return e.shop === shopId; });
     if (!entry) return null;
     var obs = latestObservation(entry);
@@ -483,10 +605,6 @@
   }
 
   function computeShipping(shopId, subtotal) {
-    if (shopId === OVERRIDE_SHOP_ID) {
-      // Custom overrides ship independently; cost unknown unless user supplied it.
-      return { cost: 0, label: 'Set by buyer', free: false };
-    }
     var shop = data.shopsById[shopId];
     if (!shop || !shop.shipping) return { cost: 0, label: '—', free: false };
     var s = shop.shipping;
@@ -512,6 +630,88 @@
     root.appendChild(renderHeader());
     root.appendChild(renderItemSections());
     root.appendChild(renderOrderSummary());
+    // SL-10.F: TOC lives in Material's TOC sidebar (bottom-left by default,
+    // top-right when toc-toggle.js has switched position). Not in the page body.
+    placeShoppingTocInSidebar();
+  }
+
+  // SL-10.F: shopping-page TOC injected into Material's TOC sidebar so it
+  // shares the layout slot with the rest of the site's TOCs.
+  var SHOPPING_TOC_SIDEBAR_CLASS = 'shopping-toc-sidebar';
+  function placeShoppingTocInSidebar() {
+    // Remove any prior injection (idempotent across renders).
+    document.querySelectorAll('.' + SHOPPING_TOC_SIDEBAR_CLASS).forEach(function (n) { n.remove(); });
+    var toc = renderToc();
+    toc.classList.add(SHOPPING_TOC_SIDEBAR_CLASS);
+
+    var inLeftMode = !document.body.classList.contains('toc-position-right');
+    if (inLeftMode) {
+      // toc-toggle.js renders a `.toc-clone` wrapper in the primary sidebar
+      // with a "TOC → top right" toggle button and (on pages without ## headings)
+      // a "No headings on this page." paragraph. We replace that paragraph with
+      // our TOC, or append if it's missing.
+      var clone = document.querySelector('.md-sidebar--primary .toc-clone');
+      if (clone) {
+        var empty = clone.querySelector('.toc-clone-empty');
+        if (empty) empty.replaceWith(toc);
+        else clone.appendChild(toc);
+        return;
+      }
+      var primary = document.querySelector('.md-sidebar--primary .md-sidebar__inner');
+      if (primary) primary.appendChild(toc);
+    } else {
+      var secondary = document.querySelector('.md-sidebar--secondary .md-sidebar__inner');
+      if (secondary) secondary.appendChild(toc);
+    }
+  }
+
+  // Re-place the TOC whenever toc-toggle.js flips the position class on body.
+  var tocBodyObserver = null;
+  function ensureTocBodyObserver() {
+    if (tocBodyObserver || typeof MutationObserver === 'undefined') return;
+    tocBodyObserver = new MutationObserver(function (mutations) {
+      var classChanged = mutations.some(function (m) { return m.attributeName === 'class'; });
+      if (!classChanged) return;
+      if (!document.getElementById('shopping-app')) return;
+      placeShoppingTocInSidebar();
+    });
+    tocBodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  // SL-10.a: resolve the ordered list of TOC groups to render. Authored
+  // CATEGORY_GROUPS first, then any items.json categories not covered by a
+  // group are appended as single-category groups (in items.json order).
+  function activeGroups() {
+    var seen = {};
+    CATEGORY_GROUPS.forEach(function (g) { g.categories.forEach(function (c) { seen[c] = true; }); });
+    var groups = CATEGORY_GROUPS.slice();
+    (data.categories || []).forEach(function (cat) {
+      if (seen[cat.id]) return;
+      groups.push({ id: cat.id, label: cat.label, categories: [cat.id] });
+    });
+    return groups;
+  }
+
+  function itemsInGroup(group) {
+    var inSet = {};
+    group.categories.forEach(function (c) { inSet[c] = true; });
+    return data.items.filter(function (i) { return inSet[i.category]; });
+  }
+
+  function isCategoryCollapsed(groupId) {
+    return !!(state.collapsedCategories && state.collapsedCategories[groupId]);
+  }
+
+  function setCategoryCollapsed(groupId, collapsed) {
+    if (!state.collapsedCategories) state.collapsedCategories = {};
+    if (collapsed) state.collapsedCategories[groupId] = true;
+    else delete state.collapsedCategories[groupId];
+    saveState();
+  }
+
+  function toggleCategoryCollapsed(groupId) {
+    setCategoryCollapsed(groupId, !isCategoryCollapsed(groupId));
+    render();
   }
 
   function applyThumbSize(root) {
@@ -882,20 +1082,79 @@
     return wrap;
   }
 
+  // SL-10.a: Table of contents at the top of the page. Each entry shows the
+  // group label and a count, and acts as a fold/unfold toggle that mirrors
+  // the same toggle on the section header. Clicking the label scrolls to it.
+  function renderToc() {
+    var wrap = el('nav', 'shopping-toc');
+    wrap.setAttribute('aria-label', 'Categories');
+    var title = el('h2', 'shopping-toc__title', 'Categories');
+    wrap.appendChild(title);
+    var list = el('ul', 'shopping-toc__list');
+
+    activeGroups().forEach(function (group) {
+      var items = itemsInGroup(group);
+      if (items.length === 0) return;
+      var collapsed = isCategoryCollapsed(group.id);
+      var li = el('li', 'shopping-toc__item');
+
+      var foldBtn = el('button', 'shopping-toc__fold');
+      foldBtn.type = 'button';
+      foldBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      foldBtn.setAttribute('aria-label', (collapsed ? 'Expand ' : 'Collapse ') + group.label);
+      foldBtn.appendChild(el('span', 'shopping-toc__chevron', collapsed ? '▸' : '▾'));
+      foldBtn.addEventListener('click', function () { toggleCategoryCollapsed(group.id); });
+      li.appendChild(foldBtn);
+
+      var jump = el('a', 'shopping-toc__link', group.label);
+      jump.href = '#shopping-group-' + group.id;
+      jump.addEventListener('click', function (e) {
+        // If collapsed, expand on jump so the user lands on visible content.
+        if (collapsed) {
+          e.preventDefault();
+          setCategoryCollapsed(group.id, false);
+          render();
+          requestAnimationFrame(function () {
+            var target = document.getElementById('shopping-group-' + group.id);
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        }
+      });
+      li.appendChild(jump);
+
+      var count = el('span', 'shopping-toc__count', String(items.length));
+      li.appendChild(count);
+
+      list.appendChild(li);
+    });
+    wrap.appendChild(list);
+    return wrap;
+  }
+
   function renderItemSections() {
     var wrap = el('div', 'shopping-items');
-    // SL-8.b: 3D-printed parts render at the bottom; all other categories keep their authored order.
-    var orderedCategories = data.categories.slice().sort(function (a, b) {
-      var aPrinted = a.id === 'printed' ? 1 : 0;
-      var bPrinted = b.id === 'printed' ? 1 : 0;
-      return aPrinted - bPrinted;
-    });
-    orderedCategories.forEach(function (cat) {
-      var itemsInCat = data.items.filter(function (i) { return i.category === cat.id; });
+    activeGroups().forEach(function (group) {
+      var itemsInCat = itemsInGroup(group);
       if (itemsInCat.length === 0) return;
-      var section = el('section', 'shopping-category');
+      var collapsed = isCategoryCollapsed(group.id);
+      var section = el('section', 'shopping-category' + (collapsed ? ' is-collapsed' : ''));
+      section.id = 'shopping-group-' + group.id;
+
       var headerRow = el('div', 'shopping-category__head');
-      headerRow.appendChild(el('h2', 'shopping-category__title', cat.label));
+
+      // SL-10.a: clickable title doubles as fold/unfold so the user can toggle
+      // from the section header too. The title and chevron form the toggle;
+      // the per-section "Select all" button stays separate.
+      var titleBtn = el('button', 'shopping-category__toggle');
+      titleBtn.type = 'button';
+      titleBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      titleBtn.setAttribute('aria-controls', 'shopping-group-body-' + group.id);
+      titleBtn.appendChild(el('span', 'shopping-category__chevron', collapsed ? '▸' : '▾'));
+      titleBtn.appendChild(el('h2', 'shopping-category__title', group.label));
+      titleBtn.appendChild(el('span', 'shopping-category__count', '(' + itemsInCat.length + ')'));
+      titleBtn.addEventListener('click', function () { toggleCategoryCollapsed(group.id); });
+      headerRow.appendChild(titleBtn);
+
       var allBtn = el('button', 'shopping-link', selectAllLabel(itemsInCat));
       allBtn.type = 'button';
       allBtn.addEventListener('click', function () {
@@ -907,8 +1166,14 @@
       headerRow.appendChild(allBtn);
       section.appendChild(headerRow);
 
-      itemsInCat.forEach(function (item) { section.appendChild(renderItemRow(item)); });
-      section.appendChild(renderCategoryFooter(itemsInCat));
+      if (!collapsed) {
+        var body = el('div', 'shopping-category__body');
+        body.id = 'shopping-group-body-' + group.id;
+        itemsInCat.forEach(function (item) { body.appendChild(renderItemRow(item)); });
+        body.appendChild(renderCategoryFooter(itemsInCat));
+        section.appendChild(body);
+      }
+
       wrap.appendChild(section);
     });
     return wrap;
@@ -957,140 +1222,392 @@
     return allOn ? 'Deselect all' : 'Select all';
   }
 
+  // SL-10.E + SL-10.M: per-item row is a single line at most thumbnail-tall.
+  // The head presents every primary affordance (checkbox, thumb, code+name+qty,
+  // alts dropdown, shop dropdown + meta, history icon, + Add icon, price).
+  // SL-10.N: the only bar that may appear below the row is the add-alt form,
+  // shown when the user clicks "+ Add" on this item.
   function renderItemRow(parentItem) {
     var effectiveCode = effectiveCodeFor(parentItem.code);
     var effective = itemByAnyCode(effectiveCode) || parentItem;
     var isAlt = effectiveCode !== parentItem.code;
+    var isSelected = !!state.selected[parentItem.code];
+    var addAltOpen = !!(state.expandedItems && state.expandedItems[parentItem.code]);
 
     var row = el('div', 'shopping-item');
-    if (state.selected[parentItem.code]) row.classList.add('is-selected');
+    if (isSelected) row.classList.add('is-selected');
     if (isAlt) row.classList.add('is-alternative');
+    if (addAltOpen) row.classList.add('is-add-alt-open');
 
-    var head = el('label', 'shopping-item__head');
-    head.htmlFor = 'sel-' + parentItem.code;
+    row.appendChild(renderItemHead(parentItem, effective, effectiveCode, isAlt, isSelected, addAltOpen));
+
+    if (addAltOpen) {
+      var body = el('div', 'shopping-item__body');
+      body.appendChild(renderAddAlternativeForm(parentItem));
+      row.appendChild(body);
+    }
+    return row;
+  }
+
+  function renderItemHead(parentItem, effective, effectiveCode, isAlt, isSelected, addAltOpen) {
+    var head = el('div', 'shopping-item__head');
+
+    var cbLabel = el('label', 'shopping-item__check');
+    cbLabel.htmlFor = 'sel-' + parentItem.code;
+    cbLabel.setAttribute('aria-label', 'Include ' + parentItem.name + ' in the order');
     var cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.id = 'sel-' + parentItem.code;
     cb.className = 'shopping-item__checkbox';
-    cb.checked = !!state.selected[parentItem.code];
+    cb.checked = isSelected;
     cb.addEventListener('change', function () {
       state.selected[parentItem.code] = cb.checked;
       saveState();
       render();
     });
-    head.appendChild(cb);
+    cbLabel.appendChild(cb);
+    head.appendChild(cbLabel);
 
     head.appendChild(renderItemThumb(effective));
 
     var titleWrap = el('div', 'shopping-item__title');
     titleWrap.appendChild(el('span', 'shopping-item__code', parentItem.code));
     titleWrap.appendChild(el('span', 'shopping-item__name', effective.name));
-    if (isAlt) {
-      titleWrap.appendChild(el('span', 'shopping-item__alt-badge', 'Alternative'));
-    }
-    var qtyText = 'Qty ' + (effective.qty != null ? effective.qty : '?') +
-      (effective.qty_note ? ' (' + effective.qty_note + ')' : '');
+    if (isAlt) titleWrap.appendChild(el('span', 'shopping-item__alt-badge', 'Alt'));
+    var qtyText = '×' + (effective.qty != null ? effective.qty : '?');
     titleWrap.appendChild(el('span', 'shopping-item__qty', qtyText));
     head.appendChild(titleWrap);
 
-    row.appendChild(head);
+    head.appendChild(renderAltsDropdown(parentItem, effectiveCode));
+    head.appendChild(renderShopSummary(effective));
+    // History popover for the currently-selected shop (SL-8.f/g preservation).
+    var historyEl = renderHeadHistoryControl(effective);
+    if (historyEl) head.appendChild(historyEl);
+    head.appendChild(renderAddItemButton(parentItem, addAltOpen));
+    // SL-10.G: price lives at the rightmost edge of the row, "—" when missing.
+    head.appendChild(renderItemPrice(effective));
 
-    if (state.selected[parentItem.code]) {
-      row.appendChild(renderAlternativesPicker(parentItem, effectiveCode));
-      row.appendChild(renderShopOptions(effective));
-      row.appendChild(renderItemOverride(effective));
-    }
-    return row;
+    return head;
   }
 
-  function renderAlternativesPicker(parentItem, effectiveCode) {
+  // SL-10.N: single "+ Add" icon on the head. Clicking toggles the
+  // add-alternative form (the only bar permitted directly below the row).
+  function renderAddItemButton(parentItem, isOpen) {
+    var btn = el('button', 'shopping-item__add' + (isOpen ? ' is-open' : ''));
+    btn.type = 'button';
+    btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    btn.setAttribute('aria-controls', 'add-alt-body-' + parentItem.code);
+    var label = isOpen
+      ? 'Close add-alternative form for ' + parentItem.name
+      : 'Add an alternative for ' + parentItem.name + ' (EAN / product link / price)';
+    btn.setAttribute('aria-label', label);
+    btn.title = label;
+    btn.appendChild(el('span', 'shopping-item__add-icon', isOpen ? '×' : '+'));
+    btn.appendChild(el('span', 'shopping-item__add-text', 'Add'));
+    btn.addEventListener('click', function () {
+      if (!state.expandedItems) state.expandedItems = {};
+      if (state.expandedItems[parentItem.code]) delete state.expandedItems[parentItem.code];
+      else state.expandedItems[parentItem.code] = true;
+      saveState();
+      render();
+      requestAnimationFrame(function () {
+        var f = document.getElementById('add-alt-' + parentItem.code + '-name');
+        if (f) f.focus();
+      });
+    });
+    return btn;
+  }
+
+  // SL-8.f / SL-8.g preserved on the slim head row: a small sparkline-or-glyph
+  // button that opens the price history popover for the currently-selected
+  // shop. Returns null when there's no entry to summarize.
+  function renderHeadHistoryControl(effective) {
+    var entries = entriesForItem(effective.code);
+    if (entries.length === 0) return null;
+    var chosenId = chosenShopForItem(effective.code);
+    var shopId = chosenId || entries[0].shop;
+    var entry = (data.prices[effective.code] || []).find(function (e) { return e.shop === shopId; });
+    if (!entry || !entry.observations || entry.observations.length === 0) return null;
+    return renderHistoryControl(entry, effective);
+  }
+
+  // SL-10.C: alternatives picker as a real <select> on the item's head row.
+  // The trailing "+ Add alternative…" option opens the expanded body so the
+  // user can fill in name + shop details inline.
+  function renderAltsDropdown(parentItem, effectiveCode) {
     var alts = data.alternativesByParent[parentItem.code] || [];
+    var wrap = el('div', 'shopping-item__alts');
 
-    var wrap = el('details', 'shopping-alts');
-    // Auto-open when an alternative is currently active OR when there are user-added
-    // alts (so the "added by you" entries are visible without an extra click).
-    var hasUserAlts = alts.some(function (a) { return a.userAdded; });
-    wrap.open = effectiveCode !== parentItem.code || hasUserAlts;
+    var sel = document.createElement('select');
+    sel.className = 'shopping-select shopping-item__alts-select';
+    sel.id = 'alt-pick-' + parentItem.code;
+    sel.setAttribute('aria-label', 'Choose an alternative product for ' + parentItem.name);
+    sel.title = 'Pick the variant of ' + parentItem.name + ' you want';
 
-    var summaryLabel = alts.length === 0 ? 'Alternatives' : 'Alternatives (' + alts.length + ')';
-    var summary = el('summary', 'shopping-alts__summary', summaryLabel);
-    wrap.appendChild(summary);
-
-    var list = el('div', 'shopping-alts__list');
-    var groupName = 'alt-pick-' + parentItem.code;
-
-    // The first row is the canonical (parent) item as the "default" choice.
-    list.appendChild(renderAltChoice({
-      name: groupName,
-      id: 'alt-' + parentItem.code + '-default',
-      label: parentItem.name + ' (default)',
-      isChecked: effectiveCode === parentItem.code,
-      onPick: function () { setEffectiveAlternative(parentItem.code, null); }
-    }));
+    var defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = alts.length === 0 ? 'Default' : 'Default · ' + parentItem.name;
+    if (effectiveCode === parentItem.code) defaultOpt.selected = true;
+    sel.appendChild(defaultOpt);
 
     alts.forEach(function (a) {
-      list.appendChild(renderAltChoice({
-        name: groupName,
-        id: 'alt-' + parentItem.code + '-' + a.code,
-        label: a.name,
-        sublabel: a.userAdded ? 'added by you' : null,
-        isChecked: effectiveCode === a.code,
-        onPick: function () { setEffectiveAlternative(parentItem.code, a.code); },
-        onRemove: a.userAdded ? function () { removeUserAlternative(parentItem.code, a.code); } : null
-      }));
+      var o = document.createElement('option');
+      o.value = a.code;
+      o.textContent = a.name + (a.userAdded ? ' · you' : '');
+      if (effectiveCode === a.code) o.selected = true;
+      sel.appendChild(o);
     });
-    wrap.appendChild(list);
 
-    // SL-8.d follow-up: inline form to add a brand-new alternative product.
-    // Reuses renderInlineProductForm with an extra "name" field on the front.
-    var add = el('details', 'shopping-alts__add');
-    var addSummary = el('summary', 'shopping-alts__add-summary', '+ Add alternative product');
-    add.appendChild(addSummary);
-    add.appendChild(renderInlineProductForm({
+    var addOpt = document.createElement('option');
+    addOpt.value = '__add__';
+    addOpt.textContent = '+ Add alternative…';
+    sel.appendChild(addOpt);
+
+    sel.addEventListener('change', function () {
+      if (sel.value === '__add__') {
+        // Bounce the select back to the current effective code so the
+        // marker option isn't left selected, and open the expanded body
+        // where the add-alt form lives.
+        sel.value = effectiveCode === parentItem.code ? '' : effectiveCode;
+        if (!state.expandedItems) state.expandedItems = {};
+        state.expandedItems[parentItem.code] = true;
+        saveState();
+        render();
+        requestAnimationFrame(function () {
+          var f = document.getElementById('add-alt-' + parentItem.code + '-name');
+          if (f) f.focus();
+        });
+        return;
+      }
+      setEffectiveAlternative(parentItem.code, sel.value || null);
+    });
+    wrap.appendChild(sel);
+
+    // Remove control surfaces only when the current pick is a user-added alt.
+    var current = data.altByCode[effectiveCode];
+    if (current && current.userAdded) {
+      var rm = el('button', 'shopping-item__alts-remove', '✕');
+      rm.type = 'button';
+      rm.title = 'Remove this user-added alternative';
+      rm.setAttribute('aria-label', 'Remove user-added alternative ' + current.name);
+      rm.addEventListener('click', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        if (window.confirm('Remove "' + current.name + '" from this item’s alternatives?')) {
+          removeUserAlternative(parentItem.code, effectiveCode);
+        }
+      });
+      wrap.appendChild(rm);
+    }
+    return wrap;
+  }
+
+  // SL-10.M + SL-10.H: one-line shop picker. The shop dropdown is the only
+  // way to cycle through shops for an item — picking another shop swaps the
+  // row's price/stock/ETA/shipping data slot-machine style. When no shops
+  // are listed at all, render a single ⚠ icon hinting at the + Add button.
+  function renderShopSummary(effective) {
+    var wrap = el('div', 'shopping-item__shop-summary');
+    var entries = entriesForItem(effective.code);
+
+    if (entries.length === 0) {
+      var emptyIcon = el('span', 'shopping-item__noshop', '⚠');
+      emptyIcon.title = 'No shops listed yet for ' + effective.code +
+        '. Use the + Add button to add one.';
+      emptyIcon.setAttribute('aria-label',
+        'No shops listed yet for ' + effective.code);
+      wrap.appendChild(emptyIcon);
+      return wrap;
+    }
+
+    var chosenId = chosenShopForItem(effective.code);
+    var effectiveShopId = chosenId || entries[0].shop;
+    var sel = document.createElement('select');
+    sel.className = 'shopping-select shopping-item__shop-select';
+    sel.id = 'shop-pick-' + effective.code;
+    sel.setAttribute('aria-label', 'Choose a shop for ' + effective.code);
+
+    entries.forEach(function (entry) {
+      var shop = data.shopsById[entry.shop];
+      if (!shop) return;
+      var opt = document.createElement('option');
+      opt.value = entry.shop;
+      opt.textContent = shop.name;
+      if (effectiveShopId === entry.shop) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', function () {
+      state.shopOverride[effective.code] = sel.value;
+      saveState();
+      render();
+    });
+    wrap.appendChild(sel);
+
+    wrap.appendChild(renderShopMetaForSelected(effective, effectiveShopId, entries));
+    return wrap;
+  }
+
+  // Stock dot · ETA · shipping cost beside the shop dropdown for whichever
+  // shop is currently chosen. Falls back to the first scoped entry when no
+  // shop has an in-stock price (chosenShopForItem may return null).
+  function renderShopMetaForSelected(effective, chosenId, entries) {
+    var meta = el('span', 'shopping-item__shop-meta');
+    var shopId = chosenId || (entries[0] && entries[0].shop);
+    var entry = shopId ? (data.prices[effective.code] || []).find(function (e) { return e.shop === shopId; }) : null;
+    var obs = entry ? latestObservation(entry) : null;
+    var shop = shopId ? data.shopsById[shopId] : null;
+    if (!shop) return meta;
+
+    var inStock = !!(obs && obs.in_stock);
+    meta.appendChild(makeStockDot(inStock));
+    var etaDays = obs && typeof obs.eta_days === 'number'
+      ? obs.eta_days
+      : (shop.shipping && shop.shipping.default_eta_days);
+    if (etaDays != null) {
+      meta.appendChild(el('span', 'shopping-item__shop-eta', etaDays + 'd'));
+    }
+    var shipLabel = shopShippingLabelShort(shop);
+    if (shipLabel) {
+      meta.appendChild(el('span', 'shopping-item__shop-ship', shipLabel));
+    }
+    return meta;
+  }
+
+  function makeStockDot(inStock) {
+    var d = el('span', 'shopping-dot');
+    d.classList.add(inStock ? 'shopping-dot--in' : 'shopping-dot--out');
+    return d;
+  }
+
+  function shopShippingLabelShort(shop) {
+    if (!shop || !shop.shipping) return null;
+    var c = shop.shipping.standard_cost;
+    if (typeof c !== 'number') return null;
+    if (c === 0) return 'free ship';
+    return 'ship €' + c.toFixed(2);
+  }
+
+  function shopShippingLabelLong(shop) {
+    if (!shop || !shop.shipping) return null;
+    var c = shop.shipping.standard_cost;
+    if (typeof c !== 'number') return null;
+    if (c === 0) return 'Free shipping';
+    var base = 'Shipping €' + c.toFixed(2);
+    if (typeof shop.shipping.free_above === 'number' && shop.shipping.free_above > 0) {
+      base += ' · free over €' + shop.shipping.free_above.toFixed(2);
+    }
+    return base;
+  }
+
+  // SL-10.G: rightmost price on every item's head. Renders the chosen shop's
+  // unit price, or "—" when no price has been found yet (no shops, no
+  // override, or shop entries with null prices). SL-10.K: double-clicking
+  // opens an inline editor for the currently-chosen shop.
+  function renderItemPrice(effective) {
+    var wrap = el('div', 'shopping-item__price');
+    var entries = entriesForItem(effective.code);
+    // SL-10.M: the dropdown defaults to the first entry when no explicit
+    // pick exists, so the head price must target the same shop.
+    var chosenId = chosenShopForItem(effective.code);
+    var effectiveShopId = chosenId || (entries[0] && entries[0].shop) || null;
+    var price = null, currency = 'EUR';
+    if (effectiveShopId) {
+      var entry = (data.prices[effective.code] || []).find(function (e) { return e.shop === effectiveShopId; });
+      var obs = entry ? latestObservation(entry) : null;
+      if (obs && typeof obs.price === 'number') {
+        price = obs.price;
+        var shop = data.shopsById[effectiveShopId];
+        currency = obs.currency || (shop && shop.currency) || 'EUR';
+      }
+    }
+    wrap.textContent = price != null ? formatMoney(price, currency) : '—';
+    if (price == null) wrap.classList.add('is-missing');
+
+    // SL-10.L + SL-10.K: double-click the head price → edit the selected
+    // shop's price inline. No separate "Your override" surface.
+    if (effectiveShopId) {
+      makeEditablePrice(wrap, {
+        currentPrice: price,
+        currency: currency,
+        onSave: function (v) { recordUserPrice(effective.code, effectiveShopId, v); }
+      });
+    }
+    return wrap;
+  }
+
+  // SL-10.K: make a price element double-click-editable. The element's text
+  // is swapped for an <input type=number>; Enter or blur commits via
+  // opts.onSave(newPrice|null), Escape cancels.
+  function makeEditablePrice(elNode, opts) {
+    elNode.classList.add('is-editable');
+    var existingTitle = elNode.getAttribute('title');
+    elNode.setAttribute('title',
+      (existingTitle ? existingTitle + ' · ' : '') + 'Double-click to set price');
+    elNode.addEventListener('dblclick', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openInlinePriceEditor(elNode, opts);
+    });
+  }
+
+  function openInlinePriceEditor(elNode, opts) {
+    if (elNode.classList.contains('is-editing')) return;
+    var original = elNode.textContent;
+    var originalClasses = elNode.className;
+    elNode.classList.add('is-editing');
+    elNode.textContent = '';
+    var input = document.createElement('input');
+    input.type = 'number';
+    input.step = '0.01';
+    input.min = '0';
+    input.className = 'shopping-price-editor';
+    input.placeholder = '€';
+    if (typeof opts.currentPrice === 'number') input.value = String(opts.currentPrice);
+    input.setAttribute('aria-label', 'Set price in ' + (opts.currency || 'EUR'));
+    elNode.appendChild(input);
+    input.focus();
+    input.select();
+
+    var done = false;
+    function finish(newPrice) {
+      if (done) return;
+      done = true;
+      elNode.className = originalClasses;
+      opts.onSave(newPrice);
+    }
+    function commit() {
+      if (done) return;
+      var raw = input.value.trim();
+      if (raw === '') { finish(null); return; }
+      var v = parseFloat(raw);
+      if (!isFinite(v) || v < 0) { cancel(); return; }
+      finish(v);
+    }
+    function cancel() {
+      if (done) return;
+      done = true;
+      elNode.className = originalClasses;
+      elNode.textContent = original;
+    }
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); }
+      else if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+    });
+    input.addEventListener('blur', commit);
+    // Stop double-click on the input itself from bubbling and reopening.
+    input.addEventListener('dblclick', function (e) { e.stopPropagation(); });
+  }
+
+  function renderAddAlternativeForm(parentItem) {
+    var wrap = el('div', 'shopping-add-alt');
+    wrap.id = 'add-alt-body-' + parentItem.code;
+    wrap.appendChild(el('h4', 'shopping-add-alt__title', 'Add an alternative for ' + parentItem.name));
+    wrap.appendChild(renderInlineProductForm({
       idPrefix: 'add-alt-' + parentItem.code,
       includeName: true,
       submitLabel: 'Add alternative',
       onSave: function (vals) { addUserAlternative(parentItem.code, vals); }
     }));
-    wrap.appendChild(add);
-
     return wrap;
-  }
-
-  function renderAltChoice(opts) {
-    var row = el('label', 'shopping-alts__choice');
-    row.htmlFor = opts.id;
-    if (opts.isChecked) row.classList.add('is-chosen');
-    if (typeof opts.onRemove === 'function') row.classList.add('shopping-alts__choice--removable');
-
-    var radio = document.createElement('input');
-    radio.type = 'radio';
-    radio.name = opts.name;
-    radio.id = opts.id;
-    radio.checked = opts.isChecked;
-    radio.addEventListener('change', function () { opts.onPick(); });
-    row.appendChild(radio);
-
-    var labelWrap = el('span', 'shopping-alts__choice-label');
-    labelWrap.appendChild(document.createTextNode(opts.label));
-    if (opts.sublabel) {
-      labelWrap.appendChild(el('span', 'shopping-alts__choice-sub', opts.sublabel));
-    }
-    row.appendChild(labelWrap);
-
-    if (typeof opts.onRemove === 'function') {
-      var rm = el('button', 'shopping-alts__choice-remove', 'Remove');
-      rm.type = 'button';
-      rm.setAttribute('aria-label', 'Remove ' + opts.label);
-      // Stop the click from also toggling the radio via the wrapping <label>.
-      rm.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (window.confirm('Remove "' + opts.label + '" from this item’s alternatives?')) opts.onRemove();
-      });
-      row.appendChild(rm);
-    }
-    return row;
   }
 
   // Picking an alternative (or the default) updates state.customUses and snaps
@@ -1129,177 +1646,6 @@
       wrap.textContent = item.code;
     }
     return wrap;
-  }
-
-  function renderShopOptions(item) {
-    var entries = entriesForItem(item.code);
-    var wrap = el('div', 'shopping-shops');
-
-    var best = bestShopForItem(item.code);
-    var chosen = chosenShopForItem(item.code);
-
-    if (entries.length === 0 && !state.itemOverride[item.code]) {
-      wrap.appendChild(el('p', 'shopping-shops__empty',
-        'No shops listed yet for ' + item.code + '. Use “Add your own” below.'));
-      return wrap;
-    }
-
-    entries.forEach(function (entry) {
-      var shop = data.shopsById[entry.shop];
-      if (!shop) return;
-      var obs = latestObservation(entry);
-      wrap.appendChild(renderShopRow(item, shop, entry, obs, chosen === entry.shop, best === entry.shop));
-    });
-
-    if (state.itemOverride[item.code]) {
-      wrap.appendChild(renderOverrideRow(item, chosen === OVERRIDE_SHOP_ID));
-    }
-
-    return wrap;
-  }
-
-  function observationAgeDays(obs) {
-    if (!obs || !obs.ts) return null;
-    var t = Date.parse(obs.ts);
-    if (isNaN(t)) return null;
-    return Math.floor((Date.now() - t) / 86400000);
-  }
-
-  function renderShopRow(item, shop, entry, obs, isChosen, isBest) {
-    var row = el('label', 'shopping-shop');
-    row.htmlFor = 'shop-' + item.code + '-' + shop.id;
-    if (isChosen) row.classList.add('is-chosen');
-    if (isBest) row.classList.add('is-best');
-    var ageDays = observationAgeDays(obs);
-    if (ageDays != null && ageDays > 30) row.classList.add('is-stale');
-
-    var radio = document.createElement('input');
-    radio.type = 'radio';
-    radio.name = 'shop-pick-' + item.code;
-    radio.id = 'shop-' + item.code + '-' + shop.id;
-    radio.className = 'shopping-shop__radio';
-    radio.checked = isChosen;
-    radio.addEventListener('change', function () {
-      state.shopOverride[item.code] = shop.id;
-      // Picking a real shop deactivates a custom override for this item,
-      // but we keep its data around so the user can re-enable it.
-      saveState();
-      render();
-    });
-    row.appendChild(radio);
-
-    var name = el('span', 'shopping-shop__name');
-    var nameTop = el('span', 'shopping-shop__name-top');
-    var nameInner = el('a', 'shopping-shop__name-link', shop.name);
-    nameInner.href = entry.url || shop.home_url;
-    nameInner.target = '_blank';
-    nameInner.rel = 'noopener noreferrer';
-    nameTop.appendChild(nameInner);
-    if (isBest) nameTop.appendChild(el('span', 'shopping-badge', 'Cheapest'));
-    name.appendChild(nameTop);
-    // SL-8.f / SL-8.g: provenance label + bot id + sparkline pop-over.
-    var meta = renderShopProvenance(entry, obs, item);
-    if (meta) name.appendChild(meta);
-    row.appendChild(name);
-
-    var priceText = obs && typeof obs.price === 'number'
-      ? formatMoney(obs.price, obs.currency || shop.currency)
-      : 'Quote';
-    var priceEl = el('span', 'shopping-shop__price', priceText);
-    if (ageDays != null) {
-      priceEl.title = 'Captured ' + ageDays + ' day' + (ageDays === 1 ? '' : 's') + ' ago';
-    }
-    row.appendChild(priceEl);
-
-    var stockDot = el('span', 'shopping-dot');
-    var inStock = obs && obs.in_stock;
-    stockDot.classList.add(inStock ? 'shopping-dot--in' : 'shopping-dot--out');
-    var stockWrap = el('span', 'shopping-shop__stock');
-    stockWrap.appendChild(stockDot);
-    var etaDays = obs && typeof obs.eta_days === 'number' ? obs.eta_days : shop.shipping && shop.shipping.default_eta_days;
-    var stockLabel = inStock
-      ? (etaDays != null ? etaDays + (etaDays === 1 ? ' day' : ' days') : 'In stock')
-      : 'Out of stock';
-    stockWrap.appendChild(document.createTextNode(stockLabel));
-    row.appendChild(stockWrap);
-
-    if (obs && obs.note) {
-      var note = el('span', 'shopping-shop__note', obs.note);
-      row.appendChild(note);
-    }
-
-    // SL-8.h: when the latest observation is partial (bot found the article but
-    // not the price), surface a "complete this" prompt with a CTA that opens
-    // the per-item override drawer prefilled with what we know.
-    if (obs && obs.partial) {
-      row.classList.add('is-partial');
-      var hint = el('div', 'shopping-shop__partial-hint');
-      hint.appendChild(el('span', 'shopping-shop__partial-icon', '⚠'));
-      hint.appendChild(el('span', null,
-        'Bot found this product but no price. Complete the missing fields to use it.'));
-      var cta = el('button', 'shopping-link shopping-shop__partial-cta', 'Complete this →');
-      cta.type = 'button';
-      cta.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        state.itemOverridePrefill[item.code] = {
-          shop_label: shop.name,
-          url: entry.url || '',
-          ean: entry.ean || '',
-          price: '',
-          eta_days: typeof obs.eta_days === 'number' ? obs.eta_days : ''
-        };
-        saveState();
-        render();
-      });
-      hint.appendChild(cta);
-      row.appendChild(hint);
-    }
-
-    return row;
-  }
-
-  // SL-8.f / SL-8.g: provenance label, bot id (when auto-fetched), sparkline pop-over.
-  function renderShopProvenance(entry, obs, item) {
-    if (!obs) return null;
-    var meta = el('span', 'shopping-shop__meta');
-    var technique = obs.technique || 'manual';
-    meta.appendChild(el('span',
-      'shopping-shop__technique shopping-shop__technique--' + technique,
-      TECHNIQUE_LABELS[technique] || technique));
-    // SL-8.g: when the price came from a bot, name the bot. Bots are 1:1 with
-    // shops per SL-9.e — derive the id as "<shop>-bot".
-    var botId = botIdFor(entry, obs);
-    if (botId) {
-      meta.appendChild(el('span', 'shopping-shop__bot', '· ' + botId));
-    }
-    var ageDays = observationAgeDays(obs);
-    if (ageDays != null) {
-      meta.appendChild(el('span', 'shopping-shop__captured',
-        '· ' + (ageDays === 0 ? 'today' : (ageDays + 'd ago'))));
-    }
-    // SL-8.i: small ✓ on the row when the latest observation has been validated.
-    if (isObservationValidated(item, entry, obs)) {
-      meta.appendChild(el('span', 'shopping-shop__validated', '✓ validated'));
-    }
-    var pricePoints = (entry.observations || []).filter(function (o) {
-      return typeof o.price === 'number';
-    });
-    var hasMultipleObservations = (entry.observations || []).length >= 2;
-    if (pricePoints.length >= 2 || hasMultipleObservations) {
-      meta.appendChild(renderHistoryControl(entry, item));
-    }
-    return meta;
-  }
-
-  // SL-8.g: bot id is derived from shop id for auto-fetched observations.
-  // Manual entries and user-added shops don't have a bot.
-  function botIdFor(entry, obs) {
-    var tech = obs && obs.technique;
-    if (!tech || tech === 'manual') return null;
-    var shopId = entry && entry.shop;
-    if (!shopId || shopId.indexOf(USER_SHOP_PREFIX) === 0) return null;
-    return shopId + '-bot';
   }
 
   function observationKey(item, entry, obs) {
@@ -1473,51 +1819,7 @@
     return box;
   }
 
-  function renderOverrideRow(item, isChosen) {
-    var ov = state.itemOverride[item.code];
-    var row = el('label', 'shopping-shop shopping-shop--override');
-    row.htmlFor = 'shop-' + item.code + '-override';
-    if (isChosen) row.classList.add('is-chosen');
-
-    var radio = document.createElement('input');
-    radio.type = 'radio';
-    radio.name = 'shop-pick-' + item.code;
-    radio.id = 'shop-' + item.code + '-override';
-    radio.className = 'shopping-shop__radio';
-    radio.checked = isChosen;
-    radio.addEventListener('change', function () {
-      delete state.shopOverride[item.code]; // override wins via the itemOverride map
-      // Ensure itemOverride remains; nothing else to do but re-render.
-      saveState();
-      render();
-    });
-    row.appendChild(radio);
-
-    var name = el('span', 'shopping-shop__name');
-    var nameLink = el('a', 'shopping-shop__name-link', ov.shop_label || 'Custom shop');
-    nameLink.href = ov.url || '#';
-    nameLink.target = '_blank';
-    nameLink.rel = 'noopener noreferrer';
-    name.appendChild(nameLink);
-    name.appendChild(el('span', 'shopping-badge shopping-badge--override', 'Your override'));
-    row.appendChild(name);
-
-    var priceText = typeof ov.price === 'number' ? formatMoney(ov.price, ov.currency || 'EUR') : '—';
-    row.appendChild(el('span', 'shopping-shop__price', priceText));
-
-    var stockWrap = el('span', 'shopping-shop__stock');
-    var dot = el('span', 'shopping-dot shopping-dot--in');
-    stockWrap.appendChild(dot);
-    stockWrap.appendChild(document.createTextNode(
-      ov.eta_days != null ? ov.eta_days + (ov.eta_days === 1 ? ' day' : ' days') : 'Custom ETA'));
-    row.appendChild(stockWrap);
-
-    return row;
-  }
-
-  // SL-8.e: single-line form reused for the per-item override and SL-8.d's
-  // "add alternative product" flow. The latter prepends a product-name field
-  // via opts.includeName; otherwise the form collects the same five shop fields.
+  // SL-8.e: single-line form reused by SL-8.d's "add alternative product" flow.
   function renderInlineProductForm(opts) {
     var values = opts.values || {};
     var fields = [];
@@ -1592,48 +1894,6 @@
     return form;
   }
 
-  function renderItemOverride(item) {
-    var wrap = el('details', 'shopping-override');
-    var hasOverride = !!state.itemOverride[item.code];
-    var prefill = state.itemOverridePrefill && state.itemOverridePrefill[item.code];
-    var summary = el('summary', 'shopping-override__summary',
-      hasOverride ? 'Edit override' :
-        (prefill ? 'Complete the missing fields' : 'Add your own (EAN / product link)'));
-    wrap.appendChild(summary);
-
-    var initialValues = state.itemOverride[item.code] || prefill || {};
-    wrap.appendChild(renderInlineProductForm({
-      idPrefix: 'ov-' + item.code,
-      values: initialValues,
-      submitLabel: 'Save override',
-      removeLabel: 'Remove override',
-      onSave: function (vals) {
-        state.itemOverride[item.code] = {
-          shop_label: vals.shop_label || 'Custom shop',
-          url: vals.url,
-          ean: vals.ean,
-          price: vals.price,
-          currency: vals.currency,
-          eta_days: vals.eta_days,
-          in_stock: true
-        };
-        delete state.shopOverride[item.code];
-        if (state.itemOverridePrefill) delete state.itemOverridePrefill[item.code];
-        saveState();
-        render();
-      },
-      onRemove: hasOverride ? function () {
-        delete state.itemOverride[item.code];
-        if (state.itemOverridePrefill) delete state.itemOverridePrefill[item.code];
-        saveState();
-        render();
-      } : null
-    }));
-
-    if (hasOverride || prefill) wrap.open = true;
-    return wrap;
-  }
-
   function renderOrderSummary() {
     var order = buildOrder();
     var box = el('aside', 'shopping-summary');
@@ -1667,7 +1927,7 @@
 
   function renderGroup(g) {
     var shop = data.shopsById[g.shopId];
-    var displayName = shop ? shop.name : (g.shopId === OVERRIDE_SHOP_ID ? 'Your overrides' : g.shopId);
+    var displayName = shop ? shop.name : g.shopId;
     var card = el('div', 'shopping-summary__group');
 
     var head = el('div', 'shopping-summary__group-head');
