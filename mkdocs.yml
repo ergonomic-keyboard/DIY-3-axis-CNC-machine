@@ -23,3 +23,7 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+extra_css:
+  - assets/stylesheets/toc-toggle.css
+extra_javascript:
+  - assets/javascripts/toc-toggle.js
