@@ -1,0 +1,65 @@
+{
+  "$schema_version": 1,
+  "countries": [
+    { "id": "NL",  "label": "Netherlands" },
+    { "id": "ALL", "label": "All countries (compare)" }
+  ],
+  "shops": [
+    {
+      "id": "conrad_nl",
+      "name": "Conrad NL",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.conrad.nl/",
+      "shipping": { "standard_cost": 6.95, "free_above": 75.0, "default_eta_days": 3 }
+    },
+    {
+      "id": "tinytronics",
+      "name": "TinyTronics",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.tinytronics.nl/",
+      "shipping": { "standard_cost": 4.95, "free_above": 75.0, "default_eta_days": 1 }
+    },
+    {
+      "id": "bol_nl",
+      "name": "Bol.com",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.bol.com/",
+      "shipping": { "standard_cost": 3.95, "free_above": 20.0, "default_eta_days": 2 }
+    },
+    {
+      "id": "amazon_nl",
+      "name": "Amazon.nl",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.amazon.nl/",
+      "shipping": { "standard_cost": 1.99, "free_above": 20.0, "default_eta_days": 2 }
+    },
+    {
+      "id": "aliexpress",
+      "name": "AliExpress",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.aliexpress.com/",
+      "shipping": { "standard_cost": 0.0, "free_above": 0.0, "default_eta_days": 21 }
+    },
+    {
+      "id": "123_3d",
+      "name": "123-3D",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.123-3d.nl/",
+      "shipping": { "standard_cost": 4.99, "free_above": 75.0, "default_eta_days": 2 }
+    },
+    {
+      "id": "3dhubs_print_service",
+      "name": "Online 3D print service",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://craftcloud3d.com/",
+      "shipping": { "standard_cost": 0.0, "free_above": 0.0, "default_eta_days": 10 }
+    }
+  ]
+}
