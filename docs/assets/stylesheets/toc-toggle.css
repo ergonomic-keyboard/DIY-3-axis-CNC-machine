@@ -1,0 +1,71 @@
+/* Binary toggle that moves the page table of contents between
+   bottom-left (default) and top-right (Material's stock position). */
+
+.toc-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0.5rem 0.75rem;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--md-default-fg-color--light);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.2rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.toc-toggle-btn:hover,
+.toc-toggle-btn:focus-visible {
+  background: var(--md-default-fg-color--lightest);
+  color: var(--md-default-fg-color);
+  border-color: var(--md-default-fg-color--light);
+  outline: none;
+}
+
+/* Left mode: hide the stock right sidebar and let content reclaim the space. */
+body.toc-position-left .md-sidebar--secondary {
+  display: none !important;
+}
+
+@media screen and (min-width: 76.25em) {
+  body.toc-position-left .md-grid {
+    max-width: 80rem;
+  }
+}
+
+/* Cloned TOC anchored at the bottom of the left sidebar. */
+.toc-clone {
+  margin: 0.75rem 0 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.toc-clone .md-nav__title {
+  display: block;
+  padding: 0 0.75rem 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--md-default-fg-color--light);
+}
+
+/* Force visibility — Material hides .md-nav--secondary at narrower widths. */
+.toc-clone .toc-clone-nav,
+.toc-clone .toc-clone-nav .md-nav__list,
+.toc-clone .toc-clone-nav .md-nav__item {
+  display: block;
+}
+
+.toc-clone-empty {
+  padding: 0.25rem 0.75rem;
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--md-default-fg-color--light);
+  font-style: italic;
+}
