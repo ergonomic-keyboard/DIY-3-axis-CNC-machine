@@ -1,5 +1,6 @@
 {
-  "$schema_version": 1,
+  "$schema_version": 2,
+  "configurations": [],
   "categories": [
     {
       "id": "printed",
@@ -639,7 +640,13 @@
       "category": "electronics",
       "name": "Makita RT0700C (milling router)",
       "qty": 1,
-      "image": "images/parts/electronics/milling_router.jpg"
+      "image": "images/parts/electronics/milling_router.jpg",
+      "alternatives": [
+        {
+          "code": "E20-katsu",
+          "name": "Katsu 1/4\" trim router (budget alternative)"
+        }
+      ]
     },
     {
       "code": "E21",

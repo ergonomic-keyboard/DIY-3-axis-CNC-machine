@@ -6,19 +6,12 @@
   --shopping-border: var(--md-default-fg-color--lightest);
   --shopping-muted:  var(--md-default-fg-color--light);
   --shopping-accent: var(--md-primary-fg-color);
+  --shopping-thumb-size: 3rem;
   font-feature-settings: "tnum" 1, "lnum" 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
   margin-top: 1rem;
-}
-
-@media (min-width: 60em) {
-  .shopping-app {
-    grid-template-columns: minmax(0, 1fr) 22rem;
-    align-items: start;
-  }
-  .shopping-summary { position: sticky; top: 4.5rem; }
 }
 
 .shopping-app .shopping-loading {
@@ -36,14 +29,18 @@
 
 /* -- header --------------------------------------------------------- */
 .shopping-header {
-  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--shopping-border);
+}
+.shopping-header__row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--shopping-border);
 }
 .shopping-header__controls,
 .shopping-header__meta {
@@ -51,6 +48,15 @@
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+.shopping-config-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.shopping-config__select {
+  font-weight: 600;
+  min-width: 14rem;
 }
 .shopping-label {
   font-size: 0.72rem;
@@ -70,6 +76,16 @@
 .shopping-meta {
   font-size: 0.78rem;
   color: var(--shopping-muted);
+}
+.shopping-thumb-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.shopping-thumb-slider {
+  width: 7rem;
+  accent-color: var(--shopping-accent);
+  cursor: ew-resize;
 }
 .shopping-link {
   background: transparent;
@@ -108,6 +124,23 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+.shopping-category__footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 0.8rem;
+  padding: 0.5rem 0.9rem;
+  border-top: 1px solid var(--shopping-border);
+  background: var(--md-code-bg-color, transparent);
+  font-size: 0.78rem;
+  color: var(--shopping-muted);
+}
+.shopping-category__footer-total {
+  font-weight: 700;
+  color: var(--md-default-fg-color);
+  font-variant-numeric: tabular-nums;
+}
+.shopping-category__footer-warn { color: #d1242f; }
 
 .shopping-item {
   border-top: 1px solid var(--shopping-border);
@@ -119,7 +152,7 @@
 
 .shopping-item__head {
   display: grid;
-  grid-template-columns: 1.4rem 3rem 1fr;
+  grid-template-columns: 1.4rem var(--shopping-thumb-size) 1fr;
   align-items: center;
   gap: 0.6rem;
   cursor: pointer;
@@ -127,8 +160,8 @@
 .shopping-item__checkbox { transform: translateY(1px); }
 
 .shopping-item__thumb {
-  width: 3rem;
-  height: 3rem;
+  width: var(--shopping-thumb-size);
+  height: var(--shopping-thumb-size);
   border-radius: 0.3rem;
   background: var(--md-code-bg-color, rgba(0, 0, 0, 0.04));
   overflow: hidden;
@@ -163,6 +196,55 @@
 }
 .shopping-item__name { font-weight: 500; }
 .shopping-item__qty { color: var(--shopping-muted); font-size: 0.78rem; }
+
+/* -- alternatives picker ------------------------------------------- */
+.shopping-alts {
+  margin: 0.45rem 0 0 2rem;
+  font-size: 0.82rem;
+}
+.shopping-alts__summary {
+  cursor: pointer;
+  color: var(--shopping-muted);
+  padding: 0.2rem 0;
+}
+.shopping-alts__summary:hover { color: var(--shopping-accent); }
+.shopping-alts__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.4rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+}
+.shopping-alts__choice {
+  display: grid;
+  grid-template-columns: 1.2rem 1fr;
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.3rem 0.45rem;
+  border-radius: var(--shopping-radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.shopping-alts__choice:hover { background: rgba(0, 0, 0, 0.025); }
+.shopping-alts__choice.is-chosen {
+  border-color: var(--shopping-accent);
+  background: rgba(0, 0, 0, 0.04);
+}
+.shopping-item__alt-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--shopping-accent);
+  color: var(--shopping-accent);
+}
+.shopping-alts-empty { display: none; }
 
 /* -- shop list ------------------------------------------------------ */
 .shopping-shops {
@@ -264,35 +346,65 @@
 }
 .shopping-override__summary:hover { color: var(--shopping-accent); }
 
-.shopping-override__form {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-  gap: 0.5rem;
-  padding: 0.6rem;
+/* SL-8.e: single-line inline form (override + future "add alternative").
+   The <details>/<summary> wrapper provides the descriptive context; each
+   input's intent is conveyed by its placeholder + aria-label, and the
+   per-field <span> labels are screen-reader-only so the controls fit
+   horizontally on one row. */
+.shopping-inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.55rem;
   border: 1px solid var(--shopping-border);
   border-radius: var(--shopping-radius);
   margin-top: 0.4rem;
 }
-.shopping-override__field { display: flex; flex-direction: column; gap: 0.2rem; }
-.shopping-override__field label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--shopping-muted);
+.shopping-inline-form__field {
+  display: flex;
+  min-width: 0;
+  margin: 0;
 }
-.shopping-override__field input {
+.shopping-inline-form__field--shop  { flex: 0 1 7rem;   min-width: 4rem; }
+.shopping-inline-form__field--url   { flex: 1 1 8rem;   min-width: 6rem; }
+.shopping-inline-form__field--ean   { flex: 0 1 7rem;   min-width: 4rem; }
+.shopping-inline-form__field--price { flex: 0 1 4.5rem; min-width: 3rem; }
+.shopping-inline-form__field--eta   { flex: 0 1 4rem;   min-width: 3rem; }
+.shopping-inline-form__label {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.shopping-inline-form__input {
+  width: 100%;
+  box-sizing: border-box;
   border: 1px solid var(--shopping-border);
   border-radius: 0.25rem;
   padding: 0.3rem 0.4rem;
   background: var(--md-default-bg-color);
   color: inherit;
   font: inherit;
+  font-size: 0.85rem;
 }
-.shopping-override__actions {
-  grid-column: 1 / -1;
+.shopping-inline-form__input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.shopping-inline-form__input[type="number"]::-webkit-outer-spin-button,
+.shopping-inline-form__input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.shopping-inline-form__actions {
   display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
+  gap: 0.35rem;
+  align-items: center;
+  margin-left: auto;
 }
 
 .shopping-btn {
@@ -339,7 +451,11 @@
   border-radius: var(--shopping-radius);
   font-size: 0.8rem;
 }
-.shopping-summary__groups { display: flex; flex-direction: column; gap: 0.55rem; }
+.shopping-summary__groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.55rem;
+}
 .shopping-summary__group {
   border: 1px solid var(--shopping-border);
   border-radius: var(--shopping-radius);
