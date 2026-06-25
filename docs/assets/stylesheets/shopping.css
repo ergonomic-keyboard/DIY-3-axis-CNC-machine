@@ -613,6 +613,85 @@
 .shopping-item__add--shop.is-open { border-color: #2ea44f; color: #2ea44f; background: rgba(46, 164, 79, 0.08); }
 .shopping-item__add-icon { font-size: 0.85rem; font-weight: 700; line-height: 1; }
 
+/* SL-10.P: EAN button + popover on the head row. */
+.shopping-item__ean-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+.shopping-item__ean-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: transparent;
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.18rem 0.45rem;
+  font: inherit;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--shopping-muted);
+  cursor: pointer;
+}
+.shopping-item__ean-btn:hover { border-color: var(--shopping-accent); color: var(--shopping-accent); }
+.shopping-item__ean-btn.has-ean {
+  border-color: var(--shopping-accent);
+  color: var(--shopping-accent);
+}
+.shopping-item__ean-dot { font-size: 0.5rem; line-height: 1; }
+.shopping-item__ean-pop {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.3rem);
+  left: 0;
+  z-index: 6;
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.55rem 0.65rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  font-size: 0.78rem;
+  width: 18rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.shopping-item__ean-wrap.is-open .shopping-item__ean-pop { display: block; }
+.shopping-item__ean-pop-title {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--shopping-muted);
+  margin-bottom: 0.4rem;
+}
+.shopping-item__ean-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.3rem 0.4rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--shopping-border);
+  border-radius: 0.25rem;
+  background: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+}
+.shopping-item__ean-actions {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+  align-items: center;
+}
+.shopping-item__ean-actions .shopping-btn { flex: 0 0 auto; }
+.shopping-item__ean-copy:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 /* SL-10.O: dedicated add-shop body picks up the same green accent. */
 .shopping-item__body--shop {
   border-top-color: rgba(46, 164, 79, 0.45);
