@@ -53,3 +53,10 @@ SL-8.j The website shall be vimium friendly.
 
 SL-9.d The top of the shopping page shall contain controls to manually run the price-fetching bots — one button per bot, each annotated with a suggested timeout / cooldown to prevent API rate-limiting. This local-trigger path is complementary to the scheduled SL-9.a action: a user running the site locally shall be able to fetch new prices and persist updates to `prices.json` without depending on the CI runner.
 SL-9.e A "bot" is one fetcher per shop (e.g. `tinytronics-bot`, `conrad-bot`, `bol-bot`, `123-3d-bot`). Each observation a bot writes shall record the fetching technique it used (`jsonld` | `opengraph` | `affiliate-api` | `manual`) as a sub-field of the observation, so SL-8.f / SL-8.g can show which technique produced which value when multiple techniques are tried or multiple bots disagree.
+
+
+SL-10.a The shopping site shall contain a toc starting with electronics, followed by other, threaded rods, screws bolts washers nuts 3d printed stuff. You shall be able to fold unfold each category (both at its header and at the toc).
+sl-10.B The line "No shops listed yet for O07. Use “Add your own” below." shall be replaced with a single icon (on the same line as the description and image). 
+SL-10.C The alternatives dropdown shall be on the same line as the image as a dropdown.
+SL-10.D The "Add your own EAN" shall be on the same line as the image.
+SL-10.E 1 article/item shall just consume one line with all its features, at most the height of its thumbnail (so that it is a way shorter to scroll page).
