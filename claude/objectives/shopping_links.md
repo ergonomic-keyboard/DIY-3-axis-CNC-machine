@@ -36,7 +36,6 @@ SL-9.a An automated refresh path shall exist (scheduled GitHub Action) that atte
 SL-9.b The refresh shall be best-effort. Modern webshops are unreliable to scrape (anti-bot, CDN gating, JS-rendered pricing); shops that consistently fail shall be skipped without erroring the workflow, and the human reviewer shall fill those in manually via the existing snapshot.
 SL-9.c The refresh shall open a pull request (never push directly to `main`), so the diff is reviewed before publishing.
 
-SL-8.a The shopping overview shall include the image of the article to make it easy to verify if the deeplink to the article in the shops is the correct item. 
 SL-8.b The 3d printed parts will be at the bottom and deselected by default, the rest will be selected by default.
 SL-8.c The site shall have a slider in top for thumbnail size.
 SL-8.d The site shall have for each item the option to add an alternative item, the option to group alternative items (e.g. if you change the milling router, you will likely also have to change the milling router holder), these groups will be stored as separate configurations that are selectable on top.
@@ -52,4 +51,5 @@ SL-8.h If a bot is not able to get the price of an article but is able to find t
 SL-8.i The user shall be able to click "validate" on a bot article dataset (link, price ean etc.).
 SL-8.j The website shall be vimium friendly.
 
-SL-9.a The top shall contain a button to run the price-fetching bots again (one button per bot with suggested timeout to prevent api-rate-limiting). 
+SL-9.d The top of the shopping page shall contain controls to manually run the price-fetching bots — one button per bot, each annotated with a suggested timeout / cooldown to prevent API rate-limiting. This local-trigger path is complementary to the scheduled SL-9.a action: a user running the site locally shall be able to fetch new prices and persist updates to `prices.json` without depending on the CI runner.
+SL-9.e A "bot" is one fetcher per shop (e.g. `tinytronics-bot`, `conrad-bot`, `bol-bot`, `123-3d-bot`). Each observation a bot writes shall record the fetching technique it used (`jsonld` | `opengraph` | `affiliate-api` | `manual`) as a sub-field of the observation, so SL-8.f / SL-8.g can show which technique produced which value when multiple techniques are tried or multiple bots disagree.
