@@ -1,6 +1,6 @@
 {
   "$schema_version": 2,
-  "last_updated_at": "2026-06-25T12:42:59Z",
+  "last_updated_at": "2026-06-25T17:40:35Z",
   "notes": "One entry per (item_code, shop) pair. The newest observation in `observations` is what the UI displays; history is appended, never overwritten. Each observation carries a `technique` (jsonld | opengraph | affiliate-api | manual) per SL-9.e. Refresh via tools/refresh_prices.py or the refresh-prices GitHub Action. Only add entries whose `url` points at a concrete product page — the refresh tool skips listing / search / category URLs by design (see SL-9.b).",
   "entries": [
     {
@@ -9,8 +9,22 @@
       "url": "https://www.tinytronics.nl/nl/development-boards/microcontroller-boards/arduino-compatible/arduino-uno-r3",
       "ean": null,
       "observations": [
-        { "ts": "2026-06-25T12:42:59Z", "price": 25.00, "currency": "EUR", "in_stock": false, "eta_days": 1, "technique": "jsonld" },
-        { "ts": "2026-06-25T00:00:00Z", "price": 25.00, "currency": "EUR", "in_stock": true,  "eta_days": 1, "technique": "manual" }
+        {
+          "ts": "2026-06-25T12:42:59Z",
+          "price": 25.0,
+          "currency": "EUR",
+          "in_stock": false,
+          "eta_days": 1,
+          "technique": "jsonld"
+        },
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 25.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1,
+          "technique": "manual"
+        }
       ]
     },
     {
@@ -19,7 +33,14 @@
       "url": "https://www.tinytronics.nl/nl/mechanica-en-actuatoren/motoraansturingen-en-drivers/adapter-boards/cnc-shield-v3",
       "ean": null,
       "observations": [
-        { "ts": "2026-06-25T12:42:59Z", "price": 5.00, "currency": "EUR", "in_stock": true, "eta_days": 1, "technique": "jsonld" }
+        {
+          "ts": "2026-06-25T12:42:59Z",
+          "price": 5.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1,
+          "technique": "jsonld"
+        }
       ]
     },
     {
@@ -28,7 +49,14 @@
       "url": "https://www.tinytronics.nl/nl/mechanica-en-actuatoren/motoraansturingen-en-drivers/stappen-motoraansturingen-en-drivers/drv8825-motor-driver-module",
       "ean": null,
       "observations": [
-        { "ts": "2026-06-25T12:42:59Z", "price": 5.00, "currency": "EUR", "in_stock": true, "eta_days": 1, "technique": "jsonld" }
+        {
+          "ts": "2026-06-25T12:42:59Z",
+          "price": 5.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1,
+          "technique": "jsonld"
+        }
       ]
     },
     {
@@ -37,7 +65,15 @@
       "url": "https://www.tinytronics.nl/nl/mechanica-en-actuatoren/motoren/stappenmotoren/stappenmotor-0.41n.m-1.7a-nema17",
       "ean": null,
       "observations": [
-        { "ts": "2026-06-25T12:42:59Z", "price": 10.50, "currency": "EUR", "in_stock": true, "eta_days": 1, "technique": "jsonld", "note": "Closest match to BOM `Bipolar stepper motor NEMA 17, no gear, 5mm shaft` — verify torque/shaft spec before ordering." }
+        {
+          "ts": "2026-06-25T12:42:59Z",
+          "price": 10.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1,
+          "technique": "jsonld",
+          "note": "Closest match to BOM `Bipolar stepper motor NEMA 17, no gear, 5mm shaft` — verify torque/shaft spec before ordering."
+        }
       ]
     },
     {
@@ -46,7 +82,15 @@
       "url": "https://www.tinytronics.nl/nl/schakelaars/manuele-schakelaars/drukknoppen-en-schakelaars/auspicious-noodstopschakelaar-druk-draai",
       "ean": null,
       "observations": [
-        { "ts": "2026-06-25T12:42:59Z", "price": 5.50, "currency": "EUR", "in_stock": true, "eta_days": 1, "technique": "jsonld", "note": "Closest match (Auspicious noodstop) — verify spec against KJD17B." }
+        {
+          "ts": "2026-06-25T12:42:59Z",
+          "price": 5.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1,
+          "technique": "jsonld",
+          "note": "Closest match (Auspicious noodstop) — verify spec against KJD17B."
+        }
       ]
     },
     {
@@ -55,7 +99,15 @@
       "url": "https://craftcloud3d.com/",
       "ean": null,
       "observations": [
-        { "ts": "2026-06-25T00:00:00Z", "price": null, "currency": "EUR", "in_stock": true, "eta_days": 10, "technique": "manual", "note": "Quote per part — varies with size. Ask a friend with a 3D printer first." }
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 10,
+          "technique": "manual",
+          "note": "Quote per part — varies with size. Ask a friend with a 3D printer first."
+        }
       ]
     },
     {
@@ -64,7 +116,447 @@
       "url": "https://craftcloud3d.com/",
       "ean": null,
       "observations": [
-        { "ts": "2026-06-25T00:00:00Z", "price": null, "currency": "EUR", "in_stock": true, "eta_days": 10, "technique": "manual", "note": "Quote per part. Ask a friend with a 3D printer first." }
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 10,
+          "technique": "manual",
+          "note": "Quote per part. Ask a friend with a 3D printer first."
+        }
+      ]
+    },
+    {
+      "item_code": "E09",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/Arduino-Uno-Rev-3-A000066/dp/B008GRTSV6",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E09",
+      "shop": "bol_nl",
+      "url": "https://www.bol.com/nl/p/arduino-uno-rev-3/9200000035719428",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E09",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/p/iduino-compatible-board-iduino-uno-r3-atmega328-1465104",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E10",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/HiLetgo-uitbreidingsplaten-3D-printer-Expansion-driverboard/dp/B01D2HL9T8",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E10",
+      "shop": "bol_nl",
+      "url": "https://www.bol.com/nl/nl/p/arduino-cnc-shield/9300000031036083/",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E11",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/onbekend-Nema17-Stepper-Motor-0-55n/dp/B07TQMVC7X",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E11",
+      "shop": "bol_nl",
+      "url": "https://www.bol.com/nl/nl/p/nema17-stappenmotor-17hs4401/9300000122108667/",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E16",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/Stepstick-DRV8825-Stepper-Driver-Replace/dp/B07FZPC6P3",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E17",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/KEDU-elektromagnetische-noodstopschakelaar-stroomuitval-onderspanning/dp/B08B3R56JB",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E17",
+      "shop": "bol_nl",
+      "url": "https://www.bol.com/nl/nl/p/tru-components-kjd17b-16-magneetschakelaar-250-v-ac-18-a-1x-uit-aan-continu-74-mm-x-40-89-mm-1-stuk/9200000125523604/",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E20",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/Makita-RT0700C-One-handed-cutter-Black/dp/B007NZHNX2",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E01",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/WINSINN-Borstelloze-Computer-Ontvanger-Playstation/dp/B07RG94T6G",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E01",
+      "shop": "bol_nl",
+      "url": "https://www.bol.com/nl/nl/p/mute-pc-case-fan-80mm-12v-4pin-ultra-slient-computerkast-koelventilator-pc-case-koeler-met-led-licht-voor-computer-koelsysteem/9300000225749793/",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E02",
+      "shop": "bol_nl",
+      "url": "https://www.bol.com/nl/nl/p/mean-well-uhp-200-12-ac-dc-inbouwnetvoeding-16-7-a-12-6-v-dc-uitgangsspanning-regelbaar/9300000082280977/",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E02",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/p/mean-well-uhp-200-12-acdc-inbouwnetvoeding-167-a-126-vdc-uitgangsspanning-regelbaar-1837975",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E07",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/Wago-221-413-Compact-verbindingsklemmen-3-geleiders-stuks/dp/B00JB3U9CG",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E07",
+      "shop": "bol_nl",
+      "url": "https://www.bol.com/nl/nl/p/wago-221-413-klemmenblok-1p-oranje-transparant/9200000053402222/",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E18",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/STEPPERONLINE-Nema17-Gear-Motor-1-68A/dp/B077ZP7NX3",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 5,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E28",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/Printerkabel-aansluitkabel-scannerkabel-vergulde-contacten/dp/B01CSXRWG6",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "O01",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/Miniature-Bearings-Shielded-Resistant-Multi-Use/dp/B078MXNC8G",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "O15",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/DollaTek-Aluminum-Timing-Pulley-Printer/dp/B07DK3DCMS",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "O16",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/Yeebyee-distributieriem-synchrone-3D-printer-onderdelen/dp/B0BLVCLZ53",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 5,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "O17",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/HTD5M-Timing-Polyurethane-Synchronous-Pulley/dp/B0CH2ZWXGB",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 5,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "O19",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/QWORK-Flange-Bearing-Pillow-Printer/dp/B0BBTYYJ9J",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "O20",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/iMetrx-MGN12H-geleiderail-3D-printers-CNC-machines/dp/B0C3VBVB47",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "O21",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/Carriage-Automatic-Equipment-Precision-Measuring/dp/B0895S88JQ",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 5,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "O21",
+      "shop": "bol_nl",
+      "url": "https://www.bol.com/nl/nl/p/machifit-mgn12-600mm-lineaire-railgeleider-met-mgn12h-blokcnc-gereedschap/9200000123354442/",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T17:40:35Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual"
+        }
       ]
     }
   ]
