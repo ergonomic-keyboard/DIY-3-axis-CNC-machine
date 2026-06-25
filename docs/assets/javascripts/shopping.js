@@ -1,12 +1,14 @@
 (function () {
   'use strict';
 
-  var STATE_KEY = 'cnc-shopping-state-v3';
+  var STATE_KEY = 'cnc-shopping-state-v4';
+  var LEGACY_STATE_KEYS = ['cnc-shopping-state-v3'];
   var DEFAULT_CONFIG_ID = 'default';
   var CUSTOM_CONFIG_ID  = 'custom';
   var DATA_BASE = null; // resolved at init from current page URL
   var SITE_BASE = null; // DATA_BASE without trailing "data/" — used for image src
   var OVERRIDE_SHOP_ID = '__override';
+  var USER_SHOP_PREFIX = '__user_';
 
   var data = {
     shops: [], shopsById: {}, countries: [],
@@ -28,7 +30,7 @@
 
   function loadState() {
     var fallback = {
-      version: 3,
+      version: 4,
       country: 'NL',
       selected: {},
       shopOverride: {},
@@ -37,13 +39,23 @@
       thumbRem: THUMB_DEFAULT_REM,
       activeConfig: DEFAULT_CONFIG_ID,
       customUses: {},
-      savedConfigurations: []
+      savedConfigurations: [],
+      userAlternatives: {}
     };
     try {
       var raw = localStorage.getItem(STATE_KEY);
-      if (!raw) return fallback;
-      var parsed = JSON.parse(raw);
-      return Object.assign(fallback, parsed);
+      if (raw) return Object.assign({}, fallback, JSON.parse(raw));
+      // One-shot migration from the previous key on first load of v4 —
+      // keeps the user's selections, thumb size, and saved configs intact.
+      for (var i = 0; i < LEGACY_STATE_KEYS.length; i++) {
+        var legacy = localStorage.getItem(LEGACY_STATE_KEYS[i]);
+        if (!legacy) continue;
+        var prev = JSON.parse(legacy);
+        var merged = Object.assign({}, fallback, prev, { version: 4 });
+        merged.userAlternatives = merged.userAlternatives || {};
+        return merged;
+      }
+      return fallback;
     } catch (e) { return fallback; }
   }
 
@@ -91,7 +103,9 @@
       fetchJSON(DATA_BASE + 'prices.json')
     ]).then(function (results) {
       ingest(results[0], results[1], results[2]);
+      syncUserAlternativesIntoData();
       applyDefaultSelection();
+      snapActiveConfigFromCustom();
       render();
     }).catch(function (err) {
       root.innerHTML = '<p class="shopping-error">Could not load shopping data: ' +
@@ -139,7 +153,172 @@
     data.lastUpdatedAt = pricesFile.last_updated_at || null;
   }
 
+  // -- User-added alternatives ------------------------------------------
+
+  // Merge state.userAlternatives into the data indices so they participate in
+  // pricing, picking, and effective-code resolution just like authored ones.
+  // Idempotent — clears previously-synthesized user entries before re-merging.
+  function syncUserAlternativesIntoData() {
+    Object.keys(data.altByCode).forEach(function (code) {
+      if (!data.altByCode[code].userAdded) return;
+      var parent = data.altByCode[code].parent;
+      delete data.altByCode[code];
+      delete data.parentOfAlt[code];
+      if (data.alternativesByParent[parent]) {
+        data.alternativesByParent[parent] = data.alternativesByParent[parent].filter(function (a) {
+          return !a.userAdded;
+        });
+        if (data.alternativesByParent[parent].length === 0) delete data.alternativesByParent[parent];
+      }
+      delete data.prices[code];
+    });
+    data.shops = data.shops.filter(function (s) { return s.id.indexOf(USER_SHOP_PREFIX) !== 0; });
+    Object.keys(data.shopsById).forEach(function (id) {
+      if (id.indexOf(USER_SHOP_PREFIX) === 0) delete data.shopsById[id];
+    });
+
+    var nowIso = new Date().toISOString();
+    Object.keys(state.userAlternatives || {}).forEach(function (parentCode) {
+      var parent = data.itemsByCode[parentCode];
+      if (!parent) return;
+      (state.userAlternatives[parentCode] || []).forEach(function (ua) {
+        var enriched = {
+          code: ua.code,
+          name: ua.name,
+          ean: ua.ean || null,
+          category: parent.category,
+          qty: parent.qty,
+          image: ua.image != null ? ua.image : parent.image,
+          parent: parentCode,
+          userAdded: true
+        };
+        if (!data.alternativesByParent[parentCode]) data.alternativesByParent[parentCode] = [];
+        data.alternativesByParent[parentCode].push(enriched);
+        data.altByCode[ua.code] = enriched;
+        data.parentOfAlt[ua.code] = parentCode;
+
+        if (!ua.shop) return;
+        var shopId = USER_SHOP_PREFIX + ua.code;
+        var synthShop = {
+          id: shopId,
+          name: ua.shop.shop_label || 'Custom shop',
+          country: state.country,
+          currency: ua.shop.currency || 'EUR',
+          home_url: ua.shop.url || '#',
+          shipping: { standard_cost: 0, default_eta_days: ua.shop.eta_days != null ? ua.shop.eta_days : null }
+        };
+        data.shops.push(synthShop);
+        data.shopsById[shopId] = synthShop;
+
+        data.prices[ua.code] = [{
+          item_code: ua.code,
+          shop: shopId,
+          url: ua.shop.url || null,
+          observations: [{
+            ts: nowIso,
+            price: typeof ua.shop.price === 'number' ? ua.shop.price : null,
+            currency: ua.shop.currency || 'EUR',
+            eta_days: ua.shop.eta_days != null ? ua.shop.eta_days : null,
+            in_stock: true,
+            technique: 'manual'
+          }]
+        }];
+      });
+    });
+  }
+
+  function generateUserAltCode(parentCode) {
+    var bytes = new Uint8Array(2);
+    var src = window.crypto || window.msCrypto;
+    if (src && src.getRandomValues) {
+      src.getRandomValues(bytes);
+    } else {
+      bytes[0] = Math.floor(Math.random() * 256);
+      bytes[1] = Math.floor(Math.random() * 256);
+    }
+    var hex = ('0' + bytes[0].toString(16)).slice(-2) + ('0' + bytes[1].toString(16)).slice(-2);
+    var code = parentCode + '-user-' + hex;
+    // Defensive: regenerate on the astronomically improbable collision.
+    if (data.itemsByCode[code] || data.altByCode[code]) return generateUserAltCode(parentCode);
+    return code;
+  }
+
+  function addUserAlternative(parentCode, vals) {
+    var name = (vals.name || '').trim();
+    if (!name) { alert('Give the alternative product a name.'); return; }
+    if (!state.userAlternatives[parentCode]) state.userAlternatives[parentCode] = [];
+    var code = generateUserAltCode(parentCode);
+    state.userAlternatives[parentCode].push({
+      code: code,
+      name: name,
+      ean: vals.ean || null,
+      shop: {
+        shop_label: vals.shop_label || 'Custom shop',
+        url: vals.url || null,
+        price: typeof vals.price === 'number' ? vals.price : null,
+        currency: vals.currency || 'EUR',
+        eta_days: typeof vals.eta_days === 'number' ? vals.eta_days : null
+      }
+    });
+    syncUserAlternativesIntoData();
+    setEffectiveAlternative(parentCode, code);
+  }
+
+  function removeUserAlternative(parentCode, altCode) {
+    var arr = (state.userAlternatives[parentCode] || []).filter(function (ua) {
+      return ua.code !== altCode;
+    });
+    if (arr.length === 0) delete state.userAlternatives[parentCode];
+    else state.userAlternatives[parentCode] = arr;
+
+    if (state.customUses && state.customUses[parentCode] === altCode) {
+      delete state.customUses[parentCode];
+    }
+    // Drop a saved configuration's reference too, since the alt no longer exists.
+    (state.savedConfigurations || []).forEach(function (cfg) {
+      if (cfg.uses && cfg.uses[parentCode] === altCode) delete cfg.uses[parentCode];
+    });
+    syncUserAlternativesIntoData();
+    snapActiveConfigFromCustom();
+    saveState();
+    render();
+  }
+
   // -- Configurations & alternatives -------------------------------------
+
+  function copyUses(o) {
+    var c = {};
+    Object.keys(o || {}).forEach(function (k) { c[k] = o[k]; });
+    return c;
+  }
+
+  function deepEqualUses(a, b) {
+    var ak = Object.keys(a || {});
+    var bk = Object.keys(b || {});
+    if (ak.length !== bk.length) return false;
+    for (var i = 0; i < ak.length; i++) {
+      var k = ak[i];
+      if (a[k] !== b[k]) return false;
+    }
+    return true;
+  }
+
+  function matchConfigByUses(uses) {
+    var all = allKnownConfigs();
+    for (var i = 0; i < all.length; i++) {
+      if (deepEqualUses(all[i].uses || {}, uses || {})) return all[i];
+    }
+    return null;
+  }
+
+  // Whenever state.customUses changes, decide whether activeConfig should snap
+  // to a known config id (default, built-in, or saved) instead of "custom".
+  // An empty customUses always snaps to default; an exact match to any saved
+  // bundle reuses that bundle's id so the dropdown reflects reality.
+  function snapActiveConfigFromCustom() {
+    var match = matchConfigByUses(state.customUses || {});
+    state.activeConfig = match ? match.id : CUSTOM_CONFIG_ID;
+  }
 
   function builtInConfigs() {
     var defaults = [{ id: DEFAULT_CONFIG_ID, label: 'Default (stock build)', uses: {} }];
@@ -198,7 +377,11 @@
     var scope = shopsInScope();
     var scopeIds = {};
     scope.forEach(function (s) { scopeIds[s.id] = true; });
-    return (data.prices[itemCode] || []).filter(function (e) { return scopeIds[e.shop]; });
+    // User-added shops always pass scope: they exist only because the user
+    // explicitly added them, so country filtering would just hide them.
+    return (data.prices[itemCode] || []).filter(function (e) {
+      return scopeIds[e.shop] || e.shop.indexOf(USER_SHOP_PREFIX) === 0;
+    });
   }
 
   function bestShopForItem(itemCode) {
@@ -400,7 +583,8 @@
     row.appendChild(label);
     row.appendChild(sel);
 
-    // When in Custom state, expose a button to discard the swaps and return to Default.
+    // When in Custom state, expose a button to discard the swaps and return to Default,
+    // plus a button to persist the current swaps as a named saved configuration.
     if (state.activeConfig === CUSTOM_CONFIG_ID) {
       var resetBtn = el('button', 'shopping-link', 'Reset to default');
       resetBtn.type = 'button';
@@ -411,9 +595,28 @@
         render();
       });
       row.appendChild(resetBtn);
+
+      var saveCfgBtn = el('button', 'shopping-link', 'Save as configuration…');
+      saveCfgBtn.type = 'button';
+      saveCfgBtn.addEventListener('click', saveCurrentAsConfiguration);
+      row.appendChild(saveCfgBtn);
     }
 
     return row;
+  }
+
+  function saveCurrentAsConfiguration() {
+    var label = (window.prompt('Name this configuration:') || '').trim();
+    if (!label) return;
+    var baseId = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    if (!baseId) baseId = 'config';
+    var id = baseId, n = 2;
+    while (configById(id)) { id = baseId + '-' + (n++); }
+    if (!state.savedConfigurations) state.savedConfigurations = [];
+    state.savedConfigurations.push({ id: id, label: label, uses: copyUses(state.customUses) });
+    state.activeConfig = id;
+    saveState();
+    render();
   }
 
   function renderThumbSizeControl() {
@@ -567,12 +770,15 @@
 
   function renderAlternativesPicker(parentItem, effectiveCode) {
     var alts = data.alternativesByParent[parentItem.code] || [];
-    if (alts.length === 0) return el('span', 'shopping-alts-empty'); // no-op placeholder
 
     var wrap = el('details', 'shopping-alts');
-    wrap.open = effectiveCode !== parentItem.code; // open by default when an alternative is active
-    var summary = el('summary', 'shopping-alts__summary',
-      'Alternatives (' + alts.length + ')');
+    // Auto-open when an alternative is currently active OR when there are user-added
+    // alts (so the "added by you" entries are visible without an extra click).
+    var hasUserAlts = alts.some(function (a) { return a.userAdded; });
+    wrap.open = effectiveCode !== parentItem.code || hasUserAlts;
+
+    var summaryLabel = alts.length === 0 ? 'Alternatives' : 'Alternatives (' + alts.length + ')';
+    var summary = el('summary', 'shopping-alts__summary', summaryLabel);
     wrap.appendChild(summary);
 
     var list = el('div', 'shopping-alts__list');
@@ -592,12 +798,27 @@
         name: groupName,
         id: 'alt-' + parentItem.code + '-' + a.code,
         label: a.name,
+        sublabel: a.userAdded ? 'added by you' : null,
         isChecked: effectiveCode === a.code,
-        onPick: function () { setEffectiveAlternative(parentItem.code, a.code); }
+        onPick: function () { setEffectiveAlternative(parentItem.code, a.code); },
+        onRemove: a.userAdded ? function () { removeUserAlternative(parentItem.code, a.code); } : null
       }));
     });
-
     wrap.appendChild(list);
+
+    // SL-8.d follow-up: inline form to add a brand-new alternative product.
+    // Reuses renderInlineProductForm with an extra "name" field on the front.
+    var add = el('details', 'shopping-alts__add');
+    var addSummary = el('summary', 'shopping-alts__add-summary', '+ Add alternative product');
+    add.appendChild(addSummary);
+    add.appendChild(renderInlineProductForm({
+      idPrefix: 'add-alt-' + parentItem.code,
+      includeName: true,
+      submitLabel: 'Add alternative',
+      onSave: function (vals) { addUserAlternative(parentItem.code, vals); }
+    }));
+    wrap.appendChild(add);
+
     return wrap;
   }
 
@@ -605,6 +826,8 @@
     var row = el('label', 'shopping-alts__choice');
     row.htmlFor = opts.id;
     if (opts.isChecked) row.classList.add('is-chosen');
+    if (typeof opts.onRemove === 'function') row.classList.add('shopping-alts__choice--removable');
+
     var radio = document.createElement('input');
     radio.type = 'radio';
     radio.name = opts.name;
@@ -612,17 +835,43 @@
     radio.checked = opts.isChecked;
     radio.addEventListener('change', function () { opts.onPick(); });
     row.appendChild(radio);
-    row.appendChild(el('span', 'shopping-alts__choice-label', opts.label));
+
+    var labelWrap = el('span', 'shopping-alts__choice-label');
+    labelWrap.appendChild(document.createTextNode(opts.label));
+    if (opts.sublabel) {
+      labelWrap.appendChild(el('span', 'shopping-alts__choice-sub', opts.sublabel));
+    }
+    row.appendChild(labelWrap);
+
+    if (typeof opts.onRemove === 'function') {
+      var rm = el('button', 'shopping-alts__choice-remove', 'Remove');
+      rm.type = 'button';
+      rm.setAttribute('aria-label', 'Remove ' + opts.label);
+      // Stop the click from also toggling the radio via the wrapping <label>.
+      rm.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (window.confirm('Remove "' + opts.label + '" from this item’s alternatives?')) opts.onRemove();
+      });
+      row.appendChild(rm);
+    }
     return row;
   }
 
-  // Picking an alternative (or the default) updates state.customUses and switches
-  // the active config to "custom" so the user can compare against built-in bundles.
+  // Picking an alternative (or the default) updates state.customUses and snaps
+  // activeConfig: if the resulting customUses exactly matches a known config
+  // (default/built-in/saved), use that id; otherwise mark it "custom".
   function setEffectiveAlternative(parentCode, altCode) {
-    if (!state.customUses) state.customUses = {};
+    // Seed customUses from the currently active config so swaps compose on top
+    // of a saved bundle instead of throwing the bundle's other swaps away.
+    if (state.activeConfig !== CUSTOM_CONFIG_ID) {
+      state.customUses = copyUses(activeUses());
+    } else if (!state.customUses) {
+      state.customUses = {};
+    }
     if (altCode == null) delete state.customUses[parentCode];
     else state.customUses[parentCode] = altCode;
-    state.activeConfig = CUSTOM_CONFIG_ID;
+    snapActiveConfigFromCustom();
     saveState();
     render();
   }
@@ -784,17 +1033,22 @@
     return row;
   }
 
-  // SL-8.e: single-line form reused for the per-item override and (later, SL-8.d)
-  // the "add alternative product" flow. Both collect the same five fields.
+  // SL-8.e: single-line form reused for the per-item override and SL-8.d's
+  // "add alternative product" flow. The latter prepends a product-name field
+  // via opts.includeName; otherwise the form collects the same five shop fields.
   function renderInlineProductForm(opts) {
     var values = opts.values || {};
-    var fields = [
+    var fields = [];
+    if (opts.includeName) {
+      fields.push({ key: 'name', label: 'Product name', type: 'text', placeholder: 'Product name', size: 'name' });
+    }
+    fields.push(
       { key: 'shop_label', label: 'Shop name / label', type: 'text',   placeholder: 'Shop',          size: 'shop'  },
       { key: 'url',        label: 'Product link',      type: 'url',    placeholder: 'https://…',     size: 'url'   },
       { key: 'ean',        label: 'EAN (optional)',    type: 'text',   placeholder: 'EAN',           size: 'ean'   },
       { key: 'price',      label: 'Price (EUR)',       type: 'number', step: '0.01', placeholder: '€',   size: 'price' },
       { key: 'eta_days',   label: 'ETA (days)',        type: 'number', step: '1',    placeholder: 'days',size: 'eta'   }
-    ];
+    );
 
     var form = el('div', 'shopping-inline-form');
     var inputs = {};
@@ -822,20 +1076,27 @@
     saveBtn.addEventListener('click', function () {
       var url = inputs.url.value.trim();
       var ean = inputs.ean.value.trim();
+      var name = opts.includeName ? (inputs.name.value || '').trim() : null;
+      if (opts.includeName && !name) {
+        alert('Give the alternative product a name.');
+        return;
+      }
       if (!url && !ean) {
         alert('Provide at least a product link or EAN.');
         return;
       }
       var price = parseFloat(inputs.price.value);
       var eta = parseInt(inputs.eta_days.value, 10);
-      opts.onSave({
+      var payload = {
         shop_label: inputs.shop_label.value.trim() || null,
         url: url,
         ean: ean || null,
         price: isFinite(price) ? price : null,
         currency: 'EUR',
         eta_days: isFinite(eta) ? eta : null
-      });
+      };
+      if (opts.includeName) payload.name = name;
+      opts.onSave(payload);
     });
     actions.appendChild(saveBtn);
 

@@ -228,11 +228,46 @@
   cursor: pointer;
   font-size: 0.85rem;
 }
+.shopping-alts__choice--removable {
+  grid-template-columns: 1.2rem 1fr auto;
+}
 .shopping-alts__choice:hover { background: rgba(0, 0, 0, 0.025); }
 .shopping-alts__choice.is-chosen {
   border-color: var(--shopping-accent);
   background: rgba(0, 0, 0, 0.04);
 }
+.shopping-alts__choice-label { min-width: 0; }
+.shopping-alts__choice-sub {
+  margin-left: 0.45rem;
+  font-size: 0.7rem;
+  color: var(--shopping-muted);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.shopping-alts__choice-remove {
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 0.72rem;
+  color: var(--shopping-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  padding: 0.15rem 0.35rem;
+}
+.shopping-alts__choice-remove:hover { color: var(--shopping-accent); }
+.shopping-alts__add {
+  margin-top: 0.4rem;
+  padding-top: 0.35rem;
+  border-top: 1px dashed var(--shopping-border);
+}
+.shopping-alts__add-summary {
+  cursor: pointer;
+  color: var(--shopping-muted);
+  font-size: 0.78rem;
+  padding: 0.2rem 0;
+}
+.shopping-alts__add-summary:hover { color: var(--shopping-accent); }
 .shopping-item__alt-badge {
   font-size: 0.62rem;
   font-weight: 700;
@@ -366,6 +401,7 @@
   min-width: 0;
   margin: 0;
 }
+.shopping-inline-form__field--name  { flex: 1 1 9rem;   min-width: 6rem; }
 .shopping-inline-form__field--shop  { flex: 0 1 7rem;   min-width: 4rem; }
 .shopping-inline-form__field--url   { flex: 1 1 8rem;   min-width: 6rem; }
 .shopping-inline-form__field--ean   { flex: 0 1 7rem;   min-width: 4rem; }
