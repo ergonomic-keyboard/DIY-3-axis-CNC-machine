@@ -28,6 +28,14 @@
   var THUMB_MAX_REM = 24;
   var THUMB_DEFAULT_REM = 3;
 
+  // SL-9.e: per-observation fetching technique. Human-readable labels for the UI.
+  var TECHNIQUE_LABELS = {
+    jsonld: 'JSON-LD',
+    opengraph: 'Open Graph',
+    'affiliate-api': 'Affiliate API',
+    manual: 'Manual'
+  };
+
   function loadState() {
     var fallback = {
       version: 4,
@@ -954,12 +962,17 @@
     row.appendChild(radio);
 
     var name = el('span', 'shopping-shop__name');
+    var nameTop = el('span', 'shopping-shop__name-top');
     var nameInner = el('a', 'shopping-shop__name-link', shop.name);
     nameInner.href = entry.url || shop.home_url;
     nameInner.target = '_blank';
     nameInner.rel = 'noopener noreferrer';
-    name.appendChild(nameInner);
-    if (isBest) name.appendChild(el('span', 'shopping-badge', 'Cheapest'));
+    nameTop.appendChild(nameInner);
+    if (isBest) nameTop.appendChild(el('span', 'shopping-badge', 'Cheapest'));
+    name.appendChild(nameTop);
+    // SL-8.f: provenance label ("JSON-LD · 5d ago") + sparkline pop-over.
+    var meta = renderShopProvenance(entry, obs);
+    if (meta) name.appendChild(meta);
     row.appendChild(name);
 
     var priceText = obs && typeof obs.price === 'number'
@@ -989,6 +1002,105 @@
     }
 
     return row;
+  }
+
+  // SL-8.f: provenance label + sparkline pop-over.
+  // The technique badge (and "5d ago") tells the user how the latest price was
+  // captured; the sparkline hovers/clicks into a popover with the full history.
+  function renderShopProvenance(entry, obs) {
+    if (!obs) return null;
+    var meta = el('span', 'shopping-shop__meta');
+    var technique = obs.technique || 'manual';
+    meta.appendChild(el('span',
+      'shopping-shop__technique shopping-shop__technique--' + technique,
+      TECHNIQUE_LABELS[technique] || technique));
+    var ageDays = observationAgeDays(obs);
+    if (ageDays != null) {
+      meta.appendChild(el('span', 'shopping-shop__captured',
+        '· ' + (ageDays === 0 ? 'today' : (ageDays + 'd ago'))));
+    }
+    var pricePoints = (entry.observations || []).filter(function (o) {
+      return typeof o.price === 'number';
+    });
+    if (pricePoints.length >= 2) meta.appendChild(renderHistoryControl(pricePoints));
+    return meta;
+  }
+
+  function renderHistoryControl(pricePoints) {
+    var sorted = pricePoints.slice().sort(function (a, b) {
+      return new Date(a.ts) - new Date(b.ts);
+    });
+    var wrap = el('span', 'shopping-shop__history-wrap');
+    var btn = el('button', 'shopping-shop__history');
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'Show price history');
+    btn.appendChild(buildSparklineSvg(sorted));
+    // Click toggles a sticky-open mode so keyboard users can review the popover;
+    // hover/focus-within also opens it via CSS. Stop the click from selecting the radio.
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      wrap.classList.toggle('is-open');
+    });
+    wrap.appendChild(btn);
+    wrap.appendChild(buildHistoryPopover(sorted));
+    return wrap;
+  }
+
+  function buildSparklineSvg(sorted) {
+    var w = 56, h = 14;
+    var prices = sorted.map(function (o) { return o.price; });
+    var min = Math.min.apply(null, prices);
+    var max = Math.max.apply(null, prices);
+    var range = (max - min) || 1;
+    var step = prices.length === 1 ? 0 : w / (prices.length - 1);
+    var d = prices.map(function (p, i) {
+      var x = i * step;
+      var y = h - ((p - min) / range) * (h - 2) - 1;
+      return (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('class', 'shopping-sparkline');
+    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    svg.setAttribute('width', String(w));
+    svg.setAttribute('height', String(h));
+    svg.setAttribute('aria-hidden', 'true');
+    var path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'currentColor');
+    path.setAttribute('stroke-width', '1.4');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+    svg.appendChild(path);
+    // Mark the most-recent point so the eye lands on the current price.
+    var lastX = (prices.length - 1) * step;
+    var lastY = h - ((prices[prices.length - 1] - min) / range) * (h - 2) - 1;
+    var dot = document.createElementNS(svgNS, 'circle');
+    dot.setAttribute('cx', lastX.toFixed(1));
+    dot.setAttribute('cy', lastY.toFixed(1));
+    dot.setAttribute('r', '1.4');
+    dot.setAttribute('fill', 'currentColor');
+    svg.appendChild(dot);
+    return svg;
+  }
+
+  function buildHistoryPopover(sorted) {
+    var pop = el('span', 'shopping-shop__history-pop');
+    pop.appendChild(el('span', 'shopping-shop__history-title', 'Price history'));
+    var list = el('ul', 'shopping-shop__history-list');
+    sorted.slice().reverse().forEach(function (o) {
+      var li = el('li', 'shopping-shop__history-item');
+      li.appendChild(el('span', 'shopping-shop__history-date', formatDate(o.ts)));
+      li.appendChild(el('span', 'shopping-shop__history-price',
+        o.price != null ? formatMoney(o.price, o.currency || 'EUR') : '—'));
+      li.appendChild(el('span', 'shopping-shop__history-technique',
+        TECHNIQUE_LABELS[o.technique || 'manual']));
+      list.appendChild(li);
+    });
+    pop.appendChild(list);
+    return pop;
   }
 
   function renderOverrideRow(item, isChosen) {
