@@ -99,7 +99,10 @@
       // SL-10.O: user-added shops for an existing item — { itemCode: [shop, ...] }.
       // Each shop object includes a synthesized id (ADDED_SHOP_PREFIX + …) and
       // becomes a real shop entry in data.shops + data.prices via sync.
-      userShops: {}
+      userShops: {},
+      // SL-10.P: per-user EAN per (item, shop) — keyed "<item>::<shop>".
+      // Overlaid on entry.ean after every render cycle (seed is restored first).
+      userEans: {}
     };
     try {
       var raw = localStorage.getItem(STATE_KEY);
@@ -119,6 +122,7 @@
         merged.expandedItems = merged.expandedItems || {};
         merged.userPriceObservations = merged.userPriceObservations || {};
         merged.userShops = merged.userShops || {};
+        merged.userEans = merged.userEans || {};
         return merged;
       }
       return fallback;
@@ -169,6 +173,13 @@
       fetchJSON(DATA_BASE + 'prices.json'),
       pollRefreshHelper()  // never rejects; populates refreshHelper.state
     ]).then(function (results) {
+      // Close any open EAN popover when the user clicks outside it.
+      // Popover-internal clicks stopPropagation so this only fires for outside clicks.
+      document.addEventListener('click', function () {
+        document.querySelectorAll('.shopping-item__ean-wrap.is-open').forEach(function (w) {
+          w.classList.remove('is-open');
+        });
+      });
       ingest(results[0], results[1], results[2]);
       syncUserAlternativesIntoData();
       syncUserShopsIntoData();
@@ -178,6 +189,7 @@
       // Migrate state.expandedItems (boolean) → state.openAdd[code]='alt'.
       migrateExpandedItemsToOpenAdd();
       syncUserPriceObservationsIntoData();
+      applyUserEansToData();
       applyDefaultSelection();
       snapActiveConfigFromCustom();
       ensureTocBodyObserver();
@@ -223,6 +235,9 @@
 
     data.prices = {};
     (pricesFile.entries || []).forEach(function (entry) {
+      // SL-10.P: snapshot the seeded EAN so we can restore-then-overlay
+      // state.userEans on each render cycle without losing the original.
+      entry._seedEan = entry.ean != null ? entry.ean : null;
       if (!data.prices[entry.item_code]) data.prices[entry.item_code] = [];
       data.prices[entry.item_code].push(entry);
     });
@@ -429,6 +444,38 @@
         });
       });
     });
+  }
+
+  // SL-10.P: restore each entry to its seeded EAN, then overlay user EANs from
+  // state.userEans on top. Called after every state.userEans mutation and on
+  // initial load (after the user-shop sync so __addedshop_ entries exist).
+  function applyUserEansToData() {
+    Object.keys(data.prices).forEach(function (itemCode) {
+      data.prices[itemCode].forEach(function (entry) {
+        if (Object.prototype.hasOwnProperty.call(entry, '_seedEan')) {
+          entry.ean = entry._seedEan;
+        }
+      });
+    });
+    var ues = state.userEans || {};
+    Object.keys(ues).forEach(function (key) {
+      var sep = key.indexOf('::');
+      if (sep < 0) return;
+      var itemCode = key.slice(0, sep);
+      var shopId = key.slice(sep + 2);
+      var entry = (data.prices[itemCode] || []).find(function (e) { return e.shop === shopId; });
+      if (entry) entry.ean = ues[key];
+    });
+  }
+
+  function setUserEan(itemCode, shopId, ean) {
+    if (!state.userEans) state.userEans = {};
+    var key = itemCode + '::' + shopId;
+    if (!ean) delete state.userEans[key];
+    else state.userEans[key] = ean;
+    applyUserEansToData();
+    saveState();
+    render();
   }
 
   function generateAddedShopId(itemCode) {
@@ -1393,6 +1440,10 @@
 
     head.appendChild(renderAltsDropdown(parentItem, effectiveCode));
     head.appendChild(renderShopSummary(effective));
+    // SL-10.P: EAN affordance for the currently-selected shop, immediately
+    // beside the shop summary so the user reads "this is THIS shop's EAN".
+    var eanEl = renderEanControl(effective);
+    if (eanEl) head.appendChild(eanEl);
     // History popover for the currently-selected shop (SL-8.f/g preservation).
     var historyEl = renderHeadHistoryControl(effective);
     if (historyEl) head.appendChild(historyEl);
@@ -1452,6 +1503,122 @@
       var f = document.getElementById(firstFieldId);
       if (f) f.focus();
     });
+  }
+
+  // SL-10.P: EAN button + popover for the currently-selected shop. Edit/Save
+  // writes state.userEans[item::shop]; Copy puts the EAN on the clipboard;
+  // Clear removes the user EAN (revealing any seeded EAN underneath).
+  function renderEanControl(effective) {
+    var entries = entriesForItem(effective.code);
+    if (entries.length === 0) return null;
+    var chosenId = chosenShopForItem(effective.code);
+    var shopId = chosenId || entries[0].shop;
+    var entry = (data.prices[effective.code] || []).find(function (e) { return e.shop === shopId; });
+    if (!entry) return null;
+    var shop = data.shopsById[shopId];
+    var shopName = (shop && shop.name) || shopId;
+    var ean = entry.ean || '';
+
+    var wrap = el('span', 'shopping-item__ean-wrap');
+    var btn = el('button', 'shopping-item__ean-btn' + (ean ? ' has-ean' : ''));
+    btn.type = 'button';
+    btn.setAttribute('aria-haspopup', 'true');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.title = ean
+      ? 'EAN ' + ean + ' (' + shopName + ') — click to edit or copy'
+      : 'Set EAN for ' + shopName;
+    btn.appendChild(el('span', 'shopping-item__ean-label', 'EAN'));
+    if (ean) btn.appendChild(el('span', 'shopping-item__ean-dot', '●'));
+
+    var pop = el('div', 'shopping-item__ean-pop');
+    pop.appendChild(el('span', 'shopping-item__ean-pop-title', 'EAN · ' + shopName));
+
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.inputMode = 'numeric';
+    input.className = 'shopping-item__ean-input';
+    input.placeholder = 'EAN / barcode';
+    input.value = ean;
+    input.setAttribute('aria-label', 'EAN for ' + shopName);
+    pop.appendChild(input);
+
+    var actions = el('div', 'shopping-item__ean-actions');
+    var copyBtn = el('button', 'shopping-btn shopping-item__ean-copy', 'Copy');
+    copyBtn.type = 'button';
+    copyBtn.disabled = !ean;
+    copyBtn.title = 'Copy EAN to clipboard';
+    copyBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      var val = (input.value || '').trim() || ean;
+      if (!val) return;
+      var done = function () {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(function () { copyBtn.textContent = 'Copy'; }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(val).then(done, function () {
+          fallbackCopy(val); done();
+        });
+      } else {
+        fallbackCopy(val); done();
+      }
+    });
+    actions.appendChild(copyBtn);
+
+    var saveBtn = el('button', 'shopping-btn shopping-btn--primary', 'Save');
+    saveBtn.type = 'button';
+    saveBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      var val = (input.value || '').trim();
+      setUserEan(effective.code, shopId, val || null);
+    });
+    actions.appendChild(saveBtn);
+
+    if (ean) {
+      var clearBtn = el('button', 'shopping-btn shopping-item__ean-clear', 'Clear');
+      clearBtn.type = 'button';
+      clearBtn.title = 'Remove the EAN you set for this shop';
+      clearBtn.addEventListener('click', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        setUserEan(effective.code, shopId, null);
+      });
+      actions.appendChild(clearBtn);
+    }
+    pop.appendChild(actions);
+
+    btn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      // Close any other open EAN popovers so only one is visible at a time.
+      document.querySelectorAll('.shopping-item__ean-wrap.is-open').forEach(function (w) {
+        if (w !== wrap) w.classList.remove('is-open');
+      });
+      var open = wrap.classList.toggle('is-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) requestAnimationFrame(function () { input.focus(); input.select(); });
+    });
+    // Stop popover-internal clicks from closing it via the document-level handler.
+    pop.addEventListener('click', function (e) { e.stopPropagation(); });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); saveBtn.click(); }
+      else if (e.key === 'Escape') { e.preventDefault(); wrap.classList.remove('is-open'); }
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(pop);
+    return wrap;
+  }
+
+  function fallbackCopy(text) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch (e) { /* swallow */ }
   }
 
   // SL-8.f / SL-8.g preserved on the slim head row: a small sparkline-or-glyph
