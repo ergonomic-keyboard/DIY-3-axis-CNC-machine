@@ -1,8 +1,8 @@
 (function () {
   'use strict';
 
-  var STATE_KEY = 'cnc-shopping-state-v4';
-  var LEGACY_STATE_KEYS = ['cnc-shopping-state-v3'];
+  var STATE_KEY = 'cnc-shopping-state-v5';
+  var LEGACY_STATE_KEYS = ['cnc-shopping-state-v4', 'cnc-shopping-state-v3'];
   var DEFAULT_CONFIG_ID = 'default';
   var CUSTOM_CONFIG_ID  = 'custom';
   var DATA_BASE = null; // resolved at init from current page URL
@@ -38,7 +38,7 @@
 
   function loadState() {
     var fallback = {
-      version: 4,
+      version: 5,
       country: 'NL',
       selected: {},
       shopOverride: {},
@@ -48,19 +48,27 @@
       activeConfig: DEFAULT_CONFIG_ID,
       customUses: {},
       savedConfigurations: [],
-      userAlternatives: {}
+      userAlternatives: {},
+      // SL-8.i: per-observation validations live in app state since the static
+      // site has no backend to mutate prices.json. Keyed "<item>::<shop>::<ts>".
+      validations: {},
+      // SL-8.h: transient prefill for the override form, populated by clicking
+      // "Complete this" on a partial observation. Keyed by effective item code.
+      itemOverridePrefill: {}
     };
     try {
       var raw = localStorage.getItem(STATE_KEY);
       if (raw) return Object.assign({}, fallback, JSON.parse(raw));
-      // One-shot migration from the previous key on first load of v4 —
-      // keeps the user's selections, thumb size, and saved configs intact.
+      // One-shot migration from the previous key on first load — keeps the user's
+      // selections, thumb size, saved configs, and user-added alternatives intact.
       for (var i = 0; i < LEGACY_STATE_KEYS.length; i++) {
         var legacy = localStorage.getItem(LEGACY_STATE_KEYS[i]);
         if (!legacy) continue;
         var prev = JSON.parse(legacy);
-        var merged = Object.assign({}, fallback, prev, { version: 4 });
+        var merged = Object.assign({}, fallback, prev, { version: 5 });
         merged.userAlternatives = merged.userAlternatives || {};
+        merged.validations = merged.validations || {};
+        merged.itemOverridePrefill = merged.itemOverridePrefill || {};
         return merged;
       }
       return fallback;
@@ -970,8 +978,8 @@
     nameTop.appendChild(nameInner);
     if (isBest) nameTop.appendChild(el('span', 'shopping-badge', 'Cheapest'));
     name.appendChild(nameTop);
-    // SL-8.f: provenance label ("JSON-LD · 5d ago") + sparkline pop-over.
-    var meta = renderShopProvenance(entry, obs);
+    // SL-8.f / SL-8.g: provenance label + bot id + sparkline pop-over.
+    var meta = renderShopProvenance(entry, obs, item);
     if (meta) name.appendChild(meta);
     row.appendChild(name);
 
@@ -1001,49 +1009,126 @@
       row.appendChild(note);
     }
 
+    // SL-8.h: when the latest observation is partial (bot found the article but
+    // not the price), surface a "complete this" prompt with a CTA that opens
+    // the per-item override drawer prefilled with what we know.
+    if (obs && obs.partial) {
+      row.classList.add('is-partial');
+      var hint = el('div', 'shopping-shop__partial-hint');
+      hint.appendChild(el('span', 'shopping-shop__partial-icon', '⚠'));
+      hint.appendChild(el('span', null,
+        'Bot found this product but no price. Complete the missing fields to use it.'));
+      var cta = el('button', 'shopping-link shopping-shop__partial-cta', 'Complete this →');
+      cta.type = 'button';
+      cta.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        state.itemOverridePrefill[item.code] = {
+          shop_label: shop.name,
+          url: entry.url || '',
+          ean: entry.ean || '',
+          price: '',
+          eta_days: typeof obs.eta_days === 'number' ? obs.eta_days : ''
+        };
+        saveState();
+        render();
+      });
+      hint.appendChild(cta);
+      row.appendChild(hint);
+    }
+
     return row;
   }
 
-  // SL-8.f: provenance label + sparkline pop-over.
-  // The technique badge (and "5d ago") tells the user how the latest price was
-  // captured; the sparkline hovers/clicks into a popover with the full history.
-  function renderShopProvenance(entry, obs) {
+  // SL-8.f / SL-8.g: provenance label, bot id (when auto-fetched), sparkline pop-over.
+  function renderShopProvenance(entry, obs, item) {
     if (!obs) return null;
     var meta = el('span', 'shopping-shop__meta');
     var technique = obs.technique || 'manual';
     meta.appendChild(el('span',
       'shopping-shop__technique shopping-shop__technique--' + technique,
       TECHNIQUE_LABELS[technique] || technique));
+    // SL-8.g: when the price came from a bot, name the bot. Bots are 1:1 with
+    // shops per SL-9.e — derive the id as "<shop>-bot".
+    var botId = botIdFor(entry, obs);
+    if (botId) {
+      meta.appendChild(el('span', 'shopping-shop__bot', '· ' + botId));
+    }
     var ageDays = observationAgeDays(obs);
     if (ageDays != null) {
       meta.appendChild(el('span', 'shopping-shop__captured',
         '· ' + (ageDays === 0 ? 'today' : (ageDays + 'd ago'))));
     }
+    // SL-8.i: small ✓ on the row when the latest observation has been validated.
+    if (isObservationValidated(item, entry, obs)) {
+      meta.appendChild(el('span', 'shopping-shop__validated', '✓ validated'));
+    }
     var pricePoints = (entry.observations || []).filter(function (o) {
       return typeof o.price === 'number';
     });
-    if (pricePoints.length >= 2) meta.appendChild(renderHistoryControl(pricePoints));
+    var hasMultipleObservations = (entry.observations || []).length >= 2;
+    if (pricePoints.length >= 2 || hasMultipleObservations) {
+      meta.appendChild(renderHistoryControl(entry, item));
+    }
     return meta;
   }
 
-  function renderHistoryControl(pricePoints) {
-    var sorted = pricePoints.slice().sort(function (a, b) {
+  // SL-8.g: bot id is derived from shop id for auto-fetched observations.
+  // Manual entries and user-added shops don't have a bot.
+  function botIdFor(entry, obs) {
+    var tech = obs && obs.technique;
+    if (!tech || tech === 'manual') return null;
+    var shopId = entry && entry.shop;
+    if (!shopId || shopId.indexOf(USER_SHOP_PREFIX) === 0) return null;
+    return shopId + '-bot';
+  }
+
+  function observationKey(item, entry, obs) {
+    return item.code + '::' + entry.shop + '::' + obs.ts;
+  }
+
+  function isObservationValidated(item, entry, obs) {
+    if (!item || !obs || !entry) return false;
+    var v = state.validations || {};
+    return !!v[observationKey(item, entry, obs)];
+  }
+
+  function toggleObservationValidation(item, entry, obs) {
+    if (!state.validations) state.validations = {};
+    var key = observationKey(item, entry, obs);
+    if (state.validations[key]) delete state.validations[key];
+    else state.validations[key] = new Date().toISOString();
+    saveState();
+    render();
+  }
+
+  function renderHistoryControl(entry, item) {
+    var observations = (entry.observations || []).slice();
+    // Sparkline uses only price-bearing points; popover lists every observation
+    // so partial / null-price entries are still visible in history.
+    var sortedAsc = observations.slice().sort(function (a, b) {
       return new Date(a.ts) - new Date(b.ts);
     });
+    var pricePoints = sortedAsc.filter(function (o) { return typeof o.price === 'number'; });
+
     var wrap = el('span', 'shopping-shop__history-wrap');
     var btn = el('button', 'shopping-shop__history');
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Show price history');
-    btn.appendChild(buildSparklineSvg(sorted));
-    // Click toggles a sticky-open mode so keyboard users can review the popover;
-    // hover/focus-within also opens it via CSS. Stop the click from selecting the radio.
+    if (pricePoints.length >= 2) {
+      btn.appendChild(buildSparklineSvg(pricePoints));
+    } else {
+      // Fallback glyph for entries that have multiple observations but only
+      // one price point (e.g. a partial observation alongside a real one).
+      btn.appendChild(el('span', 'shopping-shop__history-glyph', '⋯'));
+    }
     btn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
       wrap.classList.toggle('is-open');
     });
     wrap.appendChild(btn);
-    wrap.appendChild(buildHistoryPopover(sorted));
+    wrap.appendChild(buildHistoryPopover(sortedAsc, entry, item));
     return wrap;
   }
 
@@ -1086,21 +1171,87 @@
     return svg;
   }
 
-  function buildHistoryPopover(sorted) {
+  function buildHistoryPopover(sortedAsc, entry, item) {
     var pop = el('span', 'shopping-shop__history-pop');
     pop.appendChild(el('span', 'shopping-shop__history-title', 'Price history'));
+
+    // SL-8.g: disagreement callout — when the latest observation per technique
+    // varies in price between techniques, surface that disagreement explicitly.
+    var disagreement = detectTechniqueDisagreement(sortedAsc);
+    if (disagreement) pop.appendChild(renderDisagreementCallout(disagreement));
+
     var list = el('ul', 'shopping-shop__history-list');
-    sorted.slice().reverse().forEach(function (o) {
+    sortedAsc.slice().reverse().forEach(function (o) {
       var li = el('li', 'shopping-shop__history-item');
+      if (o.partial) li.classList.add('is-partial');
+      if (isObservationValidated(item, entry, o)) li.classList.add('is-validated');
       li.appendChild(el('span', 'shopping-shop__history-date', formatDate(o.ts)));
-      li.appendChild(el('span', 'shopping-shop__history-price',
-        o.price != null ? formatMoney(o.price, o.currency || 'EUR') : '—'));
+      var priceText = typeof o.price === 'number'
+        ? formatMoney(o.price, o.currency || 'EUR')
+        : (o.partial ? 'Price missing' : '—');
+      li.appendChild(el('span', 'shopping-shop__history-price', priceText));
       li.appendChild(el('span', 'shopping-shop__history-technique',
         TECHNIQUE_LABELS[o.technique || 'manual']));
+      // Validate button per observation. Manual entries don't need validation —
+      // they were already user-authored — but bot entries do (SL-8.i).
+      if ((o.technique || 'manual') !== 'manual') {
+        var validated = isObservationValidated(item, entry, o);
+        var btn = el('button',
+          'shopping-shop__validate' + (validated ? ' is-active' : ''),
+          validated ? '✓ Validated' : 'Validate');
+        btn.type = 'button';
+        btn.setAttribute('aria-pressed', validated ? 'true' : 'false');
+        btn.title = validated
+          ? 'Click to remove your validation.'
+          : 'Mark this observation as verified by you.';
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleObservationValidation(item, entry, o);
+        });
+        li.appendChild(btn);
+      }
       list.appendChild(li);
     });
     pop.appendChild(list);
     return pop;
+  }
+
+  // SL-8.g: detect a per-technique disagreement on the same shop. Returns a
+  // { byTechnique: { tech: latestObs } } summary when ≥2 techniques disagree
+  // on price, otherwise null.
+  function detectTechniqueDisagreement(sortedAsc) {
+    var byTechnique = {};
+    sortedAsc.forEach(function (o) {
+      if (typeof o.price !== 'number') return;
+      var t = o.technique || 'manual';
+      // Keep the latest observation per technique (sortedAsc → overwrite wins).
+      byTechnique[t] = o;
+    });
+    var techs = Object.keys(byTechnique);
+    if (techs.length < 2) return null;
+    var prices = techs.map(function (t) { return byTechnique[t].price; });
+    var min = Math.min.apply(null, prices), max = Math.max.apply(null, prices);
+    if (min === max) return null;
+    return { byTechnique: byTechnique, techs: techs };
+  }
+
+  function renderDisagreementCallout(d) {
+    var box = el('div', 'shopping-shop__disagreement');
+    box.appendChild(el('strong', null, 'Sources disagree:'));
+    var list = el('ul', 'shopping-shop__disagreement-list');
+    d.techs.forEach(function (t) {
+      var o = d.byTechnique[t];
+      var row = el('li', null);
+      row.appendChild(el('span', 'shopping-shop__history-technique',
+        TECHNIQUE_LABELS[t] || t));
+      row.appendChild(document.createTextNode(' '));
+      row.appendChild(el('span', 'shopping-shop__history-price',
+        formatMoney(o.price, o.currency || 'EUR')));
+      list.appendChild(row);
+    });
+    box.appendChild(list);
+    return box;
   }
 
   function renderOverrideRow(item, isChosen) {
@@ -1225,13 +1376,16 @@
   function renderItemOverride(item) {
     var wrap = el('details', 'shopping-override');
     var hasOverride = !!state.itemOverride[item.code];
+    var prefill = state.itemOverridePrefill && state.itemOverridePrefill[item.code];
     var summary = el('summary', 'shopping-override__summary',
-      hasOverride ? 'Edit override' : 'Add your own (EAN / product link)');
+      hasOverride ? 'Edit override' :
+        (prefill ? 'Complete the missing fields' : 'Add your own (EAN / product link)'));
     wrap.appendChild(summary);
 
+    var initialValues = state.itemOverride[item.code] || prefill || {};
     wrap.appendChild(renderInlineProductForm({
       idPrefix: 'ov-' + item.code,
-      values: state.itemOverride[item.code] || {},
+      values: initialValues,
       submitLabel: 'Save override',
       removeLabel: 'Remove override',
       onSave: function (vals) {
@@ -1245,17 +1399,19 @@
           in_stock: true
         };
         delete state.shopOverride[item.code];
+        if (state.itemOverridePrefill) delete state.itemOverridePrefill[item.code];
         saveState();
         render();
       },
       onRemove: hasOverride ? function () {
         delete state.itemOverride[item.code];
+        if (state.itemOverridePrefill) delete state.itemOverridePrefill[item.code];
         saveState();
         render();
       } : null
     }));
 
-    if (hasOverride) wrap.open = true;
+    if (hasOverride || prefill) wrap.open = true;
     return wrap;
   }
 

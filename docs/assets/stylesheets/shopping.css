@@ -423,6 +423,105 @@
   vertical-align: middle;
   margin-left: 0.15rem;
 }
+.shopping-shop__history-glyph {
+  display: inline-block;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0 0.2rem;
+}
+
+/* SL-8.g: bot id + validated checkmark on the row. */
+.shopping-shop__bot {
+  font-family: var(--md-code-font-family, ui-monospace, "SFMono-Regular", monospace);
+  font-size: 0.66rem;
+  letter-spacing: 0.02em;
+  color: var(--shopping-muted);
+}
+.shopping-shop__validated {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #2ea44f;
+}
+
+/* SL-8.g: disagreement callout inside the popover. */
+.shopping-shop__disagreement {
+  background: rgba(209, 36, 47, 0.07);
+  border: 1px solid rgba(209, 36, 47, 0.35);
+  border-radius: var(--shopping-radius);
+  padding: 0.35rem 0.55rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.72rem;
+}
+.shopping-shop__disagreement-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.25rem 0 0 0;
+}
+.shopping-shop__disagreement-list li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.1rem 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* SL-8.i: validate button + validated history row. */
+.shopping-shop__history-item.is-validated {
+  background: rgba(46, 164, 79, 0.08);
+  border-left: 2px solid #2ea44f;
+  padding-left: 0.4rem;
+  margin-left: -0.4rem;
+}
+.shopping-shop__history-item.is-partial {
+  border-left: 2px dashed #d1242f;
+  padding-left: 0.4rem;
+  margin-left: -0.4rem;
+  color: var(--shopping-muted);
+  font-style: italic;
+}
+.shopping-shop__history-list .shopping-shop__history-item {
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+}
+.shopping-shop__validate {
+  background: transparent;
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.1rem 0.45rem;
+  font: inherit;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  color: var(--shopping-muted);
+}
+.shopping-shop__validate:hover { color: var(--shopping-accent); border-color: var(--shopping-accent); }
+.shopping-shop__validate.is-active {
+  background: rgba(46, 164, 79, 0.12);
+  color: #2ea44f;
+  border-color: #2ea44f;
+}
+
+/* SL-8.h: "Complete this" prompt for partial bot observations. */
+.shopping-shop.is-partial {
+  border-color: rgba(209, 36, 47, 0.45);
+  background: rgba(209, 36, 47, 0.035);
+}
+.shopping-shop__partial-hint {
+  grid-column: 2 / -1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--shopping-muted);
+  margin-top: 0.25rem;
+}
+.shopping-shop__partial-icon { color: #d1242f; font-size: 0.9rem; }
+.shopping-shop__partial-cta {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
 
 .shopping-shop__price {
   font-variant-numeric: tabular-nums;

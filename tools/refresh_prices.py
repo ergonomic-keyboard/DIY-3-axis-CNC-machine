@@ -169,7 +169,16 @@ def _walk_jsonld(node: Any):
 
 
 def extract_product_offer(html: str) -> dict[str, Any] | None:
-    """Return {price, currency, in_stock, technique='jsonld'} from the first Product JSON-LD with an Offer."""
+    """Return a Product offer from JSON-LD.
+
+    Three outcomes (per SL-8.h):
+        - No Product node at all → returns None (caller marks as failed).
+        - Product node found with a price → returns full offer dict, technique='jsonld'.
+        - Product node found but no usable price → returns a partial dict with
+          price=None and partial=True so the caller writes a "found, no price"
+          observation that the UI surfaces as a "complete this" prompt.
+    """
+    saw_product = False
     for node in iter_jsonld_objects(html):
         types = node.get("@type")
         if isinstance(types, list):
@@ -178,6 +187,7 @@ def extract_product_offer(html: str) -> dict[str, Any] | None:
             type_set = {str(types).lower()} if types else set()
         if "product" not in type_set:
             continue
+        saw_product = True
         offers = node.get("offers")
         if not offers:
             continue
@@ -207,6 +217,14 @@ def extract_product_offer(html: str) -> dict[str, Any] | None:
                 "in_stock": bool(in_stock),
                 "technique": "jsonld",
             }
+    if saw_product:
+        return {
+            "price": None,
+            "currency": "EUR",
+            "in_stock": None,
+            "technique": "jsonld",
+            "partial": True,
+        }
     return None
 
 
@@ -311,7 +329,14 @@ def refresh(prices: dict[str, Any], *, dry_run: bool) -> tuple[int, int, int]:
             "eta_days": (latest_observation(entry) or {}).get("eta_days"),
             "technique": product.get("technique", "jsonld"),
         }
-        if not observation_changed(latest_observation(entry), new_obs):
+        if product.get("partial"):
+            # SL-8.h: product page existed but no price could be parsed. Persist a
+            # partial observation so the UI can prompt the user to complete it.
+            new_obs["partial"] = True
+            entry.setdefault("observations", []).insert(0, new_obs)
+            appended += 1
+            print(f"  appended partial (product found, no price; technique={product['technique']})")
+        elif not observation_changed(latest_observation(entry), new_obs):
             skipped += 1
             print(f"  unchanged ({product['currency']} {product['price']})")
         else:
