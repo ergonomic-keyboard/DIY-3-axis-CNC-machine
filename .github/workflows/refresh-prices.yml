@@ -1,0 +1,45 @@
+name: Refresh shopping prices
+
+# Refreshes docs/data/prices.json by parsing JSON-LD on each linked product
+# page. Opens a PR so a human reviews the diff before publishing.
+#
+# Best-effort: shops with anti-bot walls (Bol.com, Amazon.nl, AliExpress) are
+# intentionally skipped — see tools/refresh_prices.py. Re-run manually any
+# time via the "Run workflow" button.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Sundays at 04:17 UTC — off-peak, weekly.
+    - cron: "17 4 * * 0"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Refresh prices.json
+        run: python3 tools/refresh_prices.py
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(shopping): refresh price snapshot"
+          title: "chore(shopping): refresh price snapshot"
+          branch: shopping/refresh-prices
+          delete-branch: true
+          body: |
+            Automated refresh of `docs/data/prices.json`.
+
+            Each price line appends a new observation; nothing is overwritten.
+            Review the diff and merge if the numbers look sane. Shops with
+            anti-bot walls are skipped by design — fill those manually.

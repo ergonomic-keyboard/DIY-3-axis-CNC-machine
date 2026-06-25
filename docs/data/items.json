@@ -1,0 +1,932 @@
+{
+  "$schema_version": 1,
+  "categories": [
+    {
+      "id": "printed",
+      "label": "3D-printed parts"
+    },
+    {
+      "id": "screws",
+      "label": "Screws"
+    },
+    {
+      "id": "nuts",
+      "label": "Nuts"
+    },
+    {
+      "id": "washers",
+      "label": "Washers"
+    },
+    {
+      "id": "electronics",
+      "label": "Electronics"
+    },
+    {
+      "id": "rods",
+      "label": "Threaded rods"
+    },
+    {
+      "id": "other",
+      "label": "Other"
+    }
+  ],
+  "items": [
+    {
+      "code": "P01",
+      "category": "printed",
+      "name": "Back middle panel (large electronic box)",
+      "qty": 1
+    },
+    {
+      "code": "P02",
+      "category": "printed",
+      "name": "Back middle panel (small electronic box)",
+      "qty": 1,
+      "image": "images/parts/3d-printed/electronic_boxes/small_electronic_box/back_middle_panel_small_electronic_box.jpg"
+    },
+    {
+      "code": "P03",
+      "category": "printed",
+      "name": "Back panel (large electronic box)",
+      "qty": 1,
+      "image": "images/parts/3d-printed/electronic_boxes/large_electronic_box/back_panel_large_electronic_box.jpg"
+    },
+    {
+      "code": "P04",
+      "category": "printed",
+      "name": "Back panel (small electronic box)",
+      "qty": 1,
+      "image": "images/parts/3d-printed/electronic_boxes/small_electronic_box/back_panel_small_electronic_box.jpg"
+    },
+    {
+      "code": "P05",
+      "category": "printed",
+      "name": "Cable chain mount",
+      "qty": 1,
+      "image": "images/parts/3d-printed/frame/y_axis_cable_chain_mount.jpg"
+    },
+    {
+      "code": "P06",
+      "category": "printed",
+      "name": "Cable chain support",
+      "qty": 1,
+      "image": "images/parts/3d-printed/frame/y_axis_cable_chain_support.jpg"
+    },
+    {
+      "code": "P07",
+      "category": "printed",
+      "name": "Carriage",
+      "qty": 1,
+      "image": "images/parts/3d-printed/other/carriage.jpg"
+    },
+    {
+      "code": "P08",
+      "category": "printed",
+      "name": "End-stop mount (ordinary)",
+      "qty": 3,
+      "image": "images/parts/3d-printed/other/end_stop_mount_ordinary.jpg"
+    },
+    {
+      "code": "P09",
+      "category": "printed",
+      "name": "End-stop mount (tall)",
+      "qty": 1,
+      "image": "images/parts/3d-printed/other/end_stop_mount_tall.jpg"
+    },
+    {
+      "code": "P10",
+      "category": "printed",
+      "name": "End-stop mount (thick)",
+      "qty": 1,
+      "image": "images/parts/3d-printed/other/end_stop_mount_thick.jpg"
+    },
+    {
+      "code": "P11",
+      "category": "printed",
+      "name": "Flexible conduit strain relief (halves)",
+      "qty": 8,
+      "image": "images/parts/3d-printed/other/cable_strain_relief.jpg"
+    },
+    {
+      "code": "P12",
+      "category": "printed",
+      "name": "Front middle panel (large electronic box)",
+      "qty": 1,
+      "image": "images/parts/3d-printed/electronic_boxes/large_electronic_box/front_middle_panel_large_electronic_box.jpg"
+    },
+    {
+      "code": "P13",
+      "category": "printed",
+      "name": "Front middle panel (small electronic box)",
+      "qty": 1,
+      "image": "images/parts/3d-printed/electronic_boxes/small_electronic_box/front_middle_panel_small_electronic_box.jpg"
+    },
+    {
+      "code": "P14",
+      "category": "printed",
+      "name": "Front panel (large electronic box)",
+      "qty": 1,
+      "image": "images/parts/3d-printed/electronic_boxes/large_electronic_box/front_panel_large_electronic_box.jpg"
+    },
+    {
+      "code": "P15",
+      "category": "printed",
+      "name": "Front panel (small electronic box)",
+      "qty": 1,
+      "image": "images/parts/3d-printed/electronic_boxes/small_electronic_box/front_panel_small_electronic_box.jpg"
+    },
+    {
+      "code": "P16",
+      "category": "printed",
+      "name": "Idler block",
+      "qty": 3,
+      "image": "images/parts/3d-printed/other/idler_block.jpg"
+    },
+    {
+      "code": "P17",
+      "category": "printed",
+      "name": "Left belt tension slider",
+      "qty": 1,
+      "image": "images/parts/3d-printed/belt_tensioners/y-axis_left_belt_tension_slider.jpg"
+    },
+    {
+      "code": "P18",
+      "category": "printed",
+      "name": "Left belt tensioner",
+      "qty": 1,
+      "image": "images/parts/3d-printed/belt_tensioners/y-axis_left_belt_tension.jpg"
+    },
+    {
+      "code": "P19",
+      "category": "printed",
+      "name": "Left fixed belt tensioner",
+      "qty": 1,
+      "image": "images/parts/3d-printed/belt_tensioners/y-axis_left_fixed_belt_tension.jpg"
+    },
+    {
+      "code": "P20",
+      "category": "printed",
+      "name": "Left side plate",
+      "qty": 1,
+      "image": "images/parts/3d-printed/side_plates/left_side_plates/left_plate.jpg"
+    },
+    {
+      "code": "P21",
+      "category": "printed",
+      "name": "Left side plate lower back clip",
+      "qty": 1,
+      "image": "images/parts/3d-printed/side_plates/left_side_plates/left_side_plate_lower_back_clip.jpg"
+    },
+    {
+      "code": "P22",
+      "category": "printed",
+      "name": "Left side plate lower front clip",
+      "qty": 1,
+      "image": "images/parts/3d-printed/side_plates/left_side_plates/left_side_plate_lower_front_clip.jpg"
+    },
+    {
+      "code": "P23",
+      "category": "printed",
+      "name": "Left side plate upper front clip",
+      "qty": 1,
+      "image": "images/parts/3d-printed/side_plates/left_side_plates/left_side_plate_upper_front_clip.jpg"
+    },
+    {
+      "code": "P24",
+      "category": "printed",
+      "name": "Milling router bracket",
+      "qty": 1,
+      "image": "images/parts/3d-printed/other/router_bracket.jpg"
+    },
+    {
+      "code": "P25",
+      "category": "printed",
+      "name": "Rail support",
+      "qty": 3,
+      "image": "images/parts/3d-printed/other/rails_support.jpg"
+    },
+    {
+      "code": "P26",
+      "category": "printed",
+      "name": "Right belt tension slider",
+      "qty": 1,
+      "image": "images/parts/3d-printed/belt_tensioners/y-axis_right_belt_tension_slider.jpg"
+    },
+    {
+      "code": "P27",
+      "category": "printed",
+      "name": "Right belt tensioner",
+      "qty": 2,
+      "image": "images/parts/3d-printed/belt_tensioners/y-axis_right_belt_tension.jpg"
+    },
+    {
+      "code": "P28",
+      "category": "printed",
+      "name": "Right fixed belt tensioner",
+      "qty": 2,
+      "image": "images/parts/3d-printed/belt_tensioners/y-axis_right_fixed_belt_tension.jpg"
+    },
+    {
+      "code": "P29",
+      "category": "printed",
+      "name": "Right side plate",
+      "qty": 1,
+      "image": "images/parts/3d-printed/side_plates/right_side_plates/right_plate.jpg"
+    },
+    {
+      "code": "P30",
+      "category": "printed",
+      "name": "Right side plate lower back clip",
+      "qty": 1,
+      "image": "images/parts/3d-printed/side_plates/right_side_plates/right_side_plate_lower_back_clip.jpg"
+    },
+    {
+      "code": "P31",
+      "category": "printed",
+      "name": "Right side plate lower front clip",
+      "qty": 1,
+      "image": "images/parts/3d-printed/side_plates/right_side_plates/right_side_plate_lower_front_clip.jpg"
+    },
+    {
+      "code": "P32",
+      "category": "printed",
+      "name": "Right side plate upper front clip",
+      "qty": 1,
+      "image": "images/parts/3d-printed/side_plates/right_side_plates/right_side_plate_upper_front_clip.jpg"
+    },
+    {
+      "code": "P33",
+      "category": "printed",
+      "name": "USB lock",
+      "qty": 1,
+      "image": "images/parts/3d-printed/other/USB_A_female.jpg"
+    },
+    {
+      "code": "P34",
+      "category": "printed",
+      "name": "Vaccum funnel",
+      "qty": 1,
+      "image": "images/parts/3d-printed/other/vaccum_funnel.jpg"
+    },
+    {
+      "code": "P35",
+      "category": "printed",
+      "name": "Vaccum hose ring",
+      "qty": 1,
+      "image": "images/parts/3d-printed/other/vaccum_hose_ring.jpg"
+    },
+    {
+      "code": "P36",
+      "category": "printed",
+      "name": "Vertical carriage slider",
+      "qty": 1,
+      "image": "images/parts/3d-printed/other/vertical_carriage_slider.jpg"
+    },
+    {
+      "code": "P37",
+      "category": "printed",
+      "name": "Wasteboard bracket",
+      "qty": 7,
+      "image": "images/parts/3d-printed/frame/wasteboard_bracket.jpg"
+    },
+    {
+      "code": "P38",
+      "category": "printed",
+      "name": "X-axis cable chain mount",
+      "qty": 1,
+      "image": "images/parts/3d-printed/other/x_axis_cable_chain_mount.jpg"
+    },
+    {
+      "code": "P39",
+      "category": "printed",
+      "name": "Z-axis end-stop trigger",
+      "qty": 1,
+      "image": "images/parts/3d-printed/other/z_limit_trigger.jpg"
+    },
+    {
+      "code": "P40",
+      "category": "printed",
+      "name": "Z-axis stepper motor mount",
+      "qty": 1,
+      "image": "images/parts/3d-printed/other/z_motor_mount.jpg"
+    },
+    {
+      "code": "S01",
+      "category": "screws",
+      "name": "Screw 3.5mm x 20mm",
+      "qty": 14,
+      "image": "images/parts/consumables/screws/other/3-5mm_20mm.jpg"
+    },
+    {
+      "code": "S02",
+      "category": "screws",
+      "name": "Screw M3 x 12mm",
+      "qty": 20,
+      "image": "images/parts/consumables/screws/M3/M3_12mm.jpg"
+    },
+    {
+      "code": "S03",
+      "category": "screws",
+      "name": "Screw M3 x 16mm",
+      "qty": 96,
+      "image": "images/parts/consumables/screws/M3/M3_16mm.jpg"
+    },
+    {
+      "code": "S04",
+      "category": "screws",
+      "name": "Screw M3 x 20mm",
+      "qty": 32,
+      "image": "images/parts/consumables/screws/M3/M3_20mm.jpg"
+    },
+    {
+      "code": "S05",
+      "category": "screws",
+      "name": "Screw M3 x 25mm",
+      "qty": 36,
+      "image": "images/parts/consumables/screws/M3/M3_25mm.jpg"
+    },
+    {
+      "code": "S06",
+      "category": "screws",
+      "name": "Screw M3 x 40mm",
+      "qty": 12,
+      "image": "images/parts/consumables/screws/M3/M3_40mm.jpg"
+    },
+    {
+      "code": "S07",
+      "category": "screws",
+      "name": "Screw M3 x 5mm",
+      "qty": 8,
+      "image": "images/parts/consumables/screws/M3/M3_5mm.jpg"
+    },
+    {
+      "code": "S08",
+      "category": "screws",
+      "name": "Screw M3 x 8mm",
+      "qty": 4,
+      "image": "images/parts/consumables/screws/M3/M3_8mm.jpg"
+    },
+    {
+      "code": "S09",
+      "category": "screws",
+      "name": "Screw M4 x 18mm",
+      "qty": 2,
+      "image": "images/parts/consumables/screws/M4/M4_18mm.jpg"
+    },
+    {
+      "code": "S10",
+      "category": "screws",
+      "name": "Screw M4 x 25mm",
+      "qty": 19,
+      "image": "images/parts/consumables/screws/M4/M4_25mm.jpg"
+    },
+    {
+      "code": "S11",
+      "category": "screws",
+      "name": "Screw M4 x 40mm",
+      "qty": 8,
+      "image": "images/parts/consumables/screws/M4/M4_40mm.jpg"
+    },
+    {
+      "code": "S12",
+      "category": "screws",
+      "name": "Screw M5 x 20mm",
+      "qty": 26,
+      "image": "images/parts/consumables/screws/M5/M5_20mm.jpg"
+    },
+    {
+      "code": "S13",
+      "category": "screws",
+      "name": "Screw M5 x 40mm",
+      "qty": 6,
+      "image": "images/parts/consumables/screws/M5/M5_40mm.jpg"
+    },
+    {
+      "code": "S14",
+      "category": "screws",
+      "name": "Screw M5 x 60mm",
+      "qty": 2,
+      "image": "images/parts/consumables/screws/M5/M5_60mm.jpg"
+    },
+    {
+      "code": "S15",
+      "category": "screws",
+      "name": "Screw M8 x 60mm",
+      "qty": 9,
+      "image": "images/parts/consumables/screws/M8/M8_60mm.jpg"
+    },
+    {
+      "code": "S16",
+      "category": "screws",
+      "name": "Screw M8 x 80mm",
+      "qty": 2,
+      "image": "images/parts/consumables/screws/M8/M8_80mm.jpg"
+    },
+    {
+      "code": "S17",
+      "category": "screws",
+      "name": "Screw M5 x 80mm",
+      "qty": 1,
+      "image": "images/parts/consumables/screws/M5/M5_80mm.jpg"
+    },
+    {
+      "code": "N01",
+      "category": "nuts",
+      "name": "Nut M4",
+      "qty": 11,
+      "image": "images/parts/consumables/nuts/M4.jpg"
+    },
+    {
+      "code": "N02",
+      "category": "nuts",
+      "name": "Nut M5",
+      "qty": 15,
+      "image": "images/parts/consumables/nuts/M5.jpg"
+    },
+    {
+      "code": "N03",
+      "category": "nuts",
+      "name": "Nut M8",
+      "qty": 35,
+      "image": "images/parts/consumables/nuts/M8.jpg"
+    },
+    {
+      "code": "W01",
+      "category": "washers",
+      "name": "Washer 10x5x1mm",
+      "qty": 13,
+      "image": "images/parts/consumables/washers/10mm_5mm_1mm.jpg"
+    },
+    {
+      "code": "W02",
+      "category": "washers",
+      "name": "Washer 15x5x1mm",
+      "qty": 14,
+      "image": "images/parts/consumables/washers/15mm_5mm_1mm.jpg"
+    },
+    {
+      "code": "W03",
+      "category": "washers",
+      "name": "Washer 15x8.5x1.5mm",
+      "qty": 24,
+      "image": "images/parts/consumables/washers/15mm_8-5mm_1-5mm.jpg"
+    },
+    {
+      "code": "W04",
+      "category": "washers",
+      "name": "Washer 20x10x2mm",
+      "qty": 27,
+      "image": "images/parts/consumables/washers/20mm_10mm_2mm.jpg"
+    },
+    {
+      "code": "W05",
+      "category": "washers",
+      "name": "Washer 8x4x0.5mm",
+      "qty": 12,
+      "image": "images/parts/consumables/washers/8mm_4mm_0-5mm.jpg"
+    },
+    {
+      "code": "W06",
+      "category": "washers",
+      "name": "Washer 8x4x1mm",
+      "qty": 4,
+      "image": "images/parts/consumables/washers/8mm_4mm_1mm.jpg"
+    },
+    {
+      "code": "W07",
+      "category": "washers",
+      "name": "Washer 9x4.5x1mm",
+      "qty": 2,
+      "image": "images/parts/consumables/washers/9_4-5_1mm.jpg"
+    },
+    {
+      "code": "E01",
+      "category": "electronics",
+      "name": "12V Fan",
+      "qty": 2,
+      "image": "images/parts/electronics/fan.jpg"
+    },
+    {
+      "code": "E02",
+      "category": "electronics",
+      "name": "12V power supply (UHP-200-12)",
+      "qty": 1,
+      "image": "images/parts/electronics/power_supply.jpg"
+    },
+    {
+      "code": "E03",
+      "category": "electronics",
+      "name": "12V wires (black and red)",
+      "qty": 1,
+      "qty_note": "~10m",
+      "image": "images/parts/electronics/12V_cable.jpg"
+    },
+    {
+      "code": "E04",
+      "category": "electronics",
+      "name": "220V power plug",
+      "qty": 1,
+      "image": "images/parts/electronics/power_plug.jpg"
+    },
+    {
+      "code": "E05",
+      "category": "electronics",
+      "name": "220V power socket",
+      "qty": 1,
+      "image": "images/parts/electronics/power_socket.jpg"
+    },
+    {
+      "code": "E06",
+      "category": "electronics",
+      "name": "220V/10A cable (red, blue and green/yellow)",
+      "qty": 1,
+      "qty_note": "~2m",
+      "image": "images/parts/electronics/220V_cable.jpg"
+    },
+    {
+      "code": "E07",
+      "category": "electronics",
+      "name": "3-way Wago splicing connector (221-413)",
+      "qty": 3,
+      "image": "images/parts/electronics/3-way_wago_splicing_connector.jpg"
+    },
+    {
+      "code": "E08",
+      "category": "electronics",
+      "name": "AWG22 wire (red, blue, green and black)",
+      "qty": 4,
+      "qty_note": "~10m per colour",
+      "image": "images/parts/electronics/awg22_wire.jpg"
+    },
+    {
+      "code": "E09",
+      "category": "electronics",
+      "name": "Arduino Uno",
+      "qty": 1,
+      "image": "images/parts/electronics/Arduino_Uno.jpg"
+    },
+    {
+      "code": "E10",
+      "category": "electronics",
+      "name": "Arduino Uno CNC Shield",
+      "qty": 1,
+      "image": "images/parts/electronics/CNC_shield.jpg"
+    },
+    {
+      "code": "E11",
+      "category": "electronics",
+      "name": "Bipolar stepper motor (NEMA 17, no gear, 5mm shaft)",
+      "qty": 1,
+      "image": "images/parts/electronics/NEMA17_no_gears.jpg"
+    },
+    {
+      "code": "E12",
+      "category": "electronics",
+      "name": "C-GRID III contact housing 2.54mm (1x2)",
+      "qty": 5
+    },
+    {
+      "code": "E13",
+      "category": "electronics",
+      "name": "C-GRID III contact housing 2.54mm (1x4)",
+      "qty": 4,
+      "image": "images/parts/electronics/contact_housing.jpg"
+    },
+    {
+      "code": "E14",
+      "category": "electronics",
+      "name": "C14 terminal",
+      "qty": 1,
+      "image": "images/parts/electronics/c14_terminal.jpg"
+    },
+    {
+      "code": "E15",
+      "category": "electronics",
+      "name": "Crimp sleeve C-GRID III AWG 22/24",
+      "qty": 26,
+      "image": "images/parts/electronics/crimp_sleeve.jpg"
+    },
+    {
+      "code": "E16",
+      "category": "electronics",
+      "name": "DRV8825 stepper drivers",
+      "qty": 4,
+      "image": "images/parts/electronics/stepper_drivers.jpg"
+    },
+    {
+      "code": "E17",
+      "category": "electronics",
+      "name": "Emergency stop switch (KJD17B)",
+      "qty": 1,
+      "image": "images/parts/electronics/emergency_stop_switch.jpg"
+    },
+    {
+      "code": "E18",
+      "category": "electronics",
+      "name": "Geared (19:1) bipolar stepper motor (NEMA 17, 8mm shaft)",
+      "qty": 3,
+      "image": "images/parts/electronics/NEMA17_geared.jpg"
+    },
+    {
+      "code": "E19",
+      "category": "electronics",
+      "name": "Jumpers",
+      "qty": 6,
+      "image": "images/parts/electronics/jumpers.jpg"
+    },
+    {
+      "code": "E20",
+      "category": "electronics",
+      "name": "Makita RT0700C (milling router)",
+      "qty": 1,
+      "image": "images/parts/electronics/milling_router.jpg"
+    },
+    {
+      "code": "E21",
+      "category": "electronics",
+      "name": "Microswitch",
+      "qty": 5,
+      "image": "images/parts/electronics/microswitch.jpg"
+    },
+    {
+      "code": "E22",
+      "category": "electronics",
+      "name": "Red LED",
+      "qty": 1,
+      "image": "images/parts/electronics/red_led.jpg"
+    },
+    {
+      "code": "E23",
+      "category": "electronics",
+      "name": "Ring terminal (M3)",
+      "qty": 4,
+      "image": "images/parts/electronics/ring_terminal_M3.jpg"
+    },
+    {
+      "code": "E24",
+      "category": "electronics",
+      "name": "Ring terminal (M4)",
+      "qty": 3,
+      "image": "images/parts/electronics/ring_terminal_M4.jpg"
+    },
+    {
+      "code": "E25",
+      "category": "electronics",
+      "name": "Spade connector (2.8mm)",
+      "qty": 10,
+      "image": "images/parts/electronics/spade_connector_2-8mm.jpg"
+    },
+    {
+      "code": "E26",
+      "category": "electronics",
+      "name": "Spade connector (4.8mm)",
+      "qty": 6,
+      "image": "images/parts/electronics/spade_connector_4-8mm.jpg"
+    },
+    {
+      "code": "E27",
+      "category": "electronics",
+      "name": "Spade connector (6.3mm)",
+      "qty": 4,
+      "image": "images/parts/electronics/spade_connector_6-3mm.jpg"
+    },
+    {
+      "code": "E28",
+      "category": "electronics",
+      "name": "USB A (male) to USB B (male)",
+      "qty": 1,
+      "image": "images/parts/electronics/USB_A_to_USB_B.jpg"
+    },
+    {
+      "code": "E29",
+      "category": "electronics",
+      "name": "USB A PCB (female)",
+      "qty": 1,
+      "image": "images/parts/electronics/usb_a_female.jpg"
+    },
+    {
+      "code": "E30",
+      "category": "electronics",
+      "name": "C13 cable",
+      "qty": 1,
+      "image": "images/parts/electronics/c13_cable.jpg"
+    },
+    {
+      "code": "T01",
+      "category": "rods",
+      "name": "Threaded rod M5 x 140mm",
+      "qty": 2,
+      "image": "images/parts/other/threaded_rod_M5_140_mm.jpg"
+    },
+    {
+      "code": "T02",
+      "category": "rods",
+      "name": "Threaded rod M8 x 120mm",
+      "qty": 8,
+      "image": "images/parts/other/threaded_rod_M8_120_mm.jpg"
+    },
+    {
+      "code": "T03",
+      "category": "rods",
+      "name": "Threaded rod M8 x 717mm",
+      "qty": 4,
+      "image": "images/parts/other/threaded_rod_M8_717_mm.jpg"
+    },
+    {
+      "code": "O01",
+      "category": "other",
+      "name": "698zz bearing",
+      "qty": 18,
+      "image": "images/parts/other/698zz_bearing.jpg"
+    },
+    {
+      "code": "O02",
+      "category": "other",
+      "name": "Acme threaded rod (300mm, 8x8mm)",
+      "qty": 1,
+      "image": "images/parts/other/acme_threaded_rod.jpg"
+    },
+    {
+      "code": "O03",
+      "category": "other",
+      "name": "Acme threaded rod nut (8x8mm)",
+      "qty": 1,
+      "image": "images/parts/other/acme_nut.jpg"
+    },
+    {
+      "code": "O04",
+      "category": "other",
+      "name": "Aluminium profile (677x30x30 mm)",
+      "qty": 4,
+      "image": "images/parts/other/aluminium_profiles_677mm_30mm_30mm.jpg"
+    },
+    {
+      "code": "O05",
+      "category": "other",
+      "name": "Aluminium profile (803x30x30 mm)",
+      "qty": 3,
+      "image": "images/parts/other/aluminium_profiles_803mm_30mm_30mm.jpg"
+    },
+    {
+      "code": "O06",
+      "category": "other",
+      "name": "Aluminium profile (80x30x30 mm)",
+      "qty": 8,
+      "image": "images/parts/other/aluminium_profiles_80mm_30mm_30mm.jpg"
+    },
+    {
+      "code": "O07",
+      "category": "other",
+      "name": "Aluminium profile (900x30x30 mm)",
+      "qty": 4,
+      "image": "images/parts/other/aluminium_profiles_900mm_30mm_30mm.jpg"
+    },
+    {
+      "code": "O08",
+      "category": "other",
+      "name": "Braided cable sleeve (20mm)",
+      "qty": 1,
+      "qty_note": "5m",
+      "image": "images/parts/other/cable_sleeve.jpg"
+    },
+    {
+      "code": "O09",
+      "category": "other",
+      "name": "Cable chain (1m, 30x15mm inner)",
+      "qty": 2,
+      "image": "images/parts/other/cable_chain.jpg"
+    },
+    {
+      "code": "O10",
+      "category": "other",
+      "name": "Cable clip",
+      "qty": 1,
+      "image": "images/parts/other/cable_clip.jpg"
+    },
+    {
+      "code": "O11",
+      "category": "other",
+      "name": "Cable ties",
+      "qty": 30,
+      "qty_note": "~30",
+      "image": "images/parts/other/cable_ties.jpg"
+    },
+    {
+      "code": "O12",
+      "category": "other",
+      "name": "Flat end mill",
+      "qty": 1,
+      "qty_note": "NA",
+      "image": "images/parts/other/flat_end_mills.jpg"
+    },
+    {
+      "code": "O13",
+      "category": "other",
+      "name": "Flexible conduit",
+      "qty": 1,
+      "qty_note": "2m",
+      "image": "images/parts/other/cable_conduit.jpg"
+    },
+    {
+      "code": "O14",
+      "category": "other",
+      "name": "GT2 belt (6mm width, 300mm)",
+      "qty": 1,
+      "image": "images/parts/other/2GT_belt_300_mm.jpg"
+    },
+    {
+      "code": "O15",
+      "category": "other",
+      "name": "GT2 pulley (16T, 5mm bore, 6mm belt)",
+      "qty": 1,
+      "image": "images/parts/other/2GT_pulley_16_teeth.jpg"
+    },
+    {
+      "code": "O16",
+      "category": "other",
+      "name": "GT2 pulley (60T, 8mm bore, 6mm belt)",
+      "qty": 1,
+      "image": "images/parts/other/2GT_pulley_60_teeth.jpg"
+    },
+    {
+      "code": "O17",
+      "category": "other",
+      "name": "HTD5M belt (15mm width)",
+      "qty": 1,
+      "qty_note": "4m",
+      "image": "images/parts/other/HTD5M_belt.jpg"
+    },
+    {
+      "code": "O18",
+      "category": "other",
+      "name": "HTD5M pulley (12T, 8mm bore, 15mm belt)",
+      "qty": 3,
+      "image": "images/parts/other/HTD5M_pulley.jpg"
+    },
+    {
+      "code": "O19",
+      "category": "other",
+      "name": "KFL08 rod bearing (8mm)",
+      "qty": 2,
+      "image": "images/parts/other/KFL08_rod_bearing.jpg"
+    },
+    {
+      "code": "O20",
+      "category": "other",
+      "name": "MGN12H linear rail (200mm)",
+      "qty": 2,
+      "image": "images/parts/other/MGN12H_rail_200_mm.jpg"
+    },
+    {
+      "code": "O21",
+      "category": "other",
+      "name": "MGN12H linear rail (600mm)",
+      "qty": 4,
+      "image": "images/parts/other/MGN12H_rail_600_mm.jpg"
+    },
+    {
+      "code": "O22",
+      "category": "other",
+      "name": "MGN12H linear rail block",
+      "qty": 12,
+      "image": "images/parts/other/MGN12H_rail_block.jpg"
+    },
+    {
+      "code": "O23",
+      "category": "other",
+      "name": "Masking tape",
+      "qty": 1,
+      "image": "images/parts/other/masking_tape.jpg"
+    },
+    {
+      "code": "O24",
+      "category": "other",
+      "name": "Shrinking tubes",
+      "qty": 1,
+      "qty_note": "NA",
+      "image": "images/parts/other/shrinking_tubes.jpg"
+    },
+    {
+      "code": "O25",
+      "category": "other",
+      "name": "Cable grommet",
+      "qty": 1,
+      "image": "images/parts/other/cable_grommet.jpg"
+    },
+    {
+      "code": "O26",
+      "category": "other",
+      "name": "Plywood (~12x1500x1500mm)",
+      "qty": 1,
+      "image": "images/parts/other/plywood.jpg"
+    },
+    {
+      "code": "O27",
+      "category": "other",
+      "name": "Brush (dust shoe)",
+      "qty": 1,
+      "qty_note": "0.5m",
+      "image": "images/parts/other/dust_shoe.jpg"
+    }
+  ]
+}

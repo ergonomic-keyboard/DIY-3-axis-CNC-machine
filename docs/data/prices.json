@@ -1,0 +1,391 @@
+{
+  "$schema_version": 1,
+  "last_updated_at": "2026-06-25T12:42:59Z",
+  "notes": "One entry per (item_code, shop) pair. The newest observation in `observations` is what the UI displays; history is appended, never overwritten. Refresh via tools/refresh_prices.py or the refresh-prices GitHub Action. URLs marked PLACEHOLDER point at the shop's home/search page — replace with a concrete product URL when you have one.",
+  "entries": [
+    {
+      "item_code": "E09",
+      "shop": "tinytronics",
+      "url": "https://www.tinytronics.nl/nl/development-boards/microcontroller-boards/arduino-compatible/arduino-uno-r3",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T12:42:59Z",
+          "price": 25.0,
+          "currency": "EUR",
+          "in_stock": false,
+          "eta_days": 1
+        },
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 25.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1
+        }
+      ]
+    },
+    {
+      "item_code": "E09",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/nl/zoeken.html?search=arduino+uno+r3",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 28.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "note": "PLACEHOLDER price/URL — verify and replace with the concrete product link."
+        }
+      ]
+    },
+    {
+      "item_code": "E09",
+      "shop": "bol_nl",
+      "url": "https://www.bol.com/nl/nl/s/?searchtext=arduino+uno+r3",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 27.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "note": "PLACEHOLDER — Bol.com is bot-blocked; fill manually."
+        }
+      ]
+    },
+    {
+      "item_code": "E09",
+      "shop": "aliexpress",
+      "url": "https://www.aliexpress.com/wholesale?SearchText=arduino+uno+r3",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 8.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 21,
+          "note": "PLACEHOLDER — AliExpress prices vary per seller/variant; fill manually."
+        }
+      ]
+    },
+    {
+      "item_code": "E10",
+      "shop": "tinytronics",
+      "url": "https://www.tinytronics.nl/nl/mechanica-en-actuatoren/motoraansturingen-en-drivers/adapter-boards/cnc-shield-v3",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T12:42:59Z",
+          "price": 5.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1
+        },
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 9.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1
+        }
+      ]
+    },
+    {
+      "item_code": "E10",
+      "shop": "aliexpress",
+      "url": "https://www.aliexpress.com/wholesale?SearchText=cnc+shield+v3",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 4.2,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 21,
+          "note": "PLACEHOLDER — AliExpress."
+        }
+      ]
+    },
+    {
+      "item_code": "E16",
+      "shop": "tinytronics",
+      "url": "https://www.tinytronics.nl/nl/mechanica-en-actuatoren/motoraansturingen-en-drivers/stappen-motoraansturingen-en-drivers/drv8825-motor-driver-module",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T12:42:59Z",
+          "price": 5.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1
+        },
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 4.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1
+        }
+      ]
+    },
+    {
+      "item_code": "E16",
+      "shop": "aliexpress",
+      "url": "https://www.aliexpress.com/wholesale?SearchText=drv8825",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 1.8,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 21,
+          "note": "PLACEHOLDER — AliExpress."
+        }
+      ]
+    },
+    {
+      "item_code": "E11",
+      "shop": "tinytronics",
+      "url": "https://www.tinytronics.nl/nl/mechanica-en-actuatoren/motoren/stappenmotoren/stappenmotor-0.41n.m-1.7a-nema17",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T12:42:59Z",
+          "price": 10.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1
+        },
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 18.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1,
+          "note": "PLACEHOLDER price — verify against actual NEMA17 0.41N.m / 1.7A torque rating you need."
+        }
+      ]
+    },
+    {
+      "item_code": "E18",
+      "shop": "tinytronics",
+      "url": "https://www.tinytronics.nl/nl/mechanica-en-actuatoren/motoren/stappenmotoren/",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 34.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1,
+          "note": "PLACEHOLDER — find the 19:1 geared NEMA17 product page and replace this URL."
+        }
+      ]
+    },
+    {
+      "item_code": "E18",
+      "shop": "aliexpress",
+      "url": "https://www.aliexpress.com/wholesale?SearchText=nema+17+19%3A1+geared",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 24.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 21,
+          "note": "PLACEHOLDER — AliExpress."
+        }
+      ]
+    },
+    {
+      "item_code": "E02",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/nl/zoeken.html?search=mean+well+uhp-200-12",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 49.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "note": "PLACEHOLDER — Conrad is Cloudflare-gated; fill manually."
+        }
+      ]
+    },
+    {
+      "item_code": "E02",
+      "shop": "tinytronics",
+      "url": "https://www.tinytronics.nl/nl/zoeken?search=mean+well+uhp-200",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 47.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1,
+          "note": "PLACEHOLDER — replace with concrete product URL."
+        }
+      ]
+    },
+    {
+      "item_code": "E17",
+      "shop": "tinytronics",
+      "url": "https://www.tinytronics.nl/nl/schakelaars/manuele-schakelaars/drukknoppen-en-schakelaars/auspicious-noodstopschakelaar-druk-draai",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T12:42:59Z",
+          "price": 5.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1
+        },
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 8.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 1,
+          "note": "Closest match (Auspicious noodstop) — verify spec against KJD17B."
+        }
+      ]
+    },
+    {
+      "item_code": "E17",
+      "shop": "bol_nl",
+      "url": "https://www.bol.com/nl/nl/s/?searchtext=KJD17B+emergency+stop",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 14.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "note": "PLACEHOLDER — Bol.com."
+        }
+      ]
+    },
+    {
+      "item_code": "E20",
+      "shop": "bol_nl",
+      "url": "https://www.bol.com/nl/nl/s/?searchtext=Makita+RT0700C",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 159.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "note": "PLACEHOLDER — Bol.com."
+        }
+      ]
+    },
+    {
+      "item_code": "E20",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/s?k=Makita+RT0700C",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 165.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "note": "PLACEHOLDER — Amazon.nl."
+        }
+      ]
+    },
+    {
+      "item_code": "O21",
+      "shop": "aliexpress",
+      "url": "https://www.aliexpress.com/wholesale?SearchText=MGN12H+linear+rail+600mm",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 22.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 21,
+          "note": "PLACEHOLDER — AliExpress."
+        }
+      ]
+    },
+    {
+      "item_code": "O20",
+      "shop": "aliexpress",
+      "url": "https://www.aliexpress.com/wholesale?SearchText=MGN12H+linear+rail+200mm",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 11.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 21,
+          "note": "PLACEHOLDER — AliExpress."
+        }
+      ]
+    },
+    {
+      "item_code": "O22",
+      "shop": "aliexpress",
+      "url": "https://www.aliexpress.com/wholesale?SearchText=MGN12H+block",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": 4.2,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 21,
+          "note": "PLACEHOLDER — AliExpress."
+        }
+      ]
+    },
+    {
+      "item_code": "P01",
+      "shop": "3dhubs_print_service",
+      "url": "https://craftcloud3d.com/",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 10,
+          "note": "Quote per part — varies with size. Ask a friend with a 3D printer first."
+        }
+      ]
+    },
+    {
+      "item_code": "P07",
+      "shop": "3dhubs_print_service",
+      "url": "https://craftcloud3d.com/",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T00:00:00Z",
+          "price": null,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 10,
+          "note": "Quote per part. Ask a friend with a 3D printer first."
+        }
+      ]
+    }
+  ]
+}

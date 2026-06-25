@@ -7,6 +7,7 @@ theme:
     primary: red
 nav:
 - Bill of materials: BILLOFMATERIAL.md
+- Shopping: shopping.md
 - Main frame: 01-main-frame.md
 - Y-axis: 02-y-axis.md
 - X-axis and Z-axis: 03-x-axis-and-z-axis.md
@@ -25,5 +26,7 @@ markdown_extensions:
   - pymdownx.superfences
 extra_css:
   - assets/stylesheets/toc-toggle.css
+  - assets/stylesheets/shopping.css
 extra_javascript:
   - assets/javascripts/toc-toggle.js
+  - assets/javascripts/shopping.js
