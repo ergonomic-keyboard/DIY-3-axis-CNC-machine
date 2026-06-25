@@ -27,6 +27,27 @@
   border-radius: var(--shopping-radius);
 }
 
+/* SL-8.j: vimium audit — every interactive control gets a clearly visible
+   focus ring so vimium's hint-mode and tab navigation land on something the
+   user can actually see. Only applies inside .shopping-app so the rule
+   doesn't leak into Material's broader styling. */
+.shopping-app button:focus-visible,
+.shopping-app input:focus-visible,
+.shopping-app select:focus-visible,
+.shopping-app summary:focus-visible,
+.shopping-app a:focus-visible {
+  outline: 2px solid var(--shopping-accent);
+  outline-offset: 2px;
+  border-radius: var(--shopping-radius);
+}
+/* When a checkbox/radio inside a row label is focused, highlight the whole row
+   so the user sees what they're about to toggle. */
+.shopping-app label:has(input:focus-visible) {
+  outline: 2px solid var(--shopping-accent);
+  outline-offset: 2px;
+  border-radius: var(--shopping-radius);
+}
+
 /* -- header --------------------------------------------------------- */
 .shopping-header {
   display: flex;
