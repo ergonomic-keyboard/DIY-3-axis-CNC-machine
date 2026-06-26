@@ -1,6 +1,6 @@
 {
   "$schema_version": 2,
-  "last_updated_at": "2026-06-26T00:53:29Z",
+  "last_updated_at": "2026-06-26T01:49:44Z",
   "notes": "One entry per (item_code, shop) pair. The newest observation in `observations` is what the UI displays; history is appended, never overwritten. Each observation carries a `technique` (jsonld | opengraph | affiliate-api | manual) per SL-9.e. Refresh via tools/refresh_prices.py or the refresh-prices GitHub Action. Only add entries whose `url` points at a concrete product page — the refresh tool skips listing / search / category URLs by design (see SL-9.b).",
   "entries": [
     {
@@ -460,6 +460,14 @@
           "in_stock": true,
           "eta_days": 2,
           "technique": "manual"
+        },
+        {
+          "ts": "2026-06-26T01:49:44.037Z",
+          "price": 0.71,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": null,
+          "technique": "manual"
         }
       ]
     },
@@ -668,6 +676,14 @@
           "in_stock": true,
           "eta_days": null,
           "technique": "manual"
+        },
+        {
+          "ts": "2026-06-26T01:49:44Z",
+          "price": 15.9,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": null,
+          "technique": "manual"
         }
       ]
     },
@@ -684,6 +700,14 @@
           "in_stock": true,
           "eta_days": null,
           "technique": "manual"
+        },
+        {
+          "ts": "2026-06-26T01:49:44Z",
+          "price": 30.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": null,
+          "technique": "manual"
         }
       ]
     },
@@ -695,6 +719,14 @@
       "observations": [
         {
           "ts": "2026-06-26T00:53:29Z",
+          "price": 3.49,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        },
+        {
+          "ts": "2026-06-26T01:49:44Z",
           "price": 3.49,
           "currency": "EUR",
           "in_stock": true,
