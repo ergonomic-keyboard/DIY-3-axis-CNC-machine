@@ -1583,17 +1583,9 @@
       e.preventDefault(); e.stopPropagation();
       var val = (input.value || '').trim() || ean;
       if (!val) return;
-      var done = function () {
-        copyBtn.textContent = 'Copied!';
-        setTimeout(function () { copyBtn.textContent = 'Copy'; }, 1500);
-      };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(val).then(done, function () {
-          fallbackCopy(val); done();
-        });
-      } else {
-        fallbackCopy(val); done();
-      }
+      copyTextWithFlash(val, copyBtn);
+      copyBtn.textContent = 'Copied!';
+      setTimeout(function () { copyBtn.textContent = 'Copy'; }, 1500);
     });
     actions.appendChild(copyBtn);
 
@@ -1653,6 +1645,35 @@
     } catch (e) { /* swallow */ }
   }
 
+  // SL-10.S: write text to the clipboard and pop a transient "Copied!" badge
+  // next to the anchor element so the user sees the action took effect. Used
+  // by the dblclick-to-copy on the alts dropdown.
+  function copyTextWithFlash(text, anchorEl) {
+    if (!text) return;
+    var done = function () { flashCopiedNear(anchorEl); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () {
+        fallbackCopy(text); done();
+      });
+    } else {
+      fallbackCopy(text); done();
+    }
+  }
+
+  function flashCopiedNear(anchorEl) {
+    if (!anchorEl) return;
+    var rect = anchorEl.getBoundingClientRect();
+    var flash = document.createElement('span');
+    flash.className = 'shopping-copy-flash';
+    flash.textContent = 'Copied!';
+    flash.style.left = (rect.left + 6) + 'px';
+    flash.style.top = (rect.top - 24) + 'px';
+    document.body.appendChild(flash);
+    requestAnimationFrame(function () { flash.classList.add('is-active'); });
+    setTimeout(function () { flash.classList.add('is-fading'); }, 900);
+    setTimeout(function () { if (flash.parentNode) flash.parentNode.removeChild(flash); }, 1400);
+  }
+
   // SL-8.f / SL-8.g preserved on the slim head row: a small sparkline-or-glyph
   // button that opens the price history popover for the currently-selected
   // shop. Returns null when there's no entry to summarize.
@@ -1700,6 +1721,14 @@
     addOpt.value = '__add__';
     addOpt.textContent = '+ Add alternative…';
     sel.appendChild(addOpt);
+
+    // SL-10.S: double-clicking the dropdown copies the displayed product
+    // name to the clipboard with a brief on-screen "Copied!" flash.
+    sel.addEventListener('dblclick', function (e) {
+      var name = sel.options[sel.selectedIndex] && sel.options[sel.selectedIndex].text;
+      if (!name) return;
+      copyTextWithFlash(name, sel);
+    });
 
     sel.addEventListener('change', function () {
       if (sel.value === '__add__') {
