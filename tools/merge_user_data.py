@@ -196,6 +196,7 @@ def merge_state(state: dict, *, data_dir: Path = DATA_DIR, dry_run: bool = False
         "shipping_updates": [],
         "qty_updates": [],
         "attribute_updates": [],
+        "url_updates": [],
     }
     id_translations: dict[str, str] = {}
     consumed = {
@@ -206,6 +207,7 @@ def merge_state(state: dict, *, data_dir: Path = DATA_DIR, dry_run: bool = False
         "userShopShipping": [],
         "userQty": [],
         "userAttributes": [],
+        "userUrls": [],
     }
 
     # 1) Translate state.userShops → real shops + price entries.
@@ -365,6 +367,19 @@ def merge_state(state: dict, *, data_dir: Path = DATA_DIR, dry_run: bool = False
         summary["qty_updates"].append({"code": code, "qty": it["qty"]})
         consumed["userQty"].append(code)
 
+    # 7b) state.userUrls → set prices.json entry.url for matching (item, shop).
+    for key, url in (state.get("userUrls") or {}).items():
+        if "::" not in key:
+            continue
+        item_code, shop_id = key.split("::", 1)
+        shop_id = id_translations.get(shop_id, shop_id)
+        entry = _find_entry(prices, item_code, shop_id)
+        if entry is None:
+            entry = _ensure_entry(prices, item_code, shop_id, None)
+        entry["url"] = url
+        summary["url_updates"].append({"code": item_code, "shop": shop_id, "url": url})
+        consumed["userUrls"].append(key)
+
     # 7) state.userAttributes → set items.json[code].attributes[key] (SL-11/12).
     for code, bag in (state.get("userAttributes") or {}).items():
         if not isinstance(bag, dict):
@@ -420,6 +435,10 @@ def _print_summary(s: dict, id_translations: dict | None = None) -> None:
     print(f"Attribute updates:  {len(attr_updates)}")
     for x in attr_updates:
         print(f"  - {x['code']:<6} {x['key']} = {x['value']!r}")
+    url_updates = s.get("url_updates") or []
+    print(f"URL updates:        {len(url_updates)}")
+    for x in url_updates:
+        print(f"  - {x['code']:<6} @ {x['shop']:<14} → {x['url']}")
     if id_translations:
         print(f"Shop-id rewrites:   {len(id_translations)}")
         for synth, real in id_translations.items():

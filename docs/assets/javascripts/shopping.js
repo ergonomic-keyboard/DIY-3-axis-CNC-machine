@@ -112,7 +112,11 @@
       // SL-10.Z / SL-12: per-user overrides for the row's editable amount /
       // attribute fields. Keyed by item code; userAttributes nests by key.
       userQty: {},
-      userAttributes: {}
+      userAttributes: {},
+      // SL-10.AA: per-(item, shop) URL overrides — keyed "<item>::<shop>".
+      // Overlaid on entry.url so a wrong product link can be replaced in
+      // place from the shop-entry editor popover.
+      userUrls: {}
     };
     try {
       var raw = localStorage.getItem(STATE_KEY);
@@ -136,6 +140,7 @@
         merged.userShopShipping = merged.userShopShipping || {};
         merged.userQty = merged.userQty || {};
         merged.userAttributes = merged.userAttributes || {};
+        merged.userUrls = merged.userUrls || {};
         return merged;
       }
       return fallback;
@@ -219,7 +224,7 @@
       // Close any open EAN popover when the user clicks outside it.
       // Popover-internal clicks stopPropagation so this only fires for outside clicks.
       document.addEventListener('click', function () {
-        document.querySelectorAll('.shopping-item__ean-wrap.is-open').forEach(function (w) {
+        document.querySelectorAll('.shopping-item__ean-wrap.is-open, .shopping-item__edit-wrap.is-open').forEach(function (w) {
           w.classList.remove('is-open');
         });
       });
@@ -235,6 +240,7 @@
       syncUserPriceObservationsIntoData();
       applyUserEansToData();
       applyUserShopShippingToData();
+      applyUserUrlsToData();
       applyUserAttributesToData();
       applyUserQtyToData();
       applyDefaultSelection();
@@ -285,6 +291,8 @@
       // SL-10.P: snapshot the seeded EAN so we can restore-then-overlay
       // state.userEans on each render cycle without losing the original.
       entry._seedEan = entry.ean != null ? entry.ean : null;
+      // SL-10.AA: same trick for URL — snapshot for clean revert.
+      entry._seedUrl = entry.url != null ? entry.url : null;
       if (!data.prices[entry.item_code]) data.prices[entry.item_code] = [];
       data.prices[entry.item_code].push(entry);
     });
@@ -525,6 +533,118 @@
     if (!ean) delete state.userEans[key];
     else state.userEans[key] = ean;
     applyUserEansToData();
+    saveState();
+    pushManualToHelper();
+    render();
+  }
+
+  // SL-10.AA: per-(item, shop) URL overlay. Reset each entry to its seeded
+  // url then overlay state.userUrls. Mirrors applyUserEansToData.
+  function applyUserUrlsToData() {
+    Object.keys(data.prices).forEach(function (itemCode) {
+      data.prices[itemCode].forEach(function (entry) {
+        if (Object.prototype.hasOwnProperty.call(entry, '_seedUrl')) {
+          entry.url = entry._seedUrl;
+        }
+      });
+    });
+    var uu = state.userUrls || {};
+    Object.keys(uu).forEach(function (key) {
+      var sep = key.indexOf('::');
+      if (sep < 0) return;
+      var itemCode = key.slice(0, sep);
+      var shopId = key.slice(sep + 2);
+      var entry = (data.prices[itemCode] || []).find(function (e) { return e.shop === shopId; });
+      if (entry) entry.url = uu[key];
+    });
+  }
+
+  function setUserUrl(itemCode, shopId, url) {
+    if (!state.userUrls) state.userUrls = {};
+    var key = itemCode + '::' + shopId;
+    if (!url) delete state.userUrls[key];
+    else state.userUrls[key] = url;
+    applyUserUrlsToData();
+    saveState();
+    pushManualToHelper();
+    render();
+  }
+
+  // SL-10.AA: batched edit of one (item, shop) entry from the pencil popover.
+  // Mutates every state slice the change touches *without* an intermediate
+  // render, then saves / pushes / renders exactly once at the end so the
+  // popover doesn't flicker through five intermediate states.
+  function applyShopEntryEdit(itemCode, shopId, changes) {
+    var key = itemCode + '::' + shopId;
+
+    if (Object.prototype.hasOwnProperty.call(changes, 'url')) {
+      if (!state.userUrls) state.userUrls = {};
+      if (!changes.url) delete state.userUrls[key];
+      else state.userUrls[key] = changes.url;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(changes, 'price') ||
+        Object.prototype.hasOwnProperty.call(changes, 'eta_days') ||
+        Object.prototype.hasOwnProperty.call(changes, 'in_stock')) {
+      if (!state.userPriceObservations) state.userPriceObservations = {};
+      var prev = state.userPriceObservations[key] || {};
+      var nextPrice = Object.prototype.hasOwnProperty.call(changes, 'price') ? changes.price : prev.price;
+      // null price → drop the observation entirely so we don't leave a
+      // dangling user record that overrides the seeded data with nothing.
+      if (nextPrice == null) {
+        delete state.userPriceObservations[key];
+      } else {
+        state.userPriceObservations[key] = {
+          price: nextPrice,
+          currency: prev.currency || 'EUR',
+          eta_days: Object.prototype.hasOwnProperty.call(changes, 'eta_days')
+            ? changes.eta_days
+            : (typeof prev.eta_days === 'number' ? prev.eta_days : null),
+          in_stock: Object.prototype.hasOwnProperty.call(changes, 'in_stock')
+            ? !!changes.in_stock
+            : (prev.in_stock != null ? prev.in_stock : true),
+          ts: new Date().toISOString()
+        };
+      }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(changes, 'ean')) {
+      if (!state.userEans) state.userEans = {};
+      if (!changes.ean) delete state.userEans[key];
+      else state.userEans[key] = changes.ean;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(changes, 'shipping_cost')) {
+      // Route through the existing logic so synthetic user-added shop ids
+      // still mutate the underlying state.userShops / userAlternatives blob.
+      // setUserShopShipping renders by itself — we want a single render at
+      // the end, so reach into the mutation directly here.
+      if (shopId.indexOf(ADDED_SHOP_PREFIX) === 0) {
+        Object.keys(state.userShops || {}).forEach(function (itemCode2) {
+          (state.userShops[itemCode2] || []).forEach(function (us) {
+            if (us.id === shopId) us.shipping_cost = changes.shipping_cost;
+          });
+        });
+        syncUserShopsIntoData();
+      } else if (shopId.indexOf(USER_SHOP_PREFIX) === 0) {
+        var altCode = shopId.slice(USER_SHOP_PREFIX.length);
+        Object.keys(state.userAlternatives || {}).forEach(function (parentCode) {
+          (state.userAlternatives[parentCode] || []).forEach(function (ua) {
+            if (ua.code === altCode && ua.shop) ua.shop.shipping_cost = changes.shipping_cost;
+          });
+        });
+        syncUserAlternativesIntoData();
+      } else {
+        if (!state.userShopShipping) state.userShopShipping = {};
+        if (changes.shipping_cost == null) delete state.userShopShipping[shopId];
+        else state.userShopShipping[shopId] = changes.shipping_cost;
+      }
+    }
+
+    applyUserUrlsToData();
+    applyUserEansToData();
+    applyUserShopShippingToData();
+    syncUserPriceObservationsIntoData();
     saveState();
     pushManualToHelper();
     render();
@@ -1776,6 +1896,139 @@
     return a;
   }
 
+  // SL-10.AA: pencil edit button — opens a popover with editable fields for
+  // every value of the currently-chosen (item, shop) entry. Sits beside the
+  // shop dropdown so the user reads "edit THIS shop".
+  function renderShopEditButton(effective, chosenShopId) {
+    var entries = entriesForItem(effective.code);
+    if (entries.length === 0) return null;
+    var shopId = chosenShopId || (entries[0] && entries[0].shop);
+    if (!shopId) return null;
+    var entry = (data.prices[effective.code] || []).find(function (e) { return e.shop === shopId; });
+    var shop = data.shopsById[shopId];
+    if (!entry || !shop) return null;
+
+    var obs = latestObservation(entry);
+    var current = {
+      url: entry.url || '',
+      ean: entry.ean || '',
+      price: obs && typeof obs.price === 'number' ? obs.price : null,
+      eta_days: obs && typeof obs.eta_days === 'number' ? obs.eta_days : null,
+      in_stock: obs ? !!obs.in_stock : true,
+      shipping_cost: shop.shipping && typeof shop.shipping.standard_cost === 'number'
+        ? shop.shipping.standard_cost
+        : null
+    };
+    var shopName = shop.name || shopId;
+
+    var wrap = el('span', 'shopping-item__edit-wrap');
+
+    var btn = el('button', 'shopping-item__edit-btn');
+    btn.type = 'button';
+    btn.setAttribute('aria-haspopup', 'true');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.title = 'Edit every field of this shop entry (URL, price, ETA, shipping, EAN, stock)';
+    btn.appendChild(el('span', 'shopping-item__edit-icon', '✎'));
+
+    var pop = el('div', 'shopping-item__edit-pop');
+    pop.appendChild(el('span', 'shopping-item__edit-pop-title',
+      'Edit ' + effective.code + ' @ ' + shopName));
+
+    function addField(label, key, type, value, placeholder) {
+      var row = el('label', 'shopping-item__edit-field');
+      row.appendChild(el('span', 'shopping-item__edit-label', label));
+      var inp = document.createElement('input');
+      inp.type = type;
+      if (type === 'number') inp.step = '0.01';
+      inp.className = 'shopping-item__edit-input';
+      if (placeholder) inp.placeholder = placeholder;
+      if (value != null && value !== '') inp.value = String(value);
+      row.appendChild(inp);
+      pop.appendChild(row);
+      return inp;
+    }
+    var urlInp   = addField('URL',      'url',      'url',    current.url, 'https://…');
+    var priceInp = addField('Price (€)', 'price',   'number', current.price, '€');
+    var etaInp   = addField('ETA (d)',  'eta_days', 'number', current.eta_days, 'days');
+    var shipInp  = addField('Ship (€)', 'shipping_cost', 'number', current.shipping_cost, 'ship €');
+    var eanInp   = addField('EAN',      'ean',      'text',   current.ean, 'EAN / barcode');
+
+    var stockRow = el('label', 'shopping-item__edit-field shopping-item__edit-field--check');
+    stockRow.appendChild(el('span', 'shopping-item__edit-label', 'In stock'));
+    var stockInp = document.createElement('input');
+    stockInp.type = 'checkbox';
+    stockInp.className = 'shopping-item__edit-checkbox';
+    stockInp.checked = !!current.in_stock;
+    stockRow.appendChild(stockInp);
+    pop.appendChild(stockRow);
+
+    var actions = el('div', 'shopping-item__edit-actions');
+    var saveBtn = el('button', 'shopping-btn shopping-btn--primary', 'Save');
+    saveBtn.type = 'button';
+    saveBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      var changes = {};
+      var urlVal = (urlInp.value || '').trim();
+      if (urlVal !== current.url) changes.url = urlVal || null;
+      var eanVal = (eanInp.value || '').trim();
+      if (eanVal !== current.ean) changes.ean = eanVal || null;
+      // Observation-derived fields (price / eta / in_stock) travel together:
+      // when ANY of them changes we write a fresh user observation, so we
+      // must carry through the others too. Otherwise the unchanged value on
+      // the form would still get written as null/false because the synthetic
+      // user observation overrides the seeded one.
+      var priceVal = parseFloat(priceInp.value);
+      var priceParsed = isFinite(priceVal) ? priceVal : null;
+      var etaVal = parseInt(etaInp.value, 10);
+      var etaParsed = isFinite(etaVal) ? etaVal : null;
+      var stockNow = !!stockInp.checked;
+      var obsChanged = (priceParsed !== current.price) ||
+                       (etaParsed !== current.eta_days) ||
+                       (stockNow !== current.in_stock);
+      if (obsChanged) {
+        changes.price = priceParsed;
+        changes.eta_days = etaParsed;
+        changes.in_stock = stockNow;
+      }
+      var shipVal = parseFloat(shipInp.value);
+      var shipParsed = isFinite(shipVal) ? shipVal : null;
+      if (shipParsed !== current.shipping_cost) changes.shipping_cost = shipParsed;
+      if (Object.keys(changes).length === 0) {
+        wrap.classList.remove('is-open');
+        return;
+      }
+      applyShopEntryEdit(effective.code, shopId, changes);
+    });
+    actions.appendChild(saveBtn);
+    var cancelBtn = el('button', 'shopping-btn', 'Close');
+    cancelBtn.type = 'button';
+    cancelBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      wrap.classList.remove('is-open');
+    });
+    actions.appendChild(cancelBtn);
+    pop.appendChild(actions);
+
+    btn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      // Close any other open edit popovers / EAN popovers so only one is up.
+      document.querySelectorAll('.shopping-item__edit-wrap.is-open, .shopping-item__ean-wrap.is-open').forEach(function (w) {
+        if (w !== wrap) w.classList.remove('is-open');
+      });
+      var open = wrap.classList.toggle('is-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) requestAnimationFrame(function () { urlInp.focus(); urlInp.select(); });
+    });
+    pop.addEventListener('click', function (e) { e.stopPropagation(); });
+    pop.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { e.preventDefault(); wrap.classList.remove('is-open'); }
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(pop);
+    return wrap;
+  }
+
   // SL-10.P: EAN button + popover for the currently-selected shop. Edit/Save
   // writes state.userEans[item::shop]; Copy puts the EAN on the clipboard;
   // Clear removes the user EAN (revealing any seeded EAN underneath).
@@ -1885,7 +2138,8 @@
       Object.keys(state.userEans || {}).length > 0 ||
       Object.keys(state.userShopShipping || {}).length > 0 ||
       Object.keys(state.userQty || {}).length > 0 ||
-      Object.keys(state.userAttributes || {}).length > 0;
+      Object.keys(state.userAttributes || {}).length > 0 ||
+      Object.keys(state.userUrls || {}).length > 0;
     if (!hasAnything) return Promise.resolve(null);
 
     var payload = JSON.stringify({
@@ -1897,7 +2151,8 @@
         userEans: state.userEans || {},
         userShopShipping: state.userShopShipping || {},
         userQty: state.userQty || {},
-        userAttributes: state.userAttributes || {}
+        userAttributes: state.userAttributes || {},
+        userUrls: state.userUrls || {}
       }
     });
     return fetch(REFRESH_HELPER_URL + '/api/save-manual', {
@@ -1943,6 +2198,9 @@
     });
     (c.userAttributes || []).forEach(function (code) {
       if (state.userAttributes) delete state.userAttributes[code];
+    });
+    (c.userUrls || []).forEach(function (k) {
+      if (state.userUrls) delete state.userUrls[k];
     });
     // Rewrite any state.shopOverride values that referenced synthetic shop
     // ids the helper just promoted to stable user-<slug> ids.
@@ -2308,6 +2566,11 @@
     sel.title = 'Double-click to open this shop\'s product page for ' +
       effective.code + ' in a new tab.';
     wrap.appendChild(sel);
+
+    // SL-10.AA: pencil button — opens a popover that edits every field on
+    // the chosen (item, shop) entry: URL, price, ETA, in-stock, shipping, EAN.
+    var pencilEl = renderShopEditButton(effective, effectiveShopId);
+    if (pencilEl) wrap.appendChild(pencilEl);
 
     wrap.appendChild(renderShopMetaForSelected(effective, effectiveShopId, entries));
     return wrap;

@@ -855,6 +855,100 @@
   cursor: default;
 }
 
+/* SL-10.AA: pencil edit button + popover for the chosen (item, shop) entry.
+   Reuses the EAN popover layout so the two affordances feel consistent. */
+.shopping-item__edit-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-left: 0.2rem;
+}
+.shopping-item__edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: transparent;
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: var(--shopping-muted);
+  cursor: pointer;
+}
+.shopping-item__edit-btn:hover,
+.shopping-item__edit-wrap.is-open .shopping-item__edit-btn {
+  border-color: var(--shopping-accent);
+  color: var(--shopping-accent);
+}
+.shopping-item__edit-icon { line-height: 1; }
+.shopping-item__edit-pop {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.3rem);
+  left: 0;
+  z-index: 7;
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.6rem 0.7rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  font-size: 0.78rem;
+  width: 22rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.shopping-item__edit-wrap.is-open .shopping-item__edit-pop { display: block; }
+.shopping-item__edit-pop-title {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--shopping-muted);
+  margin-bottom: 0.45rem;
+}
+.shopping-item__edit-field {
+  display: grid;
+  grid-template-columns: 5rem 1fr;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.32rem;
+}
+.shopping-item__edit-field--check {
+  grid-template-columns: 5rem auto;
+  justify-content: start;
+}
+.shopping-item__edit-label {
+  font-size: 0.72rem;
+  color: var(--shopping-muted);
+}
+.shopping-item__edit-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.25rem 0.4rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--shopping-border);
+  border-radius: 0.25rem;
+  background: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+}
+.shopping-item__edit-checkbox {
+  width: 1rem;
+  height: 1rem;
+}
+.shopping-item__edit-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.shopping-item__edit-actions .shopping-btn { flex: 0 0 auto; }
+
 /* SL-10.O: dedicated add-shop body picks up the same green accent. */
 .shopping-item__body--shop {
   border-top-color: rgba(46, 164, 79, 0.45);

@@ -98,6 +98,8 @@ SL-12.d Items in the `rods` category shall expose **Size**, **length**, and **am
 
 SL-12.e Items in the `other` category shall expose **identifier** (free-form short label) and **amount**.
 
+SL-10.AA Each item row shall expose a small "✎" pencil button beside the shop dropdown. Clicking it opens a popover that edits every field of the currently-chosen (item, shop) entry — URL, price, ETA in days, shipping cost, EAN, in-stock — in a single Save. URL edits write through a new `state.userUrls` overlay (keyed `<item>::<shop>`) that lands in `prices.json[entry].url`; the other fields reuse the existing per-field overlays (userPriceObservations / userEans / userShopShipping) so the row-level inline editors and the popover share one source of truth. Saving applies all changes in a single batch (one render, one push).
+
 
 SL-11.a Each Item shall support custom attributes (specific name and specific value).
 SL-12.b The Screws shall have custom datafields: Size, length and amount.
