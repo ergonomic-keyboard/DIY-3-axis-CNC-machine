@@ -611,6 +611,28 @@
 .shopping-item__add--shop.is-open { border-color: #2ea44f; color: #2ea44f; background: rgba(46, 164, 79, 0.08); }
 .shopping-item__add-icon { font-size: 0.85rem; font-weight: 700; line-height: 1; }
 
+/* SL-10.S: transient "Copied!" toast that pops near the element that was
+   double-clicked (alts dropdown, EAN copy button, etc.). */
+.shopping-copy-flash {
+  position: fixed;
+  z-index: 1000;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--md-primary-bg-color, #fff);
+  background: var(--shopping-accent);
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+.shopping-copy-flash.is-active { opacity: 1; transform: translateY(0); }
+.shopping-copy-flash.is-fading { opacity: 0; transform: translateY(-4px); }
+
 /* SL-10.R: single "Visit" link per item row, target tied to current shop. */
 .shopping-item__visit {
   display: inline-flex;
