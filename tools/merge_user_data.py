@@ -146,14 +146,44 @@ def _add_or_merge_user_shop(
 # -------------------------------------------------------------------- merging
 
 def merge(export: dict, *, dry_run: bool) -> int:
+    """CLI entry: validate the export envelope, call merge_state, print summary."""
     if export.get("$kind") != "cnc-shopping-user-export":
         print("error: input does not look like a cnc-shopping-user-export", file=sys.stderr)
         return 2
+    result = merge_state(export.get("state") or {}, dry_run=dry_run)
+    _print_summary(result["summary"], result["id_translations"])
+    if dry_run:
+        print("\n[dry-run] no files written.")
+    else:
+        print(f"\nWrote: {SHOPS_PATH}, {ITEMS_PATH}, {PRICES_PATH}")
+        print("Next: git diff docs/data/ — review and commit if it looks right.")
+        print(
+            "Then clear your browser state for this site (DevTools → Application → "
+            "Local Storage → cnc-shopping-state-v5) so future renders don't double "
+            "up on top of what's now in the repo."
+        )
+    return 0
 
-    state = export.get("state") or {}
-    shops = _load_json(SHOPS_PATH)
-    items = _load_json(ITEMS_PATH)
-    prices = _load_json(PRICES_PATH)
+
+def merge_state(state: dict, *, data_dir: Path = DATA_DIR, dry_run: bool = False) -> dict:
+    """Merge a state blob (the body of an export envelope) into the repo data.
+
+    Returns a dict with keys:
+      summary:          counts + lists of what landed
+      id_translations:  {synthetic_shop_id: real_shop_id} for shopOverride rewrites
+      consumed:         {bucket: [keys-or-codes...]} that the caller (e.g. the
+                        shopping page) can clear from its localStorage so the
+                        next render doesn't double-overlay on top of what's
+                        now persisted in the repo.
+
+    Pass `dry_run=True` to skip writing the JSON files.
+    """
+    shops_path = data_dir / "shops.json"
+    items_path = data_dir / "items.json"
+    prices_path = data_dir / "prices.json"
+    shops = _load_json(shops_path)
+    items = _load_json(items_path)
+    prices = _load_json(prices_path)
     existing_ids = _existing_shop_ids(shops)
     country = state.get("country") or "NL"
 
@@ -163,13 +193,20 @@ def merge(export: dict, *, dry_run: bool) -> int:
         "observations_added": 0,
         "observations_skipped_duplicate": 0,
         "eans_set": 0,
-        "shop_id_translations": {},
+    }
+    id_translations: dict[str, str] = {}
+    consumed = {
+        "userPriceObservations": [],
+        "userShops": [],
+        "userAlternatives": [],
+        "userEans": [],
     }
 
     # 1) Translate state.userShops → real shops + price entries.
-    user_shops = (state.get("userShops") or {})
-    for item_code, lst in user_shops.items():
-        for us in lst or []:
+    for item_code, lst in (state.get("userShops") or {}).items():
+        if not lst:
+            continue
+        for us in lst:
             synth_id = us.get("id")
             label = us.get("shop_label") or "Custom shop"
             url = us.get("url")
@@ -181,7 +218,7 @@ def merge(export: dict, *, dry_run: bool) -> int:
                 us.get("currency") or "EUR", eta, ship, country, item_code,
             )
             if synth_id and synth_id != real_id:
-                summary["shop_id_translations"][synth_id] = real_id
+                id_translations[synth_id] = real_id
             summary["shops_added"].append({"item": item_code, "id": real_id, "label": label})
 
             entry = _ensure_entry(prices, item_code, real_id, url)
@@ -198,48 +235,45 @@ def merge(export: dict, *, dry_run: bool) -> int:
                 summary["observations_added"] += 1
             else:
                 summary["observations_skipped_duplicate"] += 1
+        consumed["userShops"].append(item_code)
 
     # 2) state.userAlternatives → items.json alternatives + price entries.
-    user_alts = (state.get("userAlternatives") or {})
     items_by_code = {i.get("code"): i for i in items.get("items", [])}
-    for parent_code, lst in user_alts.items():
+    for parent_code, lst in (state.get("userAlternatives") or {}).items():
         parent = items_by_code.get(parent_code)
-        if not parent:
-            print(f"warn: parent {parent_code} not found in items.json — skipping alt", file=sys.stderr)
+        if not parent or not lst:
+            if not parent:
+                print(f"warn: parent {parent_code} not found in items.json — skipping alt", file=sys.stderr)
             continue
         parent.setdefault("alternatives", [])
-        for ua in lst or []:
+        for ua in lst:
             alt_code = ua.get("code")
             if not alt_code:
                 continue
-            if any(a.get("code") == alt_code for a in parent["alternatives"]):
-                continue  # already merged
-            alt_entry = {
-                "code": alt_code,
-                "name": ua.get("name") or alt_code,
-            }
-            if ua.get("ean"):
-                alt_entry["ean"] = ua["ean"]
-            if ua.get("image"):
-                alt_entry["image"] = ua["image"]
-            parent["alternatives"].append(alt_entry)
-            summary["alts_added"].append({"parent": parent_code, "code": alt_code, "name": alt_entry["name"]})
+            if not any(a.get("code") == alt_code for a in parent["alternatives"]):
+                alt_entry = {"code": alt_code, "name": ua.get("name") or alt_code}
+                if ua.get("ean"):
+                    alt_entry["ean"] = ua["ean"]
+                if ua.get("image"):
+                    alt_entry["image"] = ua["image"]
+                parent["alternatives"].append(alt_entry)
+                summary["alts_added"].append(
+                    {"parent": parent_code, "code": alt_code, "name": alt_entry["name"]}
+                )
 
             shop_blob = ua.get("shop") or {}
             if shop_blob.get("shop_label"):
-                # The alt's synthesized shop in localStorage uses USER_SHOP_PREFIX
-                # + the alt code; in the repo we promote it to a normal user-* id.
                 shop_id = _add_or_merge_user_shop(
                     shops, existing_ids,
                     shop_blob.get("shop_label"),
                     shop_blob.get("url"),
                     shop_blob.get("currency") or "EUR",
                     shop_blob.get("eta_days"),
-                    None,  # no shipping cost in the add-alt form
+                    None,
                     country, alt_code,
                 )
                 synth_alt_shop_id = USER_SHOP_PREFIX + alt_code
-                summary["shop_id_translations"][synth_alt_shop_id] = shop_id
+                id_translations[synth_alt_shop_id] = shop_id
                 entry = _ensure_entry(prices, alt_code, shop_id, shop_blob.get("url"))
                 obs = {
                     "ts": _now_iso(),
@@ -251,18 +285,15 @@ def merge(export: dict, *, dry_run: bool) -> int:
                 }
                 if _append_obs_unique(entry, obs):
                     summary["observations_added"] += 1
+        consumed["userAlternatives"].append(parent_code)
 
     # 3) state.userPriceObservations → append manual observations.
-    upo = (state.get("userPriceObservations") or {})
-    for key, ob in upo.items():
+    for key, ob in (state.get("userPriceObservations") or {}).items():
         if "::" not in key:
             continue
         item_code, shop_id = key.split("::", 1)
-        # Translate any browser-synth shop ids to real repo ids.
-        shop_id = summary["shop_id_translations"].get(shop_id, shop_id)
+        shop_id = id_translations.get(shop_id, shop_id)
         if shop_id.startswith(ADDED_SHOP_PREFIX) or shop_id.startswith(USER_SHOP_PREFIX):
-            # User had a shop with no entry (rare) — try to use any pre-merge
-            # translation; if not, skip and warn.
             print(f"warn: no real shop id for {shop_id}; skipping price for {item_code}", file=sys.stderr)
             continue
         entry = _ensure_entry(prices, item_code, shop_id, None)
@@ -278,39 +309,27 @@ def merge(export: dict, *, dry_run: bool) -> int:
             summary["observations_added"] += 1
         else:
             summary["observations_skipped_duplicate"] += 1
+        consumed["userPriceObservations"].append(key)
 
     # 4) state.userEans → set entry.ean on matching entries (last write wins).
-    ueans = (state.get("userEans") or {})
-    for key, ean in ueans.items():
+    for key, ean in (state.get("userEans") or {}).items():
         if "::" not in key or not ean:
             continue
         item_code, shop_id = key.split("::", 1)
-        shop_id = summary["shop_id_translations"].get(shop_id, shop_id)
-        entry = _find_entry(prices, item_code, shop_id)
-        if entry is None:
-            entry = _ensure_entry(prices, item_code, shop_id, None)
+        shop_id = id_translations.get(shop_id, shop_id)
+        entry = _find_entry(prices, item_code, shop_id) or _ensure_entry(prices, item_code, shop_id, None)
         entry["ean"] = ean
         summary["eans_set"] += 1
+        consumed["userEans"].append(key)
 
     prices["last_updated_at"] = _now_iso()
 
-    _print_summary(summary)
+    if not dry_run:
+        _save_json(shops_path, shops)
+        _save_json(items_path, items)
+        _save_json(prices_path, prices)
 
-    if dry_run:
-        print("\n[dry-run] no files written.")
-        return 0
-
-    _save_json(SHOPS_PATH, shops)
-    _save_json(ITEMS_PATH, items)
-    _save_json(PRICES_PATH, prices)
-    print(f"\nWrote: {SHOPS_PATH}, {ITEMS_PATH}, {PRICES_PATH}")
-    print("Next: git diff docs/data/ — review and commit if it looks right.")
-    print(
-        "Then clear your browser state for this site (DevTools → Application → "
-        "Local Storage → cnc-shopping-state-v5) so future renders don't double "
-        "up on top of what's now in the repo."
-    )
-    return 0
+    return {"summary": summary, "id_translations": id_translations, "consumed": consumed}
 
 
 def _append_obs_unique(entry: dict, obs: dict) -> bool:
@@ -322,7 +341,7 @@ def _append_obs_unique(entry: dict, obs: dict) -> bool:
     return True
 
 
-def _print_summary(s: dict) -> None:
+def _print_summary(s: dict, id_translations: dict | None = None) -> None:
     print(f"Shops added:        {len(s['shops_added'])}")
     for x in s["shops_added"]:
         print(f"  - {x['id']:<28} ({x['label']}) for {x['item']}")
@@ -332,9 +351,9 @@ def _print_summary(s: dict) -> None:
     print(f"Observations added: {s['observations_added']}")
     print(f"  duplicates skipped: {s['observations_skipped_duplicate']}")
     print(f"EANs set:           {s['eans_set']}")
-    if s["shop_id_translations"]:
-        print(f"Shop-id rewrites:   {len(s['shop_id_translations'])}")
-        for synth, real in s["shop_id_translations"].items():
+    if id_translations:
+        print(f"Shop-id rewrites:   {len(id_translations)}")
+        for synth, real in id_translations.items():
             print(f"  {synth} → {real}")
 
 
