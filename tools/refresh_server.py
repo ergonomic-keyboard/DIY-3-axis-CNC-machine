@@ -51,9 +51,13 @@ import pathlib as _pl
 sys.path.insert(0, str(_pl.Path(__file__).resolve().parent.parent))
 
 from tools import refresh_prices  # noqa: E402
+from tools import merge_user_data  # noqa: E402
 
 DEFAULT_PORT = 8765
-ALLOWED_ORIGINS = ("http://127.0.0.1:8012", "http://localhost:8012")
+ALLOWED_ORIGINS = (
+    "http://127.0.0.1:8012", "http://localhost:8012",
+    "http://127.0.0.1:8000", "http://localhost:8000",  # mkdocs serve default
+)
 
 # Per-shop cooldown in seconds. tinytronics is the only small shop we hit hard,
 # so it gets a longer cooldown to stay polite.
@@ -63,6 +67,21 @@ COOLDOWN_S: dict[str, int] = {
 DEFAULT_COOLDOWN_S = 30
 
 BOT_SUFFIX = "-bot"
+
+# Serializes concurrent /api/save-manual writes so two near-simultaneous edits
+# on the page don't fight over docs/data/ writes.
+SAVE_MANUAL_LOCK = threading.Lock()
+
+
+def _is_loopback_origin(origin: str) -> bool:
+    """Allow any localhost mkdocs serve port without enumerating them.
+    The helper is bound to 127.0.0.1 so the threat model is local-only."""
+    if not origin:
+        return False
+    return (
+        origin.startswith("http://127.0.0.1:")
+        or origin.startswith("http://localhost:")
+    )
 
 
 def shop_from_bot_id(bot_id: str) -> str | None:
@@ -194,7 +213,7 @@ class RefreshHandler(BaseHTTPRequestHandler):
 
     def _cors_headers(self) -> None:
         origin = self.headers.get("Origin", "")
-        if origin in ALLOWED_ORIGINS:
+        if origin in ALLOWED_ORIGINS or _is_loopback_origin(origin):
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
@@ -219,6 +238,36 @@ class RefreshHandler(BaseHTTPRequestHandler):
         self._cors_headers()
         self.end_headers()
 
+    # SL-10.U: POST /api/save-manual — write the user's manual edits straight
+    # into docs/data/*.json via merge_user_data.merge_state. Body is the same
+    # shape as the page's "Export data" download: {"state": {...}}.
+    def _handle_save_manual(self) -> None:
+        length = int(self.headers.get("Content-Length") or 0)
+        if length <= 0:
+            self._send_json(400, {"error": "missing_body"})
+            return
+        try:
+            body = json.loads(self.rfile.read(length).decode("utf-8"))
+        except Exception as e:  # noqa: BLE001
+            self._send_json(400, {"error": "bad_json", "detail": str(e)})
+            return
+        state = body.get("state") if isinstance(body, dict) else None
+        if not isinstance(state, dict):
+            self._send_json(400, {"error": "missing_state"})
+            return
+        try:
+            with SAVE_MANUAL_LOCK:
+                result = merge_user_data.merge_state(state, dry_run=False)
+        except Exception as e:  # noqa: BLE001
+            self._send_json(500, {"error": "merge_failed", "detail": str(e)})
+            return
+        self._send_json(200, {
+            "ok": True,
+            "summary": result["summary"],
+            "consumed": result["consumed"],
+            "id_translations": result["id_translations"],
+        })
+
     def do_GET(self) -> None:  # noqa: N802
         parsed = urllib.parse.urlparse(self.path)
         if parsed.path == "/api/health":
@@ -231,12 +280,18 @@ class RefreshHandler(BaseHTTPRequestHandler):
                 "status": "ok",
                 "version": 1,
                 "bots": list_bots(prices),
+                # SL-10.U: signals the page that POST /api/save-manual exists
+                # so it can write manual edits straight to docs/data/*.json.
+                "write_through": True,
             })
             return
         self._send_json(404, {"error": "not_found", "path": parsed.path})
 
     def do_POST(self) -> None:  # noqa: N802
         parsed = urllib.parse.urlparse(self.path)
+        if parsed.path == "/api/save-manual":
+            self._handle_save_manual()
+            return
         if parsed.path != "/api/refresh":
             self._send_json(404, {"error": "not_found", "path": parsed.path})
             return
@@ -284,7 +339,7 @@ def main(argv: list[str] | None = None) -> int:
     server = ThreadingHTTPServer((args.host, args.port), RefreshHandler)
     print(f"refresh_server: listening on http://{args.host}:{args.port}", flush=True)
     print(f"refresh_server: CORS origins = {', '.join(ALLOWED_ORIGINS)}", flush=True)
-    print("refresh_server: GET /api/health   POST /api/refresh?bot=<shop>-bot[&item=<code>]", flush=True)
+    print("refresh_server: GET /api/health   POST /api/refresh?bot=<shop>-bot[&item=<code>]   POST /api/save-manual", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

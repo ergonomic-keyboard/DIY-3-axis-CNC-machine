@@ -61,7 +61,8 @@
     state: 'unknown',   // 'unknown' | 'online' | 'offline'
     bots: [],
     cooldownUntil: {},  // bot_id → epoch ms when local cooldown expires
-    inFlight: {}        // bot_id → true while POST is in flight
+    inFlight: {},       // bot_id → true while POST is in flight
+    writeThrough: false // SL-10.U: helper supports POST /api/save-manual
   };
   var refreshTickHandle = null;
 
@@ -378,6 +379,7 @@
     }
     syncUserPriceObservationsIntoData();
     saveState();
+    pushManualToHelper();
     render();
   }
 
@@ -475,6 +477,7 @@
     else state.userEans[key] = ean;
     applyUserEansToData();
     saveState();
+    pushManualToHelper();
     render();
   }
 
@@ -509,6 +512,7 @@
     state.shopOverride[itemCode] = id;
     if (state.openAdd) delete state.openAdd[itemCode];
     saveState();
+    pushManualToHelper();
     render();
   }
 
@@ -576,6 +580,7 @@
     });
     syncUserAlternativesIntoData();
     setEffectiveAlternative(parentCode, code);
+    pushManualToHelper();
   }
 
   function removeUserAlternative(parentCode, altCode) {
@@ -973,6 +978,7 @@
     }).then(function (json) {
       refreshHelper.state = 'online';
       refreshHelper.bots = json.bots || [];
+      refreshHelper.writeThrough = !!json.write_through;
     }).catch(function () {
       clearTimeout(timer);
       refreshHelper.state = 'offline';
@@ -1643,6 +1649,74 @@
     return wrap;
   }
 
+  // SL-10.U: when the local refresh helper is running, POST the current state
+  // to /api/save-manual so manual edits land directly in docs/data/*.json. The
+  // helper response tells us which keys to clear from state.userPriceObservations
+  // / userShops / userAlternatives / userEans (and which shop-id rewrites to
+  // apply to state.shopOverride) so the next render doesn't double-overlay.
+  function pushManualToHelper() {
+    if (!refreshHelper.writeThrough) return Promise.resolve(null);
+    var hasAnything =
+      Object.keys(state.userPriceObservations || {}).length > 0 ||
+      Object.keys(state.userShops || {}).length > 0 ||
+      Object.keys(state.userAlternatives || {}).length > 0 ||
+      Object.keys(state.userEans || {}).length > 0;
+    if (!hasAnything) return Promise.resolve(null);
+
+    var payload = JSON.stringify({
+      state: {
+        country: state.country,
+        userPriceObservations: state.userPriceObservations || {},
+        userShops: state.userShops || {},
+        userAlternatives: state.userAlternatives || {},
+        userEans: state.userEans || {}
+      }
+    });
+    return fetch(REFRESH_HELPER_URL + '/api/save-manual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+      body: payload
+    }).then(function (r) {
+      if (!r.ok) return r.json().catch(function () { return {}; }).then(function (body) {
+        throw new Error(body.detail || ('save-manual ' + r.status));
+      });
+      return r.json();
+    }).then(function (body) {
+      applyManualSaveResponse(body);
+      flashCopiedNear(document.getElementById('shopping-app'), 'Saved to repo');
+      return body;
+    }).catch(function (err) {
+      if (window.console && console.warn) console.warn('save-manual:', err && err.message);
+      return null;
+    });
+  }
+
+  function applyManualSaveResponse(body) {
+    if (!body || !body.consumed) return;
+    var c = body.consumed;
+    (c.userPriceObservations || []).forEach(function (k) {
+      if (state.userPriceObservations) delete state.userPriceObservations[k];
+    });
+    (c.userEans || []).forEach(function (k) {
+      if (state.userEans) delete state.userEans[k];
+    });
+    (c.userShops || []).forEach(function (code) {
+      if (state.userShops) delete state.userShops[code];
+    });
+    (c.userAlternatives || []).forEach(function (code) {
+      if (state.userAlternatives) delete state.userAlternatives[code];
+    });
+    // Rewrite any state.shopOverride values that referenced synthetic shop
+    // ids the helper just promoted to stable user-<slug> ids.
+    var t = body.id_translations || {};
+    Object.keys(state.shopOverride || {}).forEach(function (code) {
+      var v = state.shopOverride[code];
+      if (t[v]) state.shopOverride[code] = t[v];
+    });
+    saveState();
+  }
+
   // SL-10.T: dump the user's localStorage state to a downloadable JSON file
   // so it can be merged into the repo via tools/merge_user_data.py. Includes
   // the full state object plus an `exported_at` timestamp and the storage
@@ -1700,12 +1774,12 @@
     }
   }
 
-  function flashCopiedNear(anchorEl) {
+  function flashCopiedNear(anchorEl, text) {
     if (!anchorEl) return;
     var rect = anchorEl.getBoundingClientRect();
     var flash = document.createElement('span');
     flash.className = 'shopping-copy-flash';
-    flash.textContent = 'Copied!';
+    flash.textContent = text || 'Copied!';
     flash.style.left = (rect.left + 6) + 'px';
     flash.style.top = (rect.top - 24) + 'px';
     document.body.appendChild(flash);
