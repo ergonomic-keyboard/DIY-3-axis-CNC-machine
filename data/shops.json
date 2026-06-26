@@ -1,0 +1,195 @@
+{
+  "$schema_version": 1,
+  "countries": [
+    {
+      "id": "NL",
+      "label": "Netherlands"
+    },
+    {
+      "id": "ALL",
+      "label": "All countries (compare)"
+    }
+  ],
+  "shops": [
+    {
+      "id": "conrad_nl",
+      "name": "Conrad NL",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.conrad.nl/",
+      "shipping": {
+        "standard_cost": 6.95,
+        "free_above": 75.0,
+        "default_eta_days": 3
+      }
+    },
+    {
+      "id": "tinytronics",
+      "name": "TinyTronics",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.tinytronics.nl/",
+      "shipping": {
+        "standard_cost": 4.95,
+        "free_above": 75.0,
+        "default_eta_days": 1
+      }
+    },
+    {
+      "id": "bol_nl",
+      "name": "Bol.com",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.bol.com/",
+      "shipping": {
+        "standard_cost": 3.95,
+        "free_above": 20.0,
+        "default_eta_days": 2
+      }
+    },
+    {
+      "id": "amazon_nl",
+      "name": "Amazon.nl",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.amazon.nl/",
+      "shipping": {
+        "standard_cost": 1.99,
+        "free_above": 20.0,
+        "default_eta_days": 2
+      }
+    },
+    {
+      "id": "aliexpress",
+      "name": "AliExpress",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.aliexpress.com/",
+      "shipping": {
+        "standard_cost": 0.0,
+        "free_above": 0.0,
+        "default_eta_days": 21
+      }
+    },
+    {
+      "id": "123_3d",
+      "name": "123-3D",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.123-3d.nl/",
+      "shipping": {
+        "standard_cost": 4.99,
+        "free_above": 75.0,
+        "default_eta_days": 2
+      }
+    },
+    {
+      "id": "3dhubs_print_service",
+      "name": "Online 3D print service",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://craftcloud3d.com/",
+      "shipping": {
+        "standard_cost": 0.0,
+        "free_above": 0.0,
+        "default_eta_days": 10
+      }
+    },
+    {
+      "id": "user-elpro-org",
+      "name": "elpro.org",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.elpro.org/gb/content/4-kontakt",
+      "shipping": {
+        "standard_cost": 25.0,
+        "default_eta_days": 5
+      },
+      "added_by_user": true
+    },
+    {
+      "id": "user-conrad",
+      "name": "conrad",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.conrad.nl/nl/p/noctua-nf-a4x10-flx-pc-ventilator-beige-bruin-b-x-h-x-d-40-x-10-x-40-mm-3222417.html?searchType=SearchRedirect",
+      "shipping": {
+        "standard_cost": 0.0,
+        "default_eta_days": 2
+      },
+      "added_by_user": true
+    },
+    {
+      "id": "user-amazon-nl",
+      "name": "amazon.nl",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.amazon.nl/dp/B008GRTSV6/?tag=tweakersnl-21&creative=380333&creativeASIN=B008GRTSV6&linkCode=asn&th=1",
+      "shipping": {
+        "standard_cost": 0.0,
+        "default_eta_days": 2
+      },
+      "added_by_user": true
+    },
+    {
+      "id": "user-conrad-e14",
+      "name": "conrad",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.conrad.nl/nl/p/tru-components-tc-13599520-apparaatstekker-koud-stekker-inbouw-verticaal-totaal-aantal-polen-3-10-a-zwart-1-stuk-s-3399880.html",
+      "shipping": {
+        "standard_cost": 0.0,
+        "default_eta_days": 2
+      },
+      "added_by_user": true
+    },
+    {
+      "id": "user-aliexpres",
+      "name": "aliexpres",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.alibaba.com/product-detail/Ratio-19-1-NEMA17-Geared-Motor_1600203751381.html",
+      "shipping": {
+        "standard_cost": 0.0,
+        "default_eta_days": 5
+      },
+      "added_by_user": true
+    },
+    {
+      "id": "user-amazon",
+      "name": "amazon",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.amazon.nl/dp/B009NQLT0M?tag=noctua02-21",
+      "shipping": {
+        "standard_cost": 0.0,
+        "default_eta_days": null
+      },
+      "added_by_user": true
+    },
+    {
+      "id": "user-amazon-e09-user-2cf2",
+      "name": "amazon",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.amazon.nl/dp/B0C8V88Z9D/?tag=tweakers0e-21&creative=380333&creativeASIN=B0C8V88Z9D&linkCode=asn",
+      "shipping": {
+        "standard_cost": 0.0,
+        "default_eta_days": null
+      },
+      "added_by_user": true
+    },
+    {
+      "id": "user-conrad-e14-user-dc1a",
+      "name": "conrad",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.conrad.nl/nl/p/tru-components-tc-10088416-apparaatstekker-koud-c14-stekker-inbouw-verticaal-totaal-aantal-polen-3-10-a-zwart-1-stuk-2522104.html",
+      "shipping": {
+        "standard_cost": 0.0,
+        "default_eta_days": 2
+      },
+      "added_by_user": true
+    }
+  ]
+}

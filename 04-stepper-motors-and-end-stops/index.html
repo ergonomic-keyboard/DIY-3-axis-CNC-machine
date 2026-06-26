@@ -1,0 +1,1318 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://ergonomic-keyboard.github.io/DIY-3-axis-CNC-machine/04-stepper-motors-and-end-stops/">
+      
+      
+        <link rel="prev" href="../03-x-axis-and-z-axis/">
+      
+      
+        <link rel="next" href="../05-router/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Stepper motors and end-stops - DIY-CNC-machine</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/toc-toggle.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/shopping.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#stepper-motors-and-end-stops" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="DIY-CNC-machine" class="md-header__button md-logo" aria-label="DIY-CNC-machine" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DIY-CNC-machine
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Stepper motors and end-stops
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="DIY-CNC-machine" class="md-nav__button md-logo" aria-label="DIY-CNC-machine" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DIY-CNC-machine
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../BILLOFMATERIAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bill of materials
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shopping/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shopping
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-main-frame/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Main frame
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-y-axis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Y-axis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-x-axis-and-z-axis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    X-axis and Z-axis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stepper motors and end-stops
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stepper motors and end-stops
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#extend-stepper-motor-wires" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extend stepper motor wires
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extend stepper motor wires">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#y-axis-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Y-axis 1
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#y-axis-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Y-axis 2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#x-axis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        X-axis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#z-axis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Z-axis
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#end-stops-and-end-stop-wires" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-stops and end-stop wires
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="End-stops and end-stop wires">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#x-axis-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        X-axis (max)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#x-axis-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        X-axis (min)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#y-axis-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Y-axis (max)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#y-axis-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Y-axis (min)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#z-axis-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Z-axis (max)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stepper-motor-and-end-stop-cable-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stepper motor and end-stop cable management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stepper motor and end-stop cable management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#y-axis-steppers-and-x-axis-end-stops" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Y-axis steppers and X-axis end-stops
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#x-axis-stepper-z-axis-stepper-and-z-axis-end-stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        X-axis stepper, Z-axis stepper and Z-axis end-stop
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-router/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Router
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-electronic-boxes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Electronic boxes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-electrical-wiring-and-connect-components/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Electrical wiring and connect components
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-wasteboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wasteboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-dust-shoe/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dust shoe
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10-software/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Software
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11-g-code-sender/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    G-Code sender
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12-final-notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Final notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#extend-stepper-motor-wires" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extend stepper motor wires
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extend stepper motor wires">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#y-axis-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Y-axis 1
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#y-axis-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Y-axis 2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#x-axis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        X-axis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#z-axis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Z-axis
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#end-stops-and-end-stop-wires" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-stops and end-stop wires
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="End-stops and end-stop wires">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#x-axis-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        X-axis (max)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#x-axis-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        X-axis (min)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#y-axis-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Y-axis (max)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#y-axis-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Y-axis (min)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#z-axis-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Z-axis (max)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stepper-motor-and-end-stop-cable-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stepper motor and end-stop cable management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stepper motor and end-stop cable management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#y-axis-steppers-and-x-axis-end-stops" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Y-axis steppers and X-axis end-stops
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#x-axis-stepper-z-axis-stepper-and-z-axis-end-stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        X-axis stepper, Z-axis stepper and Z-axis end-stop
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="stepper-motors-and-end-stops">Stepper motors and end-stops</h1>
+<h2 id="extend-stepper-motor-wires">Extend stepper motor wires</h2>
+<p>All 4 stepper motors (2x Y-axis, 1x X-axis and 1x Z-axis) get their power and movement instructions from the Arduino + CNC shield that in a later step will be attached in the small electronic box. Therefore, the stepper motor cables needed to be extended to reach through the cable chains all the way to the front of the machine, where the small electronic box will be located.</p>
+<p>AWG22 cables (<strong>E08</strong>) of matching colors were used when increasing the length of the stepper motor cables. The same process was used for all the motors:</p>
+<ol>
+<li>The amount of wires needed to reach all the way to the electronic box was approximated and cut. Make sure to have an extra ~300 mm wire from the point where the wires exits the Y-axis cable chain, as this will be needed to reach the small electronic box.</li>
+<li>The ends of the original stepper wires and the extra AWG22 wires were stripped using a wire stripper.</li>
+<li>The colors of the original stepper wires and the extra AWG22 wires were matched up and the stripped ends of the wires were twisted around each other.</li>
+<li>The twisted wires where then locked in a steady position by a "third hand".</li>
+<li>Soldering grease was applied to the twisted wires and the wires were soldered together.</li>
+<li>4 shrinking tubes (one per cable) were shrunk around the now soldered twisted wires, covering the soldering.</li>
+<li>A handful of larger shrinking tubes were shrunk around all 4 wires to keep them together.</li>
+<li>Finally, the wires were marked using tape and a penn, indicating which stepper motor the wires belonged to. This is important as it will help a lot later on, when the stepper motors are connected to the Arduino.</li>
+</ol>
+<h3 id="y-axis-1">Y-axis 1</h3>
+<p>The extended wires of the first Y-axis stepper motor were cut at a length so that they reached through the lower front bridge beam (see red arrow on the next image) and through the Y-axis cable chain going to the front of the CNC machine.</p>
+<p><img alt="solder_steppers_y_axis_1" src="../images/build/frame/solder_steppers_y_axis_1.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_2" src="../images/build/frame/solder_steppers_y_axis_2.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_3" src="../images/build/frame/solder_steppers_y_axis_3.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_4" src="../images/build/frame/solder_steppers_y_axis_4.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_5" src="../images/build/frame/solder_steppers_y_axis_5.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_6" src="../images/build/frame/solder_steppers_y_axis_6.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_7" src="../images/build/frame/solder_steppers_y_axis_7.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_8" src="../images/build/frame/solder_steppers_y_axis_8.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_9" src="../images/build/frame/solder_steppers_y_axis_9.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_10" src="../images/build/frame/solder_steppers_y_axis_10.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_10_1" src="../images/build/frame/solder_steppers_y_axis_10_1.jpg" /></p>
+<h3 id="y-axis-2">Y-axis 2</h3>
+<p>The extended wires of the second Y-axis stepper motor were cut at a length so that they reached through the Y-axis cable chain going to the front of the CNC machine.</p>
+<p><img alt="solder_steppers_y_axis_11" src="../images/build/frame/solder_steppers_y_axis_11.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_12" src="../images/build/frame/solder_steppers_y_axis_12.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_13" src="../images/build/frame/solder_steppers_y_axis_13.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_14" src="../images/build/frame/solder_steppers_y_axis_14.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_15" src="../images/build/frame/solder_steppers_y_axis_15.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_16" src="../images/build/frame/solder_steppers_y_axis_16.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_17" src="../images/build/frame/solder_steppers_y_axis_17.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_18" src="../images/build/frame/solder_steppers_y_axis_18.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_19" src="../images/build/frame/solder_steppers_y_axis_19.jpg" /></p>
+<p><img alt="solder_steppers_y_axis_20" src="../images/build/frame/solder_steppers_y_axis_20.jpg" /></p>
+<h3 id="x-axis">X-axis</h3>
+<p>I ran out of AWG22 wires when soldering the X-axis stepper motor cables, therefore you will see different type of cables in the upcoming images. Because of this, I had to insert the shrinking tubes before I soldered the cables. Please disregard this and follow the previous instructions.</p>
+<p>The extended wire of the X-axis stepper motor were cut at a length so that they reached up and behind the Z-axis stepper motor, through the X-axis cable chain and through the Y-axis cable chain to the front of the CNC machine.</p>
+<p><img alt="solder_steppers_x_axis_1.jpg" src="../images/build/frame/solder_steppers_x_axis_1.jpg" /></p>
+<p><img alt="solder_steppers_x_axis_2.jpg" src="../images/build/frame/solder_steppers_x_axis_2.jpg" /></p>
+<p><img alt="solder_steppers_x_axis_3.jpg" src="../images/build/frame/solder_steppers_x_axis_3.jpg" /></p>
+<p><img alt="solder_steppers_x_axis_4.jpg" src="../images/build/frame/solder_steppers_x_axis_4.jpg" /></p>
+<p><img alt="solder_steppers_x_axis_5.jpg" src="../images/build/frame/solder_steppers_x_axis_5.jpg" /></p>
+<p><img alt="solder_steppers_x_axis_6.jpg" src="../images/build/frame/solder_steppers_x_axis_6.jpg" /></p>
+<p><img alt="solder_steppers_x_axis_7.jpg" src="../images/build/frame/solder_steppers_x_axis_7.jpg" /></p>
+<p><img alt="solder_steppers_x_axis_8.jpg" src="../images/build/frame/solder_steppers_x_axis_8.jpg" /></p>
+<h3 id="z-axis">Z-axis</h3>
+<p>The non-geared NEMA17 motor used for the Z-axis had removable wires, in contrast to the 1:19 geared NEMA17 motors that had non-removable wires. The first step was therefore to connect the wires to the NEMA17 motor and cut of the connector on the other side using a scissor. Otherwise, the same procedure was followed as for the other motors.</p>
+<p>The extended wires of the Z-axis stepper motor were cut at a length so that they reached through the X-axis cable chain and through the Y-axis cable chain to the front of the CNC machine.</p>
+<p><img alt="solder_steppers_z_axis_1.jpg" src="../images/build/frame/solder_steppers_z_axis_1.jpg" /></p>
+<p><img alt="solder_steppers_z_axis_2.jpg" src="../images/build/frame/solder_steppers_z_axis_2.jpg" /></p>
+<p><img alt="solder_steppers_z_axis_3.jpg" src="../images/build/frame/solder_steppers_z_axis_3.jpg" /></p>
+<p><img alt="solder_steppers_z_axis_4.jpg" src="../images/build/frame/solder_steppers_z_axis_4.jpg" /></p>
+<p><img alt="solder_steppers_z_axis_5.jpg" src="../images/build/frame/solder_steppers_z_axis_5.jpg" /></p>
+<p><img alt="solder_steppers_z_axis_6.jpg" src="../images/build/frame/solder_steppers_z_axis_6.jpg" /></p>
+<p><img alt="solder_steppers_z_axis_7.jpg" src="../images/build/frame/solder_steppers_z_axis_7.jpg" /></p>
+<p><img alt="solder_steppers_z_axis_8.jpg" src="../images/build/frame/solder_steppers_z_axis_8.jpg" /></p>
+<p><img alt="solder_steppers_z_axis_9.jpg" src="../images/build/frame/solder_steppers_z_axis_9.jpg" /></p>
+<p><img alt="solder_steppers_z_axis_9.jpg" src="../images/build/frame/solder_steppers_z_axis_10.jpg" /></p>
+<h2 id="end-stops-and-end-stop-wires">End-stops and end-stop wires</h2>
+<p>End-stops are important, as they do not only enable you to home the CNC machine, but they also limit the CNC machine from moving past what is physically possible. When the end-stops are triggered, an alarm is fired and the machine automatically stops.</p>
+<p>The wires used for end-stops were 0.75 mm^2 (<strong>E03</strong>).</p>
+<h3 id="x-axis-max">X-axis (max)</h3>
+<p>A microswitch (<strong>E21</strong>) was attached to the thick X-axis (+) end-stop mount (<strong>P10</strong>) using 2x 12mm M3 screws (<strong>S02</strong>).</p>
+<p><img alt="attach_endstoppers_x_axis_1" src="../images/build/frame/attach_endstoppers_x_axis_1.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_2" src="../images/build/frame/attach_endstoppers_x_axis_2.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_3" src="../images/build/frame/attach_endstoppers_x_axis_3.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_4" src="../images/build/frame/attach_endstoppers_x_axis_4.jpg" /></p>
+<p>The end-stop mount was then pushed against the backside of the top bridge beam, which enabled the end-stop to trigger on the Z-axis stepper motor. The X-axis (carriage) was then moved to its maximum position and the end-stop mount was positioned in a way so that the end-stop triggered just before the X-axis reached its maximum position.</p>
+<p>Please ignore the flexible conduit/hose in the next two images, it will be added in an upcoming step.</p>
+<p><img alt="attach_endstoppers_x_axis_5" src="../images/build/frame/attach_endstoppers_x_axis_5.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_7" src="../images/build/frame/attach_endstoppers_x_axis_7.jpg" /></p>
+<p>The end-stop mount was then clamped to the upper bridge beam and a small drill (-2 mm) was used to carefully make indentations at the center of the holes. The end-stop mount was then removed. Cutting fluid was applied and a 4 mm drill was used to drill the holes, followed by a M5 drill tap. The end-stop mount was then attached to the upper bridge beam using 2x 40 mm M5 screws (<strong>S13</strong>).</p>
+<p><img alt="attach_endstoppers_x_axis_8" src="../images/build/frame/attach_endstoppers_x_axis_8.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_9" src="../images/build/frame/attach_endstoppers_x_axis_9.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_10" src="../images/build/frame/attach_endstoppers_x_axis_10.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_11" src="../images/build/frame/attach_endstoppers_x_axis_11.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_12" src="../images/build/frame/attach_endstoppers_x_axis_12.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_13" src="../images/build/frame/attach_endstoppers_x_axis_13.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_14" src="../images/build/frame/attach_endstoppers_x_axis_14.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_15" src="../images/build/frame/attach_endstoppers_x_axis_15.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_16" src="../images/build/frame/attach_endstoppers_x_axis_16.jpg" /></p>
+<p>One black and one red 0.75 mm^2 wire (<strong>E03</strong>) were cut out at a length so that they reached from the X-axis max end-stop to the right side plate, through the top bridge beam and through the Y-axis cable chain to the front of the CNC machine. A handful of shrinking tubes (<strong>O24</strong>) were shrunk around the wires to keep them together.</p>
+<p><img alt="attach_endstoppers_x_axis_17" src="../images/build/frame/attach_endstoppers_x_axis_17.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_18" src="../images/build/frame/attach_endstoppers_x_axis_18.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_19" src="../images/build/frame/attach_endstoppers_x_axis_19.jpg" /></p>
+<p>One end of the wires were taped together and inserted through the upper bridge beam to the side plate on the other side.</p>
+<p><img alt="attach_endstoppers_x_axis_20" src="../images/build/frame/attach_endstoppers_x_axis_20.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_21" src="../images/build/frame/attach_endstoppers_x_axis_21.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_22" src="../images/build/frame/attach_endstoppers_x_axis_22.jpg" /></p>
+<p>A flexible conduit/hose (<strong>O13</strong>) was then cut out and the other side of the cables were inserted through the conduit. The flexible conduit was then inserted ~50 mm into the upper bridge beam and the other side was attached to the outside of the upper bridge beam using cable ties (<strong>O11</strong>).</p>
+<p><img alt="attach_endstoppers_x_axis_23" src="../images/build/frame/attach_endstoppers_x_axis_23.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_24" src="../images/build/frame/attach_endstoppers_x_axis_24.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_25" src="../images/build/frame/attach_endstoppers_x_axis_25.jpg" /></p>
+<p>The end of the wires were stripped and twisted. Two 2.8 mm spade connectors (<strong>E25</strong>) were then attached to the stripped wires using a plier. The red wire was then attached to C (Common terminal) pinout on the end-stop and the black cable was connected to the NO (Normally Open) pinout.</p>
+<p><img alt="attach_endstoppers_x_axis_26" src="../images/build/frame/attach_endstoppers_x_axis_26.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_27" src="../images/build/frame/attach_endstoppers_x_axis_27.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_28" src="../images/build/frame/attach_endstoppers_x_axis_28.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_29" src="../images/build/frame/attach_endstoppers_x_axis_29.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_30" src="../images/build/frame/attach_endstoppers_x_axis_30.jpg" /></p>
+<p>Finally, the open end of the wires were marked using tape (<strong>O23</strong>) and a penn, indicating which end-stop the cables belonged to. This is important as it will help a lot later on, when the end-stops are connected to the Arduino.</p>
+<p><img alt="attach_endstoppers_x_axis_31" src="../images/build/frame/attach_endstoppers_x_axis_31.jpg" /></p>
+<h3 id="x-axis-min">X-axis (min)</h3>
+<p>A microswitch (<strong>E21</strong>) was attached to the X-axis end-stop (-) mount (<strong>P08</strong>) using 2x 12mm M3 screws (<strong>S02</strong>).</p>
+<p><img alt="attach_endstoppers_x_axis_32_0" src="../images/build/frame/attach_endstoppers_x_axis_32_0.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_32_1" src="../images/build/frame/attach_endstoppers_x_axis_32_1.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_32_2" src="../images/build/frame/attach_endstoppers_x_axis_32_2.jpg" /></p>
+<p>One black and one red 0.75 mm^2 wire (<strong>E03</strong>) were cut out at a length so that they reached from the X-axis end-stop (-), around the left side plate, through the Y-axis cable chain to the front of the CNC machine. A handful of shrinking tubes (<strong>O24</strong>) were shrunk around the wires to keep them together.</p>
+<p><img alt="attach_endstoppers_x_axis_32" src="../images/build/frame/attach_endstoppers_x_axis_32.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_33" src="../images/build/frame/attach_endstoppers_x_axis_33.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_34" src="../images/build/frame/attach_endstoppers_x_axis_34.jpg" /></p>
+<p>The end of the wires were stripped and twisted. Two 2.8 mm spade connectors (<strong>E25</strong>) were then attached to the stripped wires using a plier. The red wire was then attached to C (Common terminal) pinout on the end-stop and the black cable was connected to the NO (Normally Open) pinout.</p>
+<p>The wires were initially strapped around the lower front bridge beam (seen in the first two images), but as it turned out it blocked the belt tensioner. So they were instead strapped around the M8 tensioner screw, using a cable tie (<strong>O11</strong>). </p>
+<p><img alt="attach_endstoppers_x_axis_36" src="../images/build/frame/attach_endstoppers_x_axis_36.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_37" src="../images/build/frame/attach_endstoppers_x_axis_37.jpg" /></p>
+<p><img alt="attach_endstoppers_x_axis_38" src="../images/build/frame/attach_endstoppers_x_axis_38.jpg" /></p>
+<p>Finally, the open end of the wires were marked using tape and a penn, indicating which end-stop the cables belonged to.</p>
+<p><img alt="attach_endstoppers_x_axis_39" src="../images/build/frame/attach_endstoppers_x_axis_39.jpg" /></p>
+<h3 id="y-axis-max">Y-axis (max)</h3>
+<p>The tall Y-axis end-stop (+) mount (<strong>P09</strong>) was clamped to the inner side of the upper frame and a sharpie was used to indicate the center of the holes. Note that this end-stop mount can probably be redesigned to gain an extra ~10 mm of Y-axis movement, something I will probably do in the future.</p>
+<p><img alt="attach_endstoppers_y_axis_1" src="../images/build/frame/attach_endstoppers_y_axis_1.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_2" src="../images/build/frame/attach_endstoppers_y_axis_2.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_3" src="../images/build/frame/attach_endstoppers_y_axis_3.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_4" src="../images/build/frame/attach_endstoppers_y_axis_4.jpg" /></p>
+<p>A bradawl and a hammer were then used to make indentations at the center of the holes. Cutting fluid was applied and a 4 mm drill was used to drill the holes, followed by a M5 drill tap. The end-stop mount was then attached to the inside of the upper frame using 2x 20 mm M5 screws (<strong>S12</strong>).</p>
+<p><img alt="attach_endstoppers_y_axis_5" src="../images/build/frame/attach_endstoppers_y_axis_5.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_6" src="../images/build/frame/attach_endstoppers_y_axis_6.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_7" src="../images/build/frame/attach_endstoppers_y_axis_7.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_8" src="../images/build/frame/attach_endstoppers_y_axis_8.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_9" src="../images/build/frame/attach_endstoppers_y_axis_9.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_10" src="../images/build/frame/attach_endstoppers_y_axis_10.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_11" src="../images/build/frame/attach_endstoppers_y_axis_11.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_12" src="../images/build/frame/attach_endstoppers_y_axis_12.jpg" /></p>
+<p>One black and one red 0.75 mm^2 wire (<strong>E03</strong>) were cut out at a length so that they reached from the Y-axis end-stop (+) and through the 900 mm aluminium profile of the upper frame to the front of the CNC machine.</p>
+<p><img alt="attach_endstoppers_y_axis_13" src="../images/build/frame/attach_endstoppers_y_axis_13.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_14" src="../images/build/frame/attach_endstoppers_y_axis_14.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_15" src="../images/build/frame/attach_endstoppers_y_axis_15.jpg" /></p>
+<p>A microswitch (<strong>E21</strong>) was attached to the tall Y-axis end-stop (+) mount using 2x 12mm M3 screws (<strong>S02</strong>).</p>
+<p><img alt="attach_endstoppers_y_axis_17" src="../images/build/frame/attach_endstoppers_y_axis_17.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_18" src="../images/build/frame/attach_endstoppers_y_axis_18.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_19" src="../images/build/frame/attach_endstoppers_y_axis_19.jpg" /></p>
+<p>A flexible conduit/hose (<strong>O13</strong>) was then cut out and the wires were inserted through the conduit. The flexible conduit was then inserted ~50 mm into the 900 mm aluminium profile of the upper frame. The other side was bent around and attached to the outside of the upper frame using cable ties (<strong>O11</strong>).</p>
+<p><img alt="attach_endstoppers_y_axis_20" src="../images/build/frame/attach_endstoppers_y_axis_20.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_21" src="../images/build/frame/attach_endstoppers_y_axis_21.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_22" src="../images/build/frame/attach_endstoppers_y_axis_22.jpg" /></p>
+<p>The end of the wires were stripped and twisted. Two 2.8 mm spade connectors (<strong>E25</strong>) were then attached to the stripped wires using a plier. The red wire was then attached to C (Common terminal) pinout on the end-stop and the black cable was connected to the NO (Normally Open) pinout.</p>
+<p><img alt="attach_endstoppers_y_axis_23" src="../images/build/frame/attach_endstoppers_y_axis_23.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_24" src="../images/build/frame/attach_endstoppers_y_axis_24.jpg" /></p>
+<p>Finally, the open end of the wires were marked using tape and a penn, indicating which end-stop the cables belonged to.</p>
+<p><img alt="attach_endstoppers_y_axis_16" src="../images/build/frame/attach_endstoppers_y_axis_16.jpg" /></p>
+<h3 id="y-axis-min">Y-axis (min)</h3>
+<p>A microswitch (<strong>E21</strong>) was attached to the Y-axis end-stop (-) mount (<strong>P08</strong>) using 2x 12mm M3 screws (<strong>S02</strong>).</p>
+<p><img alt="attach_endstoppers_y_axis_25" src="../images/build/frame/attach_endstoppers_y_axis_25.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_26" src="../images/build/frame/attach_endstoppers_y_axis_26.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_27" src="../images/build/frame/attach_endstoppers_y_axis_27.jpg" /></p>
+<p>One black and one red 0.75 mm^2 wire (<strong>E03</strong>) were cut out at a length so that they reached from the Y-axis end-stop (-) and to the front of the CNC machine.</p>
+<p>The end of the wires were stripped and twisted. Two 2.8 mm spade connectors (<strong>E25</strong>) were then attached to the stripped wires using a plier. The red wire were then attached to C (Common terminal) pinout on the end-stop and the black cable was connected to the NO (Normally Open) pinout.</p>
+<p><img alt="attach_endstoppers_y_axis_28" src="../images/build/frame/attach_endstoppers_y_axis_28.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_29" src="../images/build/frame/attach_endstoppers_y_axis_29.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_30" src="../images/build/frame/attach_endstoppers_y_axis_30.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_31" src="../images/build/frame/attach_endstoppers_y_axis_31.jpg" /></p>
+<p>A flexible conduit/hose (<strong>O13</strong>) was cut out and the wires were inserted through the conduit. The flexible conduit was attached to the outside of the upper frame using cable ties (<strong>O11</strong>).</p>
+<p><img alt="attach_endstoppers_y_axis_33" src="../images/build/frame/attach_endstoppers_y_axis_33.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_34" src="../images/build/frame/attach_endstoppers_y_axis_34.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_32" src="../images/build/frame/attach_endstoppers_y_axis_32.jpg" /></p>
+<p><img alt="attach_endstoppers_y_axis_35" src="../images/build/frame/attach_endstoppers_y_axis_35.jpg" /></p>
+<p>Finally, the open end of the wires were marked using tape and a penn, indicating which end-stop the cables belonged to.</p>
+<h3 id="z-axis-max">Z-axis (max)</h3>
+<p>The main purpose of the Z-axis end-stop (+) is, apart from homing the machine, to limit the CNC machine from moving past what the length of the rails allow. As the MGN12H blocks contains a lot of small bearing balls, there's a high risk of them falling out if the blocks move past the rail.</p>
+<p>To reduce the complexity and amount of wires, I chose not to include a Z-axis end-stop (-), as you are likely to mill straight through your waste board before there's a risk of moving past the Z-axis min limit. But if you want to add a Z-axis min end-stop, just repeat the process in this section with the new switch flipped around.</p>
+<p>First, the vertical carriage slider was moved upwards to its maximum point, where the MGN12H blocks are just about to move past the limit of the rails. The Z-axis end-stop trigger (<strong>P39</strong>) was then pressed against the outside of the vertical carriage slider and a sharpie was used to mark the center of the holes.</p>
+<p><img alt="attach_endstoppers_z_axis_1" src="../images/build/frame/attach_endstoppers_z_axis_1.jpg" /></p>
+<p><img alt="attach_endstoppers_z_axis_2" src="../images/build/frame/attach_endstoppers_z_axis_2.jpg" /></p>
+<p><img alt="attach_endstoppers_z_axis_3" src="../images/build/frame/attach_endstoppers_z_axis_3.jpg" /></p>
+<p>A 2.5 mm drill was used to drill the holes into the vertical carriage slider. A tip is to mark the drill depth needed using tape. The Z-axis end-stop trigger was then attached to the vertical carriage slider using 2x 12 mm M3 screws (<strong>S02</strong>).</p>
+<p><img alt="attach_endstoppers_z_axis_4" src="../images/build/frame/attach_endstoppers_z_axis_4.jpg" /></p>
+<p><img alt="attach_endstoppers_z_axis_5" src="../images/build/frame/attach_endstoppers_z_axis_5.jpg" /></p>
+<p><img alt="attach_endstoppers_z_axis_6" src="../images/build/frame/attach_endstoppers_z_axis_6.jpg" /></p>
+<p><img alt="attach_endstoppers_z_axis_7" src="../images/build/frame/attach_endstoppers_z_axis_7.jpg" /></p>
+<p>A microswitch (<strong>E21</strong>) was pressed against the carriage and positioned and aligned to be triggered by the maximum state of the Z-axis end-stop trigger.</p>
+<p><img alt="attach_endstoppers_z_axis_8" src="../images/build/frame/attach_endstoppers_z_axis_8.jpg" /></p>
+<p><img alt="attach_endstoppers_z_axis_9" src="../images/build/frame/attach_endstoppers_z_axis_9.jpg" /></p>
+<p>A 2.5 mm drill was used to drill the first hole into the carriage and the microswitch was attached to the carriage using 1x 12 mm M3 screw (<strong>S02</strong>). After the microswitch was locked into position, the second hole was drilled and the second 12 mm M3 screw (<strong>S02</strong>) was attached.</p>
+<p><img alt="attach_endstoppers_z_axis_10" src="../images/build/frame/attach_endstoppers_z_axis_10.jpg" /></p>
+<p><img alt="attach_endstoppers_z_axis_11" src="../images/build/frame/attach_endstoppers_z_axis_11.jpg" /></p>
+<p><img alt="attach_endstoppers_z_axis_12" src="../images/build/frame/attach_endstoppers_z_axis_12.jpg" /></p>
+<p>One black and one red 0.75 mm^2 wire (<strong>E03</strong>) were cut at a length so that they reached over the top bridge beam, through the X-axis cable chain and through the Y-axis cable chain to the front of the CNC machine. A handful of shrinking tubes (<strong>O24</strong>) were shrunk around the wires to keep them together.</p>
+<p><img alt="attach_endstoppers_z_axis_13" src="../images/build/frame/attach_endstoppers_z_axis_13.jpg" /></p>
+<p><img alt="attach_endstoppers_z_axis_14" src="../images/build/frame/attach_endstoppers_z_axis_14.jpg" /></p>
+<p><img alt="attach_endstoppers_z_axis_15" src="../images/build/frame/attach_endstoppers_z_axis_15.jpg" /></p>
+<p>The end of the wires were stripped and twisted. Two 2.8 mm spade connectors (<strong>E25</strong>) were then attached to the stripped wires using a plier. The red wire was then attached to C (Common terminal) pinout on the end-stop and the black wire was connected to the NO (Normally Open) pinout.</p>
+<p><img alt="attach_endstoppers_z_axis_16" src="../images/build/frame/attach_endstoppers_z_axis_16.jpg" /></p>
+<p><img alt="attach_endstoppers_z_axis_17" src="../images/build/frame/attach_endstoppers_z_axis_17.jpg" /></p>
+<p><img alt="attach_endstoppers_z_axis_18" src="../images/build/frame/attach_endstoppers_z_axis_18.jpg" /></p>
+<p>The wires were strapped around the M8 screw keeping the Z motor mount attached to the carriage, using a cable tie (<strong>O11</strong>).</p>
+<p>Finally, the open end of the wires were marked using tape and a penn, indicating which end-stop the cables belonged to.</p>
+<p><img alt="attach_endstoppers_z_axis_19" src="../images/build/frame/attach_endstoppers_z_axis_19.jpg" /></p>
+<p><img alt="attach_endstoppers_z_axis_20" src="../images/build/frame/attach_endstoppers_z_axis_20.jpg" /></p>
+<h2 id="stepper-motor-and-end-stop-cable-management">Stepper motor and end-stop cable management</h2>
+<p>To keep a nice structure of all the wires, braided cable sleeves (<strong>O08</strong>) and flexible conduits/hoses (<strong>O13</strong>) were used.</p>
+<h3 id="y-axis-steppers-and-x-axis-end-stops">Y-axis steppers and X-axis end-stops</h3>
+<p>First, the wires from the right-side Y-axis stepper motor were inserted into a small flexible conduit and pushed through the lower bridge beam closest to the carriage.</p>
+<p><img alt="stepper_motor_cable_management_1" src="../images/build/frame/stepper_motor_cable_management_1.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_3" src="../images/build/frame/stepper_motor_cable_management_3.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_4" src="../images/build/frame/stepper_motor_cable_management_4.jpg" /></p>
+<p>The wires from the two geared Y-axis stepper motors and the two X-axis end-stops were bundled together into the same cable sleeve. </p>
+<p><img alt="stepper_motor_cable_management_6" src="../images/build/frame/stepper_motor_cable_management_6.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_6_1" src="../images/build/frame/stepper_motor_cable_management_6_1.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_6_2" src="../images/build/frame/stepper_motor_cable_management_6_2.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_5" src="../images/build/frame/stepper_motor_cable_management_5.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_6_3" src="../images/build/frame/stepper_motor_cable_management_6_3.jpg" /></p>
+<p>To simplify pushing the wires and the cable sleeve through the cable chain, the wires were taped together, leaving no loose ends to get stuck in the cable chain. This was needed as the wires were longer than the cable sleeve (to reach all the way to the small electronic box in the front of the CNC machine).</p>
+<p>A cable tie (<strong>O11</strong>) was used to close the entrence of the cable sleeve.</p>
+<p><img alt="stepper_motor_cable_management_6_4" src="../images/build/frame/stepper_motor_cable_management_6_4.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_6_5" src="../images/build/frame/stepper_motor_cable_management_6_5.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_6_6" src="../images/build/frame/stepper_motor_cable_management_6_6.jpg" /></p>
+<h3 id="x-axis-stepper-z-axis-stepper-and-z-axis-end-stop">X-axis stepper, Z-axis stepper and Z-axis end-stop</h3>
+<p>First, the wires from the X-axis stepper motor were inserted into a flexible conduit (<strong>O13</strong>). The conduit was then bent over the upper bridge beam, strapped to the vaccum mount and Z motor mount, and then pushed behind the Z-axis stepper motor.</p>
+<p><img alt="stepper_motor_cable_management_9" src="../images/build/frame/stepper_motor_cable_management_9.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_10" src="../images/build/frame/stepper_motor_cable_management_10.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_11" src="../images/build/frame/stepper_motor_cable_management_11.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_12" src="../images/build/frame/stepper_motor_cable_management_12.jpg" /></p>
+<p>The wires from the X-axis stepper, Z-axis stepper and the Z-axis end-stop were bundled together into the same cable sleeve. The cable sleeve was cut at a length so that it reached through the X-axis cable chain, around the left side-plate and through the Y-axis cable chain.</p>
+<p>To simplify pushing the wires through the cable chains, the wires were taped together, leaving no loose ends to get stuck in the cable chains. This was needed as the wires were longer than the cable sleeve (to reach all the way to the small electronic box in the front of the CNC machine).</p>
+<p>A cable tie (<strong>O11</strong>) was used to close the entrence of the cable sock.</p>
+<p><img alt="stepper_motor_cable_management_13" src="../images/build/frame/stepper_motor_cable_management_13.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_13_1" src="../images/build/frame/stepper_motor_cable_management_13_1.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_13_2" src="../images/build/frame/stepper_motor_cable_management_13_2.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_13_3" src="../images/build/frame/stepper_motor_cable_management_13_3.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_13_4" src="../images/build/frame/stepper_motor_cable_management_13_4.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_13_5" src="../images/build/frame/stepper_motor_cable_management_13_5.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_13_6" src="../images/build/frame/stepper_motor_cable_management_13_6.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_13_7" src="../images/build/frame/stepper_motor_cable_management_13_7.jpg" /></p>
+<p><img alt="stepper_motor_cable_management_13_8" src="../images/build/frame/stepper_motor_cable_management_13_8.jpg" /></p>
+<p>A cable tie (<strong>O11</strong>) was used to strap the cable sleeve to the left side-plate.</p>
+<p><img alt="stepper_motor_cable_management_13_9" src="../images/build/frame/stepper_motor_cable_management_13_9.jpg" /></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../assets/javascripts/toc-toggle.js"></script>
+      
+        <script src="../assets/javascripts/shopping.js"></script>
+      
+    
+  </body>
+</html>

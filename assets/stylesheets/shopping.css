@@ -1,0 +1,1237 @@
+/* Shopping page — dedicated layout for picking components, choosing shops,
+   and computing a combined-order total with shipping thresholds. */
+
+.shopping-app {
+  --shopping-radius: 0.4rem;
+  --shopping-border: var(--md-default-fg-color--lightest);
+  --shopping-muted:  var(--md-default-fg-color--light);
+  --shopping-accent: var(--md-primary-fg-color);
+  --shopping-thumb-size: 3rem;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.shopping-app .shopping-loading {
+  color: var(--shopping-muted);
+  font-style: italic;
+}
+
+.shopping-error {
+  color: var(--md-default-fg-color);
+  background: rgba(255, 0, 0, 0.06);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  padding: 0.75rem 1rem;
+  border-radius: var(--shopping-radius);
+}
+
+/* SL-8.j: vimium audit — every interactive control gets a clearly visible
+   focus ring so vimium's hint-mode and tab navigation land on something the
+   user can actually see. Only applies inside .shopping-app so the rule
+   doesn't leak into Material's broader styling. */
+.shopping-app button:focus-visible,
+.shopping-app input:focus-visible,
+.shopping-app select:focus-visible,
+.shopping-app summary:focus-visible,
+.shopping-app a:focus-visible {
+  outline: 2px solid var(--shopping-accent);
+  outline-offset: 2px;
+  border-radius: var(--shopping-radius);
+}
+/* When a checkbox/radio inside a row label is focused, highlight the whole row
+   so the user sees what they're about to toggle. */
+.shopping-app label:has(input:focus-visible) {
+  outline: 2px solid var(--shopping-accent);
+  outline-offset: 2px;
+  border-radius: var(--shopping-radius);
+}
+
+/* -- header --------------------------------------------------------- */
+.shopping-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--shopping-border);
+}
+.shopping-header__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.shopping-header__controls,
+.shopping-header__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.shopping-config-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.shopping-config__select {
+  font-weight: 600;
+  min-width: 14rem;
+}
+.shopping-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--shopping-muted);
+}
+.shopping-select {
+  background: transparent;
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.35rem 0.55rem;
+  font: inherit;
+  color: var(--md-default-fg-color);
+}
+.shopping-meta {
+  font-size: 0.78rem;
+  color: var(--shopping-muted);
+}
+.shopping-thumb-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.shopping-thumb-slider {
+  width: 7rem;
+  accent-color: var(--shopping-accent);
+  cursor: ew-resize;
+}
+.shopping-link {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--shopping-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.shopping-link:hover { color: var(--md-accent-fg-color); }
+
+/* -- SL-9.d: refresh-helper toolbar --------------------------------- */
+.shopping-refresh {
+  /* Third header row. Sits beneath the "ship to / clear" row so the page
+     reads top-down: configuration → selection summary → data hygiene. */
+  align-items: center;
+  gap: 0.6rem;
+}
+.shopping-refresh__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.shopping-refresh__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.3rem 0.6rem;
+  font: inherit;
+  color: var(--md-default-fg-color);
+  cursor: pointer;
+}
+.shopping-refresh__btn:hover:not(:disabled) {
+  border-color: var(--shopping-accent);
+}
+.shopping-refresh__btn:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+.shopping-refresh__btn[data-error] {
+  border-color: rgba(180, 0, 0, 0.6);
+  background: rgba(255, 0, 0, 0.06);
+}
+.shopping-refresh__icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+.shopping-refresh__name {
+  font-weight: 600;
+  font-feature-settings: "tnum" 1;
+}
+.shopping-refresh__status {
+  color: var(--shopping-muted);
+  font-size: 0.78rem;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Offline state lives quietly in the meta row — hidden affordance the user
+   can expand to see the start command. */
+.shopping-refresh-offline {
+  position: relative;
+  font-size: 0.78rem;
+}
+.shopping-refresh-offline__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--shopping-muted);
+  cursor: pointer;
+}
+.shopping-refresh-offline__toggle:hover { color: var(--md-default-fg-color); }
+.shopping-refresh-offline__icon { font-size: 0.9rem; }
+.shopping-refresh-offline__body {
+  display: none;
+  margin-top: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  max-width: 26rem;
+}
+.shopping-refresh-offline.is-open .shopping-refresh-offline__body { display: block; }
+.shopping-refresh-offline__hint {
+  margin: 0 0 0.4rem;
+  color: var(--shopping-muted);
+}
+.shopping-refresh-offline__cmd-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.shopping-refresh-offline__cmd {
+  flex: 1 1 auto;
+  background: var(--md-code-bg-color, rgba(0,0,0,0.04));
+  padding: 0.25rem 0.45rem;
+  border-radius: 0.25rem;
+  font-family: var(--md-code-font, monospace);
+}
+
+/* -- SL-10.a / SL-10.F: shopping-page table of contents -------------
+   Injected into Material's TOC sidebar (bottom-left by default, top-right
+   when the user has toggled via toc-toggle.js). Vertical list, styled to
+   match other Material TOCs on this site. */
+.shopping-toc {
+  padding: 0.25rem 0 0.5rem;
+}
+.shopping-toc-sidebar {
+  margin-top: 0.4rem;
+  padding: 0.4rem 0.75rem 0.5rem;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+.shopping-toc__title {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--md-default-fg-color--light);
+  margin: 0 0 0.35rem 0;
+}
+.shopping-toc__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+.shopping-toc__item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0;
+  font-size: 0.78rem;
+}
+.shopping-toc__fold {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  color: var(--md-default-fg-color--light);
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+.shopping-toc__fold:hover { color: var(--shopping-accent); }
+.shopping-toc__chevron {
+  width: 0.85rem;
+  display: inline-block;
+  text-align: center;
+  font-size: 0.7rem;
+}
+.shopping-toc__link {
+  font-weight: 500;
+  color: var(--md-default-fg-color--light);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shopping-toc__link:hover { color: var(--shopping-accent); }
+.shopping-toc__count {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}
+
+/* -- item sections -------------------------------------------------- */
+.shopping-items { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.shopping-category {
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  overflow: hidden;
+  background: var(--md-default-bg-color);
+}
+.shopping-category__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  background: var(--md-code-bg-color, transparent);
+  border-bottom: 1px solid var(--shopping-border);
+}
+.shopping-category.is-collapsed .shopping-category__head { border-bottom: 0; }
+.shopping-category__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1 1 auto;
+  background: transparent;
+  border: 0;
+  padding: 0.55rem 0.9rem;
+  font: inherit;
+  cursor: pointer;
+  color: var(--md-default-fg-color);
+  text-align: left;
+}
+.shopping-category__toggle:hover { background: rgba(0, 0, 0, 0.03); }
+.shopping-category__chevron { width: 0.85rem; color: var(--shopping-muted); text-align: center; }
+.shopping-category__title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.shopping-category__count {
+  color: var(--shopping-muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.shopping-category__head .shopping-link { margin-right: 0.9rem; }
+.shopping-category__footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 0.8rem;
+  padding: 0.5rem 0.9rem;
+  border-top: 1px solid var(--shopping-border);
+  background: var(--md-code-bg-color, transparent);
+  font-size: 0.78rem;
+  color: var(--shopping-muted);
+}
+.shopping-category__footer-total {
+  font-weight: 700;
+  color: var(--md-default-fg-color);
+  font-variant-numeric: tabular-nums;
+}
+.shopping-category__footer-warn { color: #d1242f; }
+
+/* SL-10.E: single-line item row, height capped at the thumbnail size so the
+   shopping page is dramatically shorter to scroll. Everything primary lives
+   on the head; deeper detail moves to an on-demand expanded body. */
+.shopping-item {
+  border-top: 1px solid var(--shopping-border);
+  padding: 0 0.9rem;
+  transition: background-color 0.15s ease;
+}
+.shopping-item:first-of-type { border-top: 0; }
+.shopping-item.is-selected { background: rgba(0, 0, 0, 0.015); }
+
+.shopping-item__head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  /* SL-10.E: row height is exactly the thumbnail size — controls inside must
+     stay shorter than the thumb so we never overshoot. */
+  height: var(--shopping-thumb-size);
+  padding: 0;
+  flex-wrap: nowrap;
+}
+.shopping-item__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  cursor: pointer;
+  padding: 0.1rem;
+}
+.shopping-item__checkbox { transform: translateY(0); }
+
+.shopping-item__thumb {
+  width: var(--shopping-thumb-size);
+  height: var(--shopping-thumb-size);
+  border-radius: 0.3rem;
+  background: var(--md-code-bg-color, rgba(0, 0, 0, 0.04));
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--shopping-border);
+}
+.shopping-item__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.shopping-item__thumb--missing {
+  font-family: var(--md-code-font, monospace);
+  font-size: 0.7rem;
+  color: var(--shopping-muted);
+  border-style: dashed;
+  background: transparent;
+}
+
+.shopping-item__title {
+  display: inline-flex;
+  /* SL-10.Q: the alts dropdown lives inline with code and qty now, so
+     center-align so the select doesn't sit awkwardly on the text baseline. */
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  flex: 1 1 14rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+/* SL-10.S: the code badge is a click-to-copy button — keep the monospace
+   badge look, but signal interactivity on hover/focus. */
+.shopping-item__code {
+  font-family: var(--md-code-font, monospace);
+  font-size: 0.72rem;
+  color: var(--shopping-muted);
+  background: var(--md-code-bg-color, transparent);
+  padding: 0.1rem 0.4rem;
+  border: 1px solid transparent;
+  border-radius: 0.2rem;
+  flex: 0 0 auto;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+.shopping-item__code:hover,
+.shopping-item__code:focus-visible {
+  color: var(--shopping-accent);
+  border-color: var(--shopping-accent);
+  background: rgba(0, 0, 0, 0.02);
+}
+.shopping-item__qty {
+  color: var(--shopping-muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}
+
+/* SL-10.C: alts dropdown on the head row. */
+.shopping-item__alts {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+}
+.shopping-item__alts-select {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.4rem;
+  /* SL-10.Q: the select holds the item's name now, so give it more room. */
+  max-width: 14rem;
+  min-width: 6rem;
+}
+.shopping-item__alts-remove {
+  background: transparent;
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.05rem 0.4rem;
+  font-size: 0.72rem;
+  cursor: pointer;
+  color: var(--shopping-muted);
+  line-height: 1.2;
+}
+.shopping-item__alts-remove:hover { color: #d1242f; border-color: #d1242f; }
+
+/* SL-10.E + SL-10.H: shop picker inside the head — <select> dropdown
+   alongside availability/ETA/shipping cost for the currently chosen shop. */
+.shopping-item__shop-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.shopping-item__shop-select {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.4rem;
+  max-width: 9rem;
+}
+.shopping-item__shop-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--shopping-muted);
+  font-variant-numeric: tabular-nums;
+}
+.shopping-item__shop-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 9rem;
+  color: var(--md-default-fg-color);
+}
+.shopping-item__shop-price { font-variant-numeric: tabular-nums; font-weight: 600; flex: 0 0 auto; }
+.shopping-item__shop-eta {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.72rem;
+  color: var(--shopping-muted);
+  flex: 0 0 auto;
+}
+.shopping-item__shop-ship {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.72rem;
+  color: var(--shopping-muted);
+  flex: 0 0 auto;
+}
+
+/* SL-10.G: rightmost price column on every item's head row.
+   Pushes itself to the row's end with margin-left:auto and shows a
+   muted "—" when no price has been found yet. */
+.shopping-item__price {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.92rem;
+  flex: 0 0 auto;
+  min-width: 4rem;
+  text-align: right;
+  color: var(--md-default-fg-color);
+}
+.shopping-item__price.is-missing {
+  color: var(--shopping-muted);
+  font-weight: 500;
+}
+
+/* SL-10.K: editable prices announce themselves with a dotted underline + a
+   hover hint. The inline editor swaps the text for a numeric input. */
+.shopping-item__price.is-editable,
+.shopping-shop__price.is-editable {
+  cursor: pointer;
+  border-bottom: 1px dotted var(--shopping-muted);
+  padding-bottom: 1px;
+}
+.shopping-item__price.is-editable:hover,
+.shopping-shop__price.is-editable:hover {
+  border-bottom-color: var(--shopping-accent);
+  color: var(--shopping-accent);
+}
+.shopping-item__price.is-editing,
+.shopping-shop__price.is-editing {
+  border-bottom-color: transparent;
+}
+.shopping-price-editor {
+  width: 5.5rem;
+  padding: 0.15rem 0.35rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--shopping-accent);
+  border-radius: 0.25rem;
+  text-align: right;
+  background: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+}
+.shopping-price-editor::-webkit-inner-spin-button,
+.shopping-price-editor::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* SL-10.B: empty-shops state is a single inline icon, no paragraph. */
+.shopping-item__noshop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: rgba(209, 36, 47, 0.08);
+  color: #d1242f;
+  font-size: 0.9rem;
+  border: 1px solid rgba(209, 36, 47, 0.3);
+  cursor: help;
+}
+
+/* SL-10.N + SL-10.O: two side-by-side add buttons on the head — "+ Alt"
+   for an alternative product, "+ Shop" for a new shop on this item.
+   The two buttons are colored differently so the user can see at a glance
+   which action they're triggering. */
+.shopping-item__add {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: transparent;
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.2rem 0.5rem;
+  font: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--shopping-muted);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.shopping-item__add:hover { border-color: var(--shopping-accent); color: var(--shopping-accent); }
+.shopping-item__add.is-open {
+  border-color: var(--shopping-accent);
+  color: var(--shopping-accent);
+  background: rgba(0, 0, 0, 0.02);
+}
+/* "+ Shop" picks up a green accent so it visually differs from "+ Alt". */
+.shopping-item__add--shop { border-color: rgba(46, 164, 79, 0.55); color: #2ea44f; }
+.shopping-item__add--shop:hover { border-color: #2ea44f; color: #2ea44f; background: rgba(46, 164, 79, 0.06); }
+.shopping-item__add--shop.is-open { border-color: #2ea44f; color: #2ea44f; background: rgba(46, 164, 79, 0.08); }
+.shopping-item__add-icon { font-size: 0.85rem; font-weight: 700; line-height: 1; }
+
+/* SL-10.S: transient "Copied!" toast that pops near the element that was
+   double-clicked (alts dropdown, EAN copy button, etc.). */
+.shopping-copy-flash {
+  position: fixed;
+  z-index: 1000;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--md-primary-bg-color, #fff);
+  background: var(--shopping-accent);
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+.shopping-copy-flash.is-active { opacity: 1; transform: translateY(0); }
+.shopping-copy-flash.is-fading { opacity: 0; transform: translateY(-4px); }
+
+/* SL-10.R: single "Visit" link per item row, target tied to current shop. */
+.shopping-item__visit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: transparent;
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.18rem 0.45rem;
+  font: inherit;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--shopping-muted);
+  text-decoration: none;
+  flex: 0 0 auto;
+}
+.shopping-item__visit:hover {
+  border-color: var(--shopping-accent);
+  color: var(--shopping-accent);
+}
+.shopping-item__visit-icon { font-size: 0.85rem; line-height: 1; }
+
+/* SL-10.P: EAN button + popover on the head row. */
+.shopping-item__ean-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+.shopping-item__ean-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: transparent;
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.18rem 0.45rem;
+  font: inherit;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--shopping-muted);
+  cursor: pointer;
+}
+.shopping-item__ean-btn:hover { border-color: var(--shopping-accent); color: var(--shopping-accent); }
+.shopping-item__ean-btn.has-ean {
+  border-color: var(--shopping-accent);
+  color: var(--shopping-accent);
+}
+.shopping-item__ean-dot { font-size: 0.5rem; line-height: 1; }
+.shopping-item__ean-pop {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.3rem);
+  left: 0;
+  z-index: 6;
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.55rem 0.65rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  font-size: 0.78rem;
+  width: 18rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.shopping-item__ean-wrap.is-open .shopping-item__ean-pop { display: block; }
+.shopping-item__ean-pop-title {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--shopping-muted);
+  margin-bottom: 0.4rem;
+}
+.shopping-item__ean-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.3rem 0.4rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--shopping-border);
+  border-radius: 0.25rem;
+  background: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+}
+.shopping-item__ean-actions {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+  align-items: center;
+}
+.shopping-item__ean-actions .shopping-btn { flex: 0 0 auto; }
+.shopping-item__ean-copy:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* SL-10.O: dedicated add-shop body picks up the same green accent. */
+.shopping-item__body--shop {
+  border-top-color: rgba(46, 164, 79, 0.45);
+}
+.shopping-add-shop {
+  padding: 0.55rem;
+  border: 1px solid rgba(46, 164, 79, 0.35);
+  background: rgba(46, 164, 79, 0.04);
+  border-radius: var(--shopping-radius);
+}
+.shopping-add-shop__title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #2ea44f;
+  margin: 0 0 0.4rem 0;
+}
+.shopping-inline-form--shop .shopping-btn--primary {
+  background: #2ea44f;
+  border-color: #2ea44f;
+}
+.shopping-inline-form--shop .shopping-btn--primary:hover { filter: brightness(1.05); }
+
+/* Expanded body (full shop list, override form, add-alt form). Rendered
+   only when state.expandedItems[code] is true. */
+.shopping-item__body {
+  padding: 0.55rem 0 0.9rem calc(var(--shopping-thumb-size) + 1.3rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  border-top: 1px dashed var(--shopping-border);
+  margin-top: 0.15rem;
+}
+.shopping-item__body .shopping-shops { margin-left: 0; }
+.shopping-item__body .shopping-override { margin-left: 0; }
+
+/* -- shop list ------------------------------------------------------ */
+.shopping-shops {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.shopping-shop {
+  display: grid;
+  grid-template-columns: 1.2rem minmax(0, 1.4fr) auto auto auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: var(--shopping-radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.shopping-shop__ship {
+  color: var(--shopping-muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.shopping-shop:hover { background: rgba(0, 0, 0, 0.025); }
+.shopping-shop.is-chosen {
+  border-color: var(--shopping-accent);
+  background: rgba(0, 0, 0, 0.04);
+}
+.shopping-shop.is-stale .shopping-shop__price {
+  color: var(--shopping-muted);
+  text-decoration: underline dotted;
+  text-underline-offset: 0.25em;
+}
+.shopping-shop__radio { transform: translateY(1px); }
+.shopping-shop__name {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.shopping-shop__name-top { display: inline-flex; gap: 0.5rem; align-items: baseline; }
+.shopping-shop__name-link {
+  color: var(--md-default-fg-color);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.shopping-shop__name-link:hover { border-bottom-color: var(--shopping-accent); }
+
+/* SL-8.f: provenance + sparkline pop-over. */
+.shopping-shop__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  color: var(--shopping-muted);
+  letter-spacing: 0.02em;
+}
+.shopping-shop__technique {
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+.shopping-shop__technique--manual { color: var(--shopping-muted); }
+.shopping-shop__technique--jsonld,
+.shopping-shop__technique--opengraph,
+.shopping-shop__technique--affiliate-api { color: var(--shopping-accent); }
+.shopping-shop__captured { font-variant-numeric: tabular-nums; }
+
+.shopping-shop__history-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: default;
+}
+.shopping-shop__history {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--shopping-muted);
+  border-radius: var(--shopping-radius);
+}
+.shopping-shop__history:hover,
+.shopping-shop__history:focus-visible {
+  color: var(--shopping-accent);
+  outline: none;
+}
+.shopping-shop__history-pop {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 5;
+  margin-top: 0.35rem;
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.5rem 0.65rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  font-size: 0.78rem;
+  min-width: 13rem;
+  color: var(--md-default-fg-color);
+  cursor: default;
+  letter-spacing: normal;
+}
+.shopping-shop__history-wrap:hover .shopping-shop__history-pop,
+.shopping-shop__history-wrap:focus-within .shopping-shop__history-pop,
+.shopping-shop__history-wrap.is-open .shopping-shop__history-pop { display: block; }
+.shopping-shop__history-title {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--shopping-muted);
+  margin-bottom: 0.35rem;
+}
+.shopping-shop__history-list { list-style: none; padding: 0; margin: 0; }
+.shopping-shop__history-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.55rem;
+  padding: 0.15rem 0;
+  font-variant-numeric: tabular-nums;
+  align-items: baseline;
+}
+.shopping-shop__history-technique {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  color: var(--shopping-muted);
+  letter-spacing: 0.05em;
+}
+.shopping-sparkline {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 0.15rem;
+}
+.shopping-shop__history-glyph {
+  display: inline-block;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0 0.2rem;
+}
+
+/* SL-8.g: bot id + validated checkmark on the row. */
+.shopping-shop__bot {
+  font-family: var(--md-code-font-family, ui-monospace, "SFMono-Regular", monospace);
+  font-size: 0.66rem;
+  letter-spacing: 0.02em;
+  color: var(--shopping-muted);
+}
+.shopping-shop__validated {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #2ea44f;
+}
+
+/* SL-8.g: disagreement callout inside the popover. */
+.shopping-shop__disagreement {
+  background: rgba(209, 36, 47, 0.07);
+  border: 1px solid rgba(209, 36, 47, 0.35);
+  border-radius: var(--shopping-radius);
+  padding: 0.35rem 0.55rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.72rem;
+}
+.shopping-shop__disagreement-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.25rem 0 0 0;
+}
+.shopping-shop__disagreement-list li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.1rem 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* SL-8.i: validate button + validated history row. */
+.shopping-shop__history-item.is-validated {
+  background: rgba(46, 164, 79, 0.08);
+  border-left: 2px solid #2ea44f;
+  padding-left: 0.4rem;
+  margin-left: -0.4rem;
+}
+.shopping-shop__history-item.is-partial {
+  border-left: 2px dashed #d1242f;
+  padding-left: 0.4rem;
+  margin-left: -0.4rem;
+  color: var(--shopping-muted);
+  font-style: italic;
+}
+.shopping-shop__history-list .shopping-shop__history-item {
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+}
+.shopping-shop__validate {
+  background: transparent;
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.1rem 0.45rem;
+  font: inherit;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  color: var(--shopping-muted);
+}
+.shopping-shop__validate:hover { color: var(--shopping-accent); border-color: var(--shopping-accent); }
+.shopping-shop__validate.is-active {
+  background: rgba(46, 164, 79, 0.12);
+  color: #2ea44f;
+  border-color: #2ea44f;
+}
+
+/* SL-8.h: "Complete this" prompt for partial bot observations. */
+.shopping-shop.is-partial {
+  border-color: rgba(209, 36, 47, 0.45);
+  background: rgba(209, 36, 47, 0.035);
+}
+.shopping-shop__partial-hint {
+  grid-column: 2 / -1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--shopping-muted);
+  margin-top: 0.25rem;
+}
+.shopping-shop__partial-icon { color: #d1242f; font-size: 0.9rem; }
+.shopping-shop__partial-cta {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.shopping-shop__price {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.shopping-shop__stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--shopping-muted);
+  font-size: 0.78rem;
+}
+.shopping-shop__note {
+  grid-column: 2 / -1;
+  font-size: 0.75rem;
+  color: var(--shopping-muted);
+  font-style: italic;
+}
+
+.shopping-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: var(--shopping-accent);
+  color: var(--md-primary-bg-color, #fff);
+}
+.shopping-badge--override {
+  background: transparent;
+  border: 1px solid var(--shopping-accent);
+  color: var(--shopping-accent);
+}
+
+.shopping-dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.shopping-dot--in  { background: #2ea44f; }
+.shopping-dot--out { background: #d1242f; }
+
+/* -- per-item override form ---------------------------------------- */
+.shopping-override {
+  font-size: 0.82rem;
+}
+.shopping-override__title,
+.shopping-add-alt__title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--shopping-muted);
+  margin: 0 0 0.35rem 0;
+}
+.shopping-add-alt {
+  border-top: 1px dashed var(--shopping-border);
+  padding-top: 0.55rem;
+}
+
+/* SL-8.e: single-line inline form (override + future "add alternative").
+   The <details>/<summary> wrapper provides the descriptive context; each
+   input's intent is conveyed by its placeholder + aria-label, and the
+   per-field <span> labels are screen-reader-only so the controls fit
+   horizontally on one row. */
+.shopping-inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.55rem;
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  margin-top: 0.4rem;
+}
+.shopping-inline-form__field {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+}
+.shopping-inline-form__field--name  { flex: 1 1 9rem;   min-width: 6rem; }
+.shopping-inline-form__field--shop  { flex: 0 1 7rem;   min-width: 4rem; }
+.shopping-inline-form__field--url   { flex: 1 1 8rem;   min-width: 6rem; }
+.shopping-inline-form__field--ean   { flex: 0 1 7rem;   min-width: 4rem; }
+.shopping-inline-form__field--price { flex: 0 1 4.5rem; min-width: 3rem; }
+.shopping-inline-form__field--eta   { flex: 0 1 4rem;   min-width: 3rem; }
+.shopping-inline-form__label {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.shopping-inline-form__input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--shopping-border);
+  border-radius: 0.25rem;
+  padding: 0.3rem 0.4rem;
+  background: var(--md-default-bg-color);
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+}
+.shopping-inline-form__input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.shopping-inline-form__input[type="number"]::-webkit-outer-spin-button,
+.shopping-inline-form__input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.shopping-inline-form__actions {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  margin-left: auto;
+}
+
+.shopping-btn {
+  border: 1px solid var(--shopping-border);
+  background: transparent;
+  border-radius: var(--shopping-radius);
+  padding: 0.3rem 0.65rem;
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: var(--md-default-fg-color);
+}
+.shopping-btn:hover { border-color: var(--shopping-accent); color: var(--shopping-accent); }
+.shopping-btn--primary {
+  background: var(--shopping-accent);
+  color: var(--md-primary-bg-color, #fff);
+  border-color: var(--shopping-accent);
+}
+.shopping-btn--primary:hover { filter: brightness(1.05); color: var(--md-primary-bg-color, #fff); }
+
+/* -- combined-order summary ---------------------------------------- */
+.shopping-summary {
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 1rem;
+  background: var(--md-default-bg-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.shopping-summary__title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.shopping-summary__empty { color: var(--shopping-muted); font-style: italic; margin: 0; }
+.shopping-summary__warn {
+  background: rgba(255, 153, 0, 0.08);
+  border: 1px solid rgba(255, 153, 0, 0.35);
+  color: var(--md-default-fg-color);
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--shopping-radius);
+  font-size: 0.8rem;
+}
+.shopping-summary__groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.55rem;
+}
+.shopping-summary__group {
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.55rem 0.7rem;
+}
+.shopping-summary__group-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+.shopping-summary__group-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  color: var(--shopping-muted);
+  font-size: 0.78rem;
+  margin-top: 0.25rem;
+}
+.shopping-summary__group-warn {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: #d1242f;
+}
+.shopping-summary__total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-weight: 700;
+  border-top: 1px solid var(--shopping-border);
+  padding-top: 0.7rem;
+  font-size: 1.05rem;
+}
+.shopping-money { font-variant-numeric: tabular-nums; }

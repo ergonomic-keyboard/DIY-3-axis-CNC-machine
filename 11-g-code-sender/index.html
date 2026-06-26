@@ -1,0 +1,989 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://ergonomic-keyboard.github.io/DIY-3-axis-CNC-machine/11-g-code-sender/">
+      
+      
+        <link rel="prev" href="../10-software/">
+      
+      
+        <link rel="next" href="../12-final-notes/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>G-Code sender - DIY-CNC-machine</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/toc-toggle.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/shopping.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#g-code-sender" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="DIY-CNC-machine" class="md-header__button md-logo" aria-label="DIY-CNC-machine" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DIY-CNC-machine
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              G-Code sender
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="DIY-CNC-machine" class="md-nav__button md-logo" aria-label="DIY-CNC-machine" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DIY-CNC-machine
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../BILLOFMATERIAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bill of materials
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shopping/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shopping
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-main-frame/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Main frame
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-y-axis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Y-axis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-x-axis-and-z-axis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    X-axis and Z-axis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-stepper-motors-and-end-stops/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stepper motors and end-stops
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-router/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Router
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-electronic-boxes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Electronic boxes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-electrical-wiring-and-connect-components/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Electrical wiring and connect components
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-wasteboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wasteboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-dust-shoe/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dust shoe
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10-software/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Software
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    G-Code sender
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    G-Code sender
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#install-g-code-sender" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install G-Code sender
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connect-g-code-sender-to-grbl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connect G-Code sender to GRBL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adjust-grbl-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adjust GRBL configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Adjust GRBL configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-end-stopshard-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enable end-stops/hard limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#calculate-and-set-travel-resolutions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calculate and set travel resolutions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-configurations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other configurations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12-final-notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Final notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#install-g-code-sender" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install G-Code sender
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connect-g-code-sender-to-grbl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connect G-Code sender to GRBL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adjust-grbl-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adjust GRBL configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Adjust GRBL configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-end-stopshard-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enable end-stops/hard limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#calculate-and-set-travel-resolutions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calculate and set travel resolutions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-configurations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other configurations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="g-code-sender">G-Code sender</h1>
+<p>To be able to send G-Code instructions from the computer to <code>grbl</code> on the Arduino, a G-Code sender is needed. <code>grbl's</code> official list of recommended G-Code senders can be found here: <a href="https://github.com/gnea/grbl/wiki/Using-Grbl">https://github.com/gnea/grbl/wiki/Using-Grbl</a> (Sep 26, 2021)</p>
+<h2 id="install-g-code-sender">Install G-Code sender</h2>
+<p>In this project a G-code sender called <code>Universal G-Code Sender (UGS)</code> was used. The program was downloaded from UGS's official website and the instructions were followed: </p>
+<p><a href="https://winder.github.io/ugs_website/download/">https://winder.github.io/ugs_website/download/</a></p>
+<p>After starting the program, you should see something like this:</p>
+<p><img alt="gcode_sender_1" src="../images/build/frame/gcode_sender_1.jpg" /></p>
+<h2 id="connect-g-code-sender-to-grbl">Connect G-Code sender to GRBL</h2>
+<p>To let UGS know where to connect to, the correct firmware (GRBL) and serial port (cu.usbmodem\<NUMBER>) were chosen. If you can't find the correct serial port, click the spinning arrows to refresh the ports.</p>
+<p><img alt="gcode_sender_2" src="../images/build/frame/gcode_sender_2.jpg" /></p>
+<p><img alt="gcode_sender_3" src="../images/build/frame/gcode_sender_3.jpg" /></p>
+<p>UGS was then connected to the Arduino by clicking on plug/socket icon in the top left corner. If the connection succeeds, you should see the plug/socket icon turn orange and the GRBL configuration outputted in the console.</p>
+<p><img alt="gcode_sender_4" src="../images/build/frame/gcode_sender_4.jpg" /></p>
+<p><img alt="gcode_sender_5" src="../images/build/frame/gcode_sender_5.jpg" /></p>
+<h2 id="adjust-grbl-configuration">Adjust GRBL configuration</h2>
+<p>The GRBL configuration enables you to adjust important settings, such as the maximum mm/min rates for different axes and if the end-stops should be used. A full description of all settings can be found here:</p>
+<p><a href="https://github.com/gnea/grbl/blob/master/doc/markdown/settings.md">https://github.com/gnea/grbl/blob/master/doc/markdown/settings.md</a> (Sep 26, 2021)</p>
+<p>To update a setting, the new setting is inputted into the console command line, e.g.: <code>$21 = 1</code> to enable end-stops/hard limits. A confirmation that the setting is changed is then outputted in the console.</p>
+<p><img alt="gcode_sender_6" src="../images/build/frame/gcode_sender_6.jpg" /></p>
+<h3 id="enable-end-stopshard-limits">Enable end-stops/hard limits</h3>
+<p>The end-stops/hard limits were enabled by updating the following setting:</p>
+<p><code>$21 = 0</code> -&gt; <code>$21 = 1</code></p>
+<p>To test that the end-stops were working properly, each end-stop was tested by manually triggering it with a finger. After triggering, an alarm should be raised in UGS.</p>
+<p><img alt="gcode_sender_7" src="../images/build/frame/gcode_sender_7.jpg" /></p>
+<p><img alt="gcode_sender_8" src="../images/build/frame/gcode_sender_8.jpg" /></p>
+<p>After the alarm was triggered, UGS was reset by clicking <code>Soft reset</code> and <code>Unlock</code>.</p>
+<p><img alt="gcode_sender_9" src="../images/build/frame/gcode_sender_9.jpg" /></p>
+<h3 id="calculate-and-set-travel-resolutions">Calculate and set travel resolutions</h3>
+<p>The most important settings to adjust is the X-axis, Y-axis and Z-axis travel resolutions. These settings tells GRBL how many steps it should take to move one millimeter. The travel resolution depends on the stepper motor's steps per revolution, the microstepping, the teeth spacing and the number of teeth on the timing pulley(s).</p>
+<p>The following equation was used to calculate the travel resolution (steps/mm) for each stepper:</p>
+<p><img alt="gcode_sender_10" src="../images/build/frame/gcode_sender_10.jpg" /></p>
+<p>In this project, this is how the travel resolutions were calculated:</p>
+<table>
+<thead>
+<tr>
+<th>Stepper motor</th>
+<th>Microstepping</th>
+<th>Step angle</th>
+<th>Steps per revolution</th>
+<th>Teeth spacing</th>
+<th>Number of teeth - Pulley 1</th>
+<th>Number of teeth - Pulley 2</th>
+<th>Travel resolution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>X-axis</td>
+<td>16</td>
+<td>0.094 deg</td>
+<td>360/0.094 = 3829.7872 steps</td>
+<td>5 mm (HTD<strong>5</strong>M)</td>
+<td>12</td>
+<td>1 (used when no pulley 2)</td>
+<td><strong>(16*3829.7872)/(5*12/1) = 1021.277</strong></td>
+</tr>
+<tr>
+<td>Y-axis (1)</td>
+<td>16</td>
+<td>0.094 deg</td>
+<td>360/0.094 = 3829.7872 steps</td>
+<td>5 mm (HTD<strong>5</strong>M)</td>
+<td>12</td>
+<td>1 (used when no pulley 2)</td>
+<td><strong>(16*3829.7872)/(5*12/1) = 1021.277</strong></td>
+</tr>
+<tr>
+<td>Y-axis (2)</td>
+<td>16</td>
+<td>0.094 deg</td>
+<td>360/0.094 = 3829.7872 steps</td>
+<td>5 mm (HTD<strong>5</strong>M)</td>
+<td>12</td>
+<td>1 (used when no pulley 2)</td>
+<td><strong>(16*3829.7872)/(5*12/1) = 1021.277</strong></td>
+</tr>
+<tr>
+<td>Z-axis</td>
+<td>16</td>
+<td>1.8 deg</td>
+<td>360/1.8 = 200 steps</td>
+<td>8 mm (acme rod)</td>
+<td>16</td>
+<td>60</td>
+<td><strong>(16*200)/(8*16/60) = 1500</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The travel resolutions were updated:</p>
+<ul>
+<li>X-axis travel resolution: <code>$100=250.000</code> -&gt; <code>$100 = 1021.277</code></li>
+<li>Y-axis travel resolution: <code>$101=250.000</code> -&gt; <code>$101 = 1021.277</code></li>
+<li>Z-axis travel resolution: <code>$102=250.000</code> -&gt; <code>$102 = 1500.000</code></li>
+</ul>
+<p>The calculated travel resolutions were validated by moving each axis 10 mm in UGS and measuring the actual distance moved.</p>
+<p><img alt="gcode_sender_11" src="../images/build/frame/gcode_sender_11.jpg" /></p>
+<p><img alt="gcode_sender_12" src="../images/build/frame/gcode_sender_12.jpg" /></p>
+<p><img alt="gcode_sender_13" src="../images/build/frame/gcode_sender_13.jpg" /></p>
+<h3 id="other-configurations">Other configurations</h3>
+<p>The homing cycle is when the CNC machine automatically moves all axises to it's limits to home itself before starting the job. I disabled this as I will manually jog the router to it's position:</p>
+<p><code>$22 = 1</code> -&gt; <code>$22 = 0</code></p>
+<p>The X-axis and Y-axis minimum rates were increased to 1000:</p>
+<ul>
+<li>X-axis maximum rate: <code>$110=500.000</code> -&gt; <code>$110 = 1000.000</code></li>
+<li>Y-axis maximum rate: <code>$111=500.000</code> -&gt; <code>$111 = 1000.000</code></li>
+</ul>
+<p>The X-axis and Y-axis maximum travel were increased to 500:</p>
+<ul>
+<li>X-axis maximum travel: <code>$130=200.000</code> -&gt; <code>$130 = 500.000</code></li>
+<li>Y-axis maximum travel: <code>$131=200.000</code> -&gt; <code>$131 = 500.000</code></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../assets/javascripts/toc-toggle.js"></script>
+      
+        <script src="../assets/javascripts/shopping.js"></script>
+      
+    
+  </body>
+</html>

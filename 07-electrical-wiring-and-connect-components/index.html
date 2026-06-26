@@ -1,0 +1,1323 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://ergonomic-keyboard.github.io/DIY-3-axis-CNC-machine/07-electrical-wiring-and-connect-components/">
+      
+      
+        <link rel="prev" href="../06-electronic-boxes/">
+      
+      
+        <link rel="next" href="../08-wasteboard/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Electrical wiring and connect components - DIY-CNC-machine</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/toc-toggle.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/shopping.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#electrical-wiring-and-connect-components" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="DIY-CNC-machine" class="md-header__button md-logo" aria-label="DIY-CNC-machine" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DIY-CNC-machine
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Electrical wiring and connect components
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="DIY-CNC-machine" class="md-nav__button md-logo" aria-label="DIY-CNC-machine" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DIY-CNC-machine
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../BILLOFMATERIAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bill of materials
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shopping/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shopping
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-main-frame/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Main frame
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-y-axis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Y-axis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-x-axis-and-z-axis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    X-axis and Z-axis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-stepper-motors-and-end-stops/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stepper motors and end-stops
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-router/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Router
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-electronic-boxes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Electronic boxes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Electrical wiring and connect components
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Electrical wiring and connect components
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#main-power-supply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Main power supply
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prepare-power-to-steppers-and-connect-fans-and-led" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prepare power to steppers and connect fans and LED
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#assemble-stepper-motor-drivers-and-tune-vref" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Assemble stepper motor drivers and tune VRef
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#attach-arduino-and-solder-usb-cable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attach Arduino and solder USB cable
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stepper-and-end-stop-cable-management-to-small-electronic-box" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stepper and end-stop cable management to small electronic box
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connect-steppers-to-cnc-shield" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connect steppers to CNC shield
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connect-end-stops-to-cnc-shield" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connect end-stops to CNC shield
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#set-microstepping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set microstepping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#router-cable-management-and-connect-to-main-power-supply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Router cable management and connect to main power supply
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#final-test-of-electrical-wiring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Final test of electrical wiring
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-wasteboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wasteboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-dust-shoe/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dust shoe
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10-software/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Software
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11-g-code-sender/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    G-Code sender
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12-final-notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Final notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#main-power-supply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Main power supply
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prepare-power-to-steppers-and-connect-fans-and-led" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prepare power to steppers and connect fans and LED
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#assemble-stepper-motor-drivers-and-tune-vref" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Assemble stepper motor drivers and tune VRef
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#attach-arduino-and-solder-usb-cable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attach Arduino and solder USB cable
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stepper-and-end-stop-cable-management-to-small-electronic-box" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stepper and end-stop cable management to small electronic box
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connect-steppers-to-cnc-shield" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connect steppers to CNC shield
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connect-end-stops-to-cnc-shield" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connect end-stops to CNC shield
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#set-microstepping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set microstepping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#router-cable-management-and-connect-to-main-power-supply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Router cable management and connect to main power supply
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#final-test-of-electrical-wiring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Final test of electrical wiring
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="electrical-wiring-and-connect-components">Electrical wiring and connect components</h1>
+<h2 id="main-power-supply">Main power supply</h2>
+<div class="admonition danger">
+<p class="admonition-title">Danger</p>
+<p><strong>THIS PART INCLUDES WIRING OF HIGH VOLTAGE ELECTRICITY THAT CAN BE LETHAL IF NOT DONE PROPERLY. THE COLORS OF THE CABLES CAN VARY DEPENDING ON REGION/COUNTRY AND YOUR COMPONENTS/PINOUT NUMBERS MIGHT LOOK DIFFERENT. BEFORE      YOU CONNECT THE POWER CORD TO THE POWER OUTLET, YOU MUST CONSULT WITH A LICENSED ELECTRICIAN TO MAKE SURE THAT EVERYTHING IS PROPERLY WIRED AND THAT IT IS IN LINE WITH YOUR LOCAL LEGISLATIONS.</strong></p>
+</div>
+<p>The large electronic box was detached from the frame.</p>
+<p>The 200W power supply (<strong>E02</strong>) was then attached to the back panel of the larger electronic box using 4x 5mm M3 screws (<strong>S07</strong>) unscrewed from the geared stepper motors.</p>
+<p><img alt="connect_main_electronic_box_1" src="../images/build/frame/connect_main_electronic_box_1.jpg" /></p>
+<p><img alt="connect_main_electronic_box_2" src="../images/build/frame/connect_main_electronic_box_2.jpg" /></p>
+<p><img alt="connect_main_electronic_box_3" src="../images/build/frame/connect_main_electronic_box_3.jpg" /></p>
+<p>The C14 connector/terminal (<strong>E14</strong>) and the emergency stop switch (<strong>E17</strong>) were inserted into the holes on the front plate of the large electronic box. </p>
+<p><img alt="connect_main_electronic_box_4" src="../images/build/frame/connect_main_electronic_box_4.jpg" /></p>
+<p><img alt="connect_main_electronic_box_5" src="../images/build/frame/connect_main_electronic_box_5.jpg" /></p>
+<p><img alt="connect_main_electronic_box_6" src="../images/build/frame/connect_main_electronic_box_6.jpg" /></p>
+<p>A small brown/red wire (<strong>E06</strong>) was cut out and the ends were stripped and twisted. Two 4.8 mm spade connectors (<strong>E26</strong>) were then attached to the stripped wire using a plier. The space connectors were connected between <strong>10</strong> and <strong>1A</strong> on the back side of the C14 connector.</p>
+<p><img alt="connect_main_electronic_box_7" src="../images/build/frame/connect_main_electronic_box_7.jpg" /></p>
+<p><img alt="connect_main_electronic_box_8" src="../images/build/frame/connect_main_electronic_box_8.jpg" /></p>
+<p><img alt="connect_main_electronic_box_9" src="../images/build/frame/connect_main_electronic_box_9.jpg" /></p>
+<p><img alt="connect_main_electronic_box_10" src="../images/build/frame/connect_main_electronic_box_10.jpg" /></p>
+<p>A longer brown wire was cut out to reach between <strong>L</strong> on the C14 connector and <strong>13</strong> on the emergency stop switch. The ends were stripped and twisted. A 4.8 mm spade connector (<strong>E26</strong>) was attached to the side connected to the C14 connector and a 6.3 mm space connector (<strong>E27</strong>) was attached to the side connected to the emergency stop switch. The spade connectors were then connected.</p>
+<p><img alt="connect_main_electronic_box_11" src="../images/build/frame/connect_main_electronic_box_11.jpg" /></p>
+<p><img alt="connect_main_electronic_box_12" src="../images/build/frame/connect_main_electronic_box_12.jpg" /></p>
+<p><img alt="connect_main_electronic_box_13" src="../images/build/frame/connect_main_electronic_box_13.jpg" /></p>
+<p>Two short and one longer blue wire were cut out at an appropriate length and the ends of the wires were stripped and twisted.</p>
+<p><img alt="connect_main_electronic_box_14" src="../images/build/frame/connect_main_electronic_box_14.jpg" /></p>
+<p>Two 4.8 mm spade connector (<strong>E26</strong>) were attached to one of the sides of each shorter wire and the other sides were inserted and locked into 1x 3-way Wago 221-413 (<strong>E07</strong>).</p>
+<p><img alt="connect_main_electronic_box_15" src="../images/build/frame/connect_main_electronic_box_15.jpg" /></p>
+<p><img alt="connect_main_electronic_box_16" src="../images/build/frame/connect_main_electronic_box_16.jpg" /></p>
+<p>A 6.3 mm space connector (<strong>E27</strong>) was attached to one side of the longer blue wire and the other side were inserted and locked into the 3-way Wago 221-413 (<strong>E07</strong>).</p>
+<p>I didn't have access to matching colors of all the spade connectors, so I followed the appropriate color scheme of the wires instead. So please ignore if there's a mismatch between the wire color and the spade connector color in the upcoming images.</p>
+<p><img alt="connect_main_electronic_box_17" src="../images/build/frame/connect_main_electronic_box_17.jpg" /></p>
+<p>The shorter blue wires were connected to <strong>N</strong> and <strong>XX</strong> on the C14 connector. The longer blue wire was connected to <strong>23</strong> on the emergency stop switch.</p>
+<p><img alt="connect_main_electronic_box_18" src="../images/build/frame/connect_main_electronic_box_18.jpg" /></p>
+<p><img alt="connect_main_electronic_box_19" src="../images/build/frame/connect_main_electronic_box_19.jpg" /></p>
+<p>One brown and one blue wire were cut out to reach between the emergency stop switch and the power supply's input terminals. The ends of the wires were stripped and twisted. Two 6.3 mm space connectors (<strong>E27</strong>) were attached to one side of the wires and 2x M4 ring terminals (<strong>E24</strong>) were attached to the other side. The blue wire's spade connector was connected to <strong>24</strong> on the emergency stop switch. The brown wire's spade connector was connected to <strong>14</strong> on the emergency stop switch.</p>
+<p><img alt="connect_main_electronic_box_20" src="../images/build/frame/connect_main_electronic_box_20.jpg" /></p>
+<p><img alt="connect_main_electronic_box_21" src="../images/build/frame/connect_main_electronic_box_21.jpg" /></p>
+<p><img alt="connect_main_electronic_box_22" src="../images/build/frame/connect_main_electronic_box_22.jpg" /></p>
+<p>A small green/yellow wire was cut out to reach between the C14 connector and the power supply's input terminals. The end of the wire was stripped and twisted, a 4.8 mm spade connector (<strong>E26</strong>) was attached to one side and 1x M4 ring terminal (<strong>E24</strong>) was attached to the other side. The spade connector was then attached to <strong>⏚</strong> (ground) on the C14 connector.</p>
+<p><img alt="connect_main_electronic_box_23" src="../images/build/frame/connect_main_electronic_box_23.jpg" /></p>
+<p><img alt="connect_main_electronic_box_24" src="../images/build/frame/connect_main_electronic_box_24.jpg" /></p>
+<p>The three M4 ring terminals were then connected to the power supply's input terminals in the following way:</p>
+<ul>
+<li>Brown -&gt; AC/L</li>
+<li>Blue -&gt; AC/N</li>
+<li>Green/Yellow -&gt; <strong>⏚</strong> (ground)</li>
+</ul>
+<p><img alt="connect_main_electronic_box_25" src="../images/build/frame/connect_main_electronic_box_25.jpg" /></p>
+<p><img alt="connect_main_electronic_box_26" src="../images/build/frame/connect_main_electronic_box_26.jpg" /></p>
+<p>Power was connected to the C14 connector (read <a href="#main-power-supply">this</a> note before connecting the power) and a multimeter was used to verify that the power supply outputted 12V. The multimeter was also used to verify that the C14 connector worked properly (cut power when using the switch) and that the emergency stop switch worked propertly (cut power when pushed. Also that the emegency stop switch remains off when C14 connector is switched off and on again).</p>
+<p><img alt="connect_main_electronic_box_26" src="../images/build/frame/connect_main_electronic_box_24_1.jpg" /></p>
+<p>The emergency stop switch was attached to the front plate using 2x 18mm M4 screws (<strong>S09</strong>), 2x M4 nuts (<strong>N01</strong>) and two (9 mm, 4.5 mm, 1 mm) washers (<strong>W07</strong>).</p>
+<p><img alt="connect_main_electronic_box_27" src="../images/build/frame/connect_main_electronic_box_27.jpg" /></p>
+<p><img alt="connect_main_electronic_box_28" src="../images/build/frame/connect_main_electronic_box_28.jpg" /></p>
+<p>The C14 connector was attached to the front plate using super glue. A cloth was used to remove excess glue.</p>
+<p><img alt="connect_main_electronic_box_28_1" src="../images/build/frame/connect_main_electronic_box_28_1.jpg" /></p>
+<p><img alt="connect_main_electronic_box_28_2" src="../images/build/frame/connect_main_electronic_box_28_2.jpg" /></p>
+<p><img alt="connect_main_electronic_box_28_3" src="../images/build/frame/connect_main_electronic_box_28_3.jpg" /></p>
+<p>Shrink tubes (<strong>O24</strong>) were cut out at an appropriate length, one for each spade connector. Each spade connector was then temporarily removed and inserted into its shrink tube, before attached back again. The shrink tubes were then shrunk around all the spade connectors.</p>
+<p><img alt="connect_main_electronic_box_29" src="../images/build/frame/connect_main_electronic_box_29.jpg" /></p>
+<p><img alt="connect_main_electronic_box_30" src="../images/build/frame/connect_main_electronic_box_30.jpg" /></p>
+<p><img alt="connect_main_electronic_box_31" src="../images/build/frame/connect_main_electronic_box_31.jpg" /></p>
+<p><img alt="connect_main_electronic_box_32" src="../images/build/frame/connect_main_electronic_box_32.jpg" /></p>
+<h2 id="prepare-power-to-steppers-and-connect-fans-and-led">Prepare power to steppers and connect fans and LED</h2>
+<p>To prepare the power for the stepper motors, one black and one red wire (<strong>E03</strong>) were cut out (approx. 300 mm long) to reach between the 12V terminals on the power supply and the small electronic box containing the Arduino and CNC shield. One side of each wire was then stripped and twisted, and 2x M3 ring terminals (<strong>E23</strong>) were attached. </p>
+<p>The red wire was connected to the <strong>V+</strong> and the black wire was connected to <strong>V-</strong>.</p>
+<p><img alt="connect_main_electronic_box_33" src="../images/build/frame/connect_main_electronic_box_33.jpg" /></p>
+<p><img alt="connect_main_electronic_box_34" src="../images/build/frame/connect_main_electronic_box_34.jpg" /></p>
+<p><img alt="connect_main_electronic_box_35" src="../images/build/frame/connect_main_electronic_box_35.jpg" /></p>
+<p>A 40x40 mm 12V fan (<strong>E01</strong>) was attached to the back side of the large electronic box's front panel, using 4x 12 mm M3 screws (<strong>S02</strong>). The fan was attached to blow air out of the box.</p>
+<p><img alt="attach_fans_led_1" src="../images/build/frame/attach_fans_led_1.jpg" /></p>
+<p><img alt="attach_fans_led_2" src="../images/build/frame/attach_fans_led_2.jpg" /></p>
+<p><img alt="attach_fans_led_3" src="../images/build/frame/attach_fans_led_3.jpg" /></p>
+<p>A 12V red LED (<strong>E22</strong>) was inserted into the small ~8 mm hole on the front of the large electronic box's front panel.</p>
+<p><img alt="attach_fans_led_4" src="../images/build/frame/attach_fans_led_4.jpg" /></p>
+<p><img alt="attach_fans_led_5" src="../images/build/frame/attach_fans_led_5.jpg" /></p>
+<p><img alt="attach_fans_led_6" src="../images/build/frame/attach_fans_led_6.jpg" /></p>
+<p>The second 40x40 mm 12V fan (<strong>E01</strong>) was attached to the back side of the small electronic box's front panel, using 4x 12 mm M3 screws (<strong>S02</strong>). A short flexible conduit (<strong>O13</strong>) reaching between the two eletronic boxes was cut out and the wires from the fan were inserted through it.</p>
+<p><img alt="attach_fans_led_7" src="../images/build/frame/attach_fans_led_7.jpg" /></p>
+<p><img alt="attach_fans_led_8" src="../images/build/frame/attach_fans_led_8.jpg" /></p>
+<p><img alt="attach_fans_led_9" src="../images/build/frame/attach_fans_led_9.jpg" /></p>
+<p><img alt="attach_fans_led_9" src="../images/build/frame/attach_fans_led_9_1.jpg" /></p>
+<p>The loose wires of the two fans and the LED were stripped and twisted together, black together and red together. Then all three black wires were attached into the same M3 ring terminal (<strong>E23</strong>) and all three red wires were attached into the same M3 ring terminal (<strong>E23</strong>).</p>
+<p><img alt="attach_fans_led_10" src="../images/build/frame/attach_fans_led_10.jpg" /></p>
+<p><img alt="attach_fans_led_11" src="../images/build/frame/attach_fans_led_11.jpg" /></p>
+<p><img alt="attach_fans_led_11" src="../images/build/frame/attach_fans_led_12.jpg" /></p>
+<p>The red wires (red ring terminal) were finally connected to the <strong>V+</strong> and the black wires (blue ring terminal) were connected to <strong>V-</strong> on the 12V power supply.</p>
+<p><img alt="attach_fans_led_13" src="../images/build/frame/attach_fans_led_13.jpg" /></p>
+<p>The red and black 12V power wires intended for the stepper motors were inserted through the same short flexible conduit as the fan wires.</p>
+<p><img alt="attach_fans_led_14" src="../images/build/frame/attach_fans_led_14.jpg" /></p>
+<p>2x 3d-printed strain relief halves (<strong>P11</strong>) were inserted into the hole on the side of the large electronic box facing the small electronic box. The large box was then carefully closed and attached to the upper and lower frame again. It's really important that you don't have to force it closed. If that's the case you need to move some cables for it to close smoothly.</p>
+<p><img alt="attach_fans_led_15" src="../images/build/frame/attach_fans_led_15.jpg" /></p>
+<p><img alt="attach_fans_led_16" src="../images/build/frame/attach_fans_led_16.jpg" /></p>
+<p><img alt="attach_fans_led_17" src="../images/build/frame/attach_fans_led_17.jpg" /></p>
+<p><img alt="attach_fans_led_18" src="../images/build/frame/attach_fans_led_18.jpg" /></p>
+<h2 id="assemble-stepper-motor-drivers-and-tune-vref">Assemble stepper motor drivers and tune VRef</h2>
+<p>One small heatsink was attached to each DRV8825 stepper driver (<strong>E16</strong>).</p>
+<p><img alt="vref_stepper_drivers_1" src="../images/build/frame/vref_stepper_drivers_1.jpg" /></p>
+<p><img alt="vref_stepper_drivers_2" src="../images/build/frame/vref_stepper_drivers_2.jpg" /></p>
+<p>Before the stepper motors were connected to the CNC shield, the stepper motor drivers' VRef needed to be tuned. The VRef regulates the voltage from the stepper driver to the stepper motor. If the VRefs are set to high, it can damage the stepper motors by supplying to much voltage.</p>
+<p>The CNC shield (<strong>E10</strong>) was first attached to the Arduino Uno (<strong>E09</strong>).</p>
+<p><img alt="vref_stepper_drivers_3" src="../images/build/frame/vref_stepper_drivers_3.jpg" /></p>
+<p><img alt="vref_stepper_drivers_4" src="../images/build/frame/vref_stepper_drivers_4.jpg" /></p>
+<p>The four stepper drivers were then attached to the CNC shield, one for each axis (X, Y, Z) and one for the mirrored Y-axis (A). The stepper drivers were inserted so that the "EN" pins on the stepper drivers aligned with the EN female terminal on the CNC shield.</p>
+<p><img alt="vref_stepper_drivers_5" src="../images/build/frame/vref_stepper_drivers_5.jpg" /></p>
+<p><img alt="vref_stepper_drivers_6" src="../images/build/frame/vref_stepper_drivers_6.jpg" /></p>
+<p><img alt="vref_stepper_drivers_7" src="../images/build/frame/vref_stepper_drivers_7.jpg" /></p>
+<p>A USB cable (<strong>E28</strong>) was connected to the Arduino Uno and to a computer to supply the Arduino with power. </p>
+<p>The power wires connected to the 12v power supply were connected to the CNC shield:</p>
+<ul>
+<li>Red cable -&gt; <strong>+</strong></li>
+<li>Black cable -&gt; <strong>-</strong></li>
+</ul>
+<p>Power was then added to the system by inserting the C13 cable (<strong>E30</strong>) into the C14 connector on the front panel of the large electronic box.</p>
+<p><img alt="vref_stepper_drivers_8" src="../images/build/frame/vref_stepper_drivers_8.jpg" /></p>
+<p>A multimeter was then used to regulate the VRef on each stepper driver. The equation to calculate the VRef differs depending on the stepper driver. The DRV8825 stepper drivers are using the following equation:</p>
+<p><img alt="vref_stepper_drivers_8_1" src="../images/build/frame/vref_stepper_drivers_8_1.png" /></p>
+<p>By checking the <code>I_{max}</code> in the technical specification for each stepper motor, the following VRefs were calculated for each stepper driver:</p>
+<table>
+<thead>
+<tr>
+<th>Stepper driver</th>
+<th>I_{max}</th>
+<th>VRef</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>X</td>
+<td>1.68A</td>
+<td>1.68/2 = 0.84V</td>
+</tr>
+<tr>
+<td>Y</td>
+<td>1.68A</td>
+<td>1.68/2 = 0.84V</td>
+</tr>
+<tr>
+<td>A (mirrored Y)</td>
+<td>1.68A</td>
+<td>1.68/2 = 0.84V</td>
+</tr>
+<tr>
+<td>Z</td>
+<td>1.68A</td>
+<td>1.68/2 = 0.84V</td>
+</tr>
+</tbody>
+</table>
+<p>To measure the VRef of each stepper driver, the red test probe was connected to the screw on top of the stepper driver, and the black test probe was connected to the second bottom left pin (GND). The screw was then rotated to adjust the VRef to the appropriate voltage (~0.84V).</p>
+<p><img alt="vref_stepper_drivers_9" src="../images/build/frame/vref_stepper_drivers_9.jpg" /></p>
+<p><img alt="vref_stepper_drivers_10" src="../images/build/frame/vref_stepper_drivers_10.jpg" /></p>
+<h2 id="attach-arduino-and-solder-usb-cable">Attach Arduino and solder USB cable</h2>
+<p>The CNC shield was removed from the Arduino and the Arduino was attached to the back plate of the small electronic box using the 4x 5mm M3 screws (<strong>S07</strong>) unscrewed from the geared stepper motors. The USB cable was left inserted in the Arduino, as there was no space to insert it afterwards.</p>
+<p><img alt="arduino_and_usb_1" src="../images/build/frame/arduino_and_usb_1.jpg" /></p>
+<p><img alt="arduino_and_usb_2" src="../images/build/frame/arduino_and_usb_2.jpg" /></p>
+<p><img alt="arduino_and_usb_3" src="../images/build/frame/arduino_and_usb_3.jpg" /></p>
+<p>The end of the USB cable was cut and stripped, showing the following 4 wires inside:</p>
+<table>
+<thead>
+<tr>
+<th>Color</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Red</td>
+<td>VCC (+5V)</td>
+</tr>
+<tr>
+<td>White</td>
+<td>Data -</td>
+</tr>
+<tr>
+<td>Green</td>
+<td>Data +</td>
+</tr>
+<tr>
+<td>Black</td>
+<td>GND</td>
+</tr>
+</tbody>
+</table>
+<p>Each wire was stripped and twisted.</p>
+<p><img alt="arduino_and_usb_3_1" src="../images/build/frame/arduino_and_usb_3_1.jpg" /></p>
+<p>A female USB-A (<strong>E29</strong>) was inserted into the front plate of the small electronic box. By using a soldering iron, solder/filler metal was first added to each pin on the female USB-A before attaching the wires, to simplify the soldering. </p>
+<p><img alt="arduino_and_usb_4" src="../images/build/frame/arduino_and_usb_4.jpg" /></p>
+<p><img alt="arduino_and_usb_4" src="../images/build/frame/arduino_and_usb_4_1.jpg" /></p>
+<p>4 small shrink tubes (<strong>O24</strong>) were cut out and the wires were inserted into the shrink tubes. </p>
+<p><img alt="arduino_and_usb_7" src="../images/build/frame/arduino_and_usb_7.jpg" /></p>
+<p><img alt="arduino_and_usb_8" src="../images/build/frame/arduino_and_usb_8.jpg" /></p>
+<p>To know which wire to solder to which pin, the following schema was used. The schema illustrates when looking straight into the female USB-A, with the flat surface at the top and the internal USB pins pointing downwards. As the pins goes straight through the connector, it's possible to map it to the pins on the back.</p>
+<p><img alt="arduino_and_usb_6_1" src="../images/build/frame/arduino_and_usb_6_1.jpg" /></p>
+<p><img alt="arduino_and_usb_6" src="../images/build/frame/arduino_and_usb_6.jpg" /></p>
+<p>When the correct pin-wire-mapping was found, the wires were soldered one by one, by placing the stripped wires on the pins and then pressing the solder iron onto the tip of the wires. As filler metal had already been applied to the pins, no extra filler metal had to be added. The shrink tubes were then shrunk around the wires.</p>
+<p><img alt="arduino_and_usb_9" src="../images/build/frame/arduino_and_usb_9.jpg" /></p>
+<p><img alt="arduino_and_usb_10" src="../images/build/frame/arduino_and_usb_10.jpg" /></p>
+<p>Finally, a 3d-printed block (<strong>P33</strong>) was glued to the female USB-A connector and the back of the front panel to lock it into place.</p>
+<p><img alt="arduino_and_usb_11" src="../images/build/frame/arduino_and_usb_11.jpg" /></p>
+<p><img alt="arduino_and_usb_12" src="../images/build/frame/arduino_and_usb_12.jpg" /></p>
+<p><img alt="arduino_and_usb_13" src="../images/build/frame/arduino_and_usb_13.jpg" /></p>
+<p><img alt="arduino_and_usb_14" src="../images/build/frame/arduino_and_usb_14.jpg" /></p>
+<h2 id="stepper-and-end-stop-cable-management-to-small-electronic-box">Stepper and end-stop cable management to small electronic box</h2>
+<p>The CNC shield was attached to the Arduino and 6x 3d-printed strain relief halves (<strong>P11</strong>) were inserted into the holes on the sides of the small electronic box.</p>
+<p><img alt="steppers_to_cnc_shield_1" src="../images/build/frame/steppers_to_cnc_shield_1.jpg" /></p>
+<p><img alt="steppers_to_cnc_shield_2" src="../images/build/frame/steppers_to_cnc_shield_2.jpg" /></p>
+<p>Two flexible conduits (<strong>O13</strong>) were cut out to reach between the end of the Y-axis cable chain and the two holes in the small box. A hole was then drilled in the upper flexible conduit for the Y-axis end-stop wires to enter. To do this, the upper flexible conduit was placed where it was intended to be and tape was used to indicate the position of the hole. </p>
+<p>A drill was then used to create the hole in the upper flexible conduit.</p>
+<p><img alt="steppers_to_cnc_shield_3" src="../images/build/frame/steppers_to_cnc_shield_3.jpg" /></p>
+<p><img alt="steppers_to_cnc_shield_4" src="../images/build/frame/steppers_to_cnc_shield_4.jpg" /></p>
+<p><img alt="steppers_to_cnc_shield_5" src="../images/build/frame/steppers_to_cnc_shield_5.jpg" /></p>
+<p><img alt="steppers_to_cnc_shield_6" src="../images/build/frame/steppers_to_cnc_shield_6.jpg" /></p>
+<p>The Y-axis end-stop (+ and -) wires were inserted into the hole, followed by half of the wires coming from the Y-axis cable chain. The rest of the wires were inserted into the lower flexible conduit.</p>
+<p>To simplify the process, the cables going into the same conduit were taped together.</p>
+<p><img alt="steppers_to_cnc_shield_7" src="../images/build/frame/steppers_to_cnc_shield_7.jpg" /></p>
+<p><img alt="steppers_to_cnc_shield_8" src="../images/build/frame/steppers_to_cnc_shield_8.jpg" /></p>
+<p><img alt="steppers_to_cnc_shield_9" src="../images/build/frame/steppers_to_cnc_shield_9.jpg" /></p>
+<p>The end of the conduits were then placed between the strain relief halves and the front-middle part of the box were carefully attached to the frame again, locking the strain reliefs and the flexible conduits in place.</p>
+<p><img alt="steppers_to_cnc_shield_10" src="../images/build/frame/steppers_to_cnc_shield_10.jpg" /></p>
+<p><img alt="steppers_to_cnc_shield_11" src="../images/build/frame/steppers_to_cnc_shield_11.jpg" /></p>
+<h2 id="connect-steppers-to-cnc-shield">Connect steppers to CNC shield</h2>
+<p>To keep a good structure of the wires inside the small box, electrical crimp sleeves (<strong>E15</strong>) and contact housings (<strong>E13</strong>) were used. This also reduced the risks of shortings and loose wires.</p>
+<p><img alt="steppers_to_cnc_shield_13" src="../images/build/frame/steppers_to_cnc_shield_13.jpg" /></p>
+<p><img alt="steppers_to_cnc_shield_18" src="../images/build/frame/steppers_to_cnc_shield_18.jpg" /></p>
+<p>For each stepper, the wires were cut at an appropriate length to reach to its connection on the CNC shield. Each wire were stripped and twisted. An AWG22/24 crimp connector was then attached to the end of each wire using a crimping tool. A shrinking tube (<strong>O24</strong>) was shrunk around the wires to keep a good structure.</p>
+<p>The wires were then inserted and locked into a 1X4 contact housing (<strong>E13</strong>). Make sure to insert the wires in the correct orinentation, as the crimp connector has a "lock" that interlocks with the contact housing.</p>
+<p>To know in which order to insert the wires, check the technical specification of your steppers. You should find something like this (given that you've bought bi-polar stepper motors):</p>
+<table>
+<thead>
+<tr>
+<th>A+</th>
+<th>A-</th>
+<th>B+</th>
+<th>B-</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Black</td>
+<td>Green</td>
+<td>Red</td>
+<td>Blue</td>
+</tr>
+</tbody>
+</table>
+<p><strong>A</strong> and <strong>B</strong> indicate the two different coils in the stepper motor and the colors are the colors of the wires. You want to connect the crimp connectors so that each coil's wires are next to each other: <strong>A A B B</strong>.</p>
+<p><img alt="steppers_to_cnc_shield_12" src="../images/build/frame/steppers_to_cnc_shield_12.jpg" /></p>
+<p><img alt="steppers_to_cnc_shield_14" src="../images/build/frame/steppers_to_cnc_shield_14.jpg" /></p>
+<p><img alt="steppers_to_cnc_shield_15" src="../images/build/frame/steppers_to_cnc_shield_15.jpg" /></p>
+<p><img alt="steppers_to_cnc_shield_16" src="../images/build/frame/steppers_to_cnc_shield_16.jpg" /></p>
+<p><img alt="steppers_to_cnc_shield_17" src="../images/build/frame/steppers_to_cnc_shield_17.jpg" /></p>
+<p><img alt="steppers_to_cnc_shield_19" src="../images/build/frame/steppers_to_cnc_shield_19.jpg" /></p>
+<p>This was done for all four steppers (X, Y, Z, A (mirrored Y)). Tape and a sharpie was used to indicate which contact housing beloning to which stepper. The contact housings were then connected to its connections on the CNC shield.</p>
+<p>Note that if any of the steppers are moving in the "wrong" direction later on, you can just turn the connection 180 degrees and it will move the opposite way.</p>
+<p><img alt="steppers_to_cnc_shield_20" src="../images/build/frame/steppers_to_cnc_shield_20.jpg" /></p>
+<p><img alt="steppers_to_cnc_shield_21" src="../images/build/frame/steppers_to_cnc_shield_21.jpg" /></p>
+<p>Finally, two jumpers (<strong>E19</strong>) were attached to the blue and yellow column on the "Y row". This tells the Arduino to mirror the Y-stepper instructions to the stepper connected to the <strong>A</strong> connection.</p>
+<p><img alt="steppers_to_cnc_shield_22" src="../images/build/frame/steppers_to_cnc_shield_22.jpg" /></p>
+<p><img alt="steppers_to_cnc_shield_23" src="../images/build/frame/steppers_to_cnc_shield_23.jpg" /></p>
+<h2 id="connect-end-stops-to-cnc-shield">Connect end-stops to CNC shield</h2>
+<p>As with the stepper motor wires, electrical crimp connectors were used to keep a good structure in the small electornic box.</p>
+<p>For each end-stop, the two wires were cut at an appropriate length to reach to its connection on the CNC shield. Each wire were stripped and twisted. An AWG22/24 crimp connector (<strong>E15</strong>) was then attached to the end of each wire using a crimping tool. </p>
+<p><img alt="endstops_to_cnc_shield_1" src="../images/build/frame/endstops_to_cnc_shield_1.jpg" /></p>
+<p><img alt="endstops_to_cnc_shield_2" src="../images/build/frame/endstops_to_cnc_shield_2.jpg" /></p>
+<p>As I didn't have access to any 1x2 contact housings (<strong>E12</strong>), a shrinking tube (<strong>O24</strong>) was shrunk around each crimp connectors to reduce the risk of shorts.</p>
+<p>This was done for all end-stops (X+, X-, Y+, Y- and Z+). Tape and a sharpie was used to indicate which pair of wires beloning to which end-stop. The crimp connector pairs were then connected to its connections on the CNC shield.</p>
+<p><img alt="endstops_to_cnc_shield_3" src="../images/build/frame/endstops_to_cnc_shield_3.jpg" /></p>
+<p><img alt="endstops_to_cnc_shield_4" src="../images/build/frame/endstops_to_cnc_shield_4.jpg" /></p>
+<p><img alt="endstops_to_cnc_shield_5" src="../images/build/frame/endstops_to_cnc_shield_5.jpg" /></p>
+<p><img alt="endstops_to_cnc_shield_6" src="../images/build/frame/endstops_to_cnc_shield_6.jpg" /></p>
+<h2 id="set-microstepping">Set microstepping</h2>
+<p>Microstepping is a way to control the stepper motors in a smoother way and at a higher resolution, but usually at a lower speed and torque. </p>
+<p>The 6 pins (M0, M1, M2) underneath each stepper driver were used to set the microstepping for each motor. By shorting the pins in certain combinations, different type of microstepping can be achieved (<strong>0</strong> indicates no shorting, <strong>1</strong> indicates shorting):</p>
+<table>
+<thead>
+<tr>
+<th>Microstepping</th>
+<th>M0</th>
+<th>M1</th>
+<th>M2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full-step</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1/2</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1/4</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1/8</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1/16</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>1/32</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>The 4 stepper drivers were carefully removed. The microstepping was set to <code>1/16</code> for each motor by shorting the two <code>M2</code> pins using jumpers (<strong>E19</strong>). The stepper drivers were then carefully inserted back again.</p>
+<p><img alt="set_microstepping_1" src="../images/build/frame/set_microstepping_1.jpg" /></p>
+<p><img alt="set_microstepping_2" src="../images/build/frame/set_microstepping_2.jpg" /></p>
+<h2 id="router-cable-management-and-connect-to-main-power-supply">Router cable management and connect to main power supply</h2>
+<div class="admonition danger">
+<p class="admonition-title">Danger</p>
+<p><strong>THIS PART INCLUDES WIRING OF HIGH VOLTAGE ELECTRICITY THAT CAN BE LETHAL IF NOT DONE PROPERLY. THE COLORS OF THE CABLES CAN VARY DEPENDING ON REGION/COUNTRY AND YOUR COMPONENTS/PINOUT NUMBERS MIGHT LOOK DIFFERENT.
+  BEFORE YOU CONNECT THE POWER CORD TO THE POWER OUTLET, YOU MUST CONSULT WITH A LICENSED ELECTRICIAN TO MAKE SURE THAT EVERYTHING IS PROPERLY WIRED AND THAT IT IS IN LINE WITH YOUR LOCAL LEGISLATIONS.</strong></p>
+</div>
+<p>As I wanted the emergency stop switch to kill the router as well, the router cable was inserted into the small electronic box to reach the emergency stop switch in the large electronic box.</p>
+<p>A round cable grommet (<strong>O25</strong>) was inserted in the left side of the small electronic box, aligned between the two main wire holes.</p>
+<p>The center of the hole was measured and drilled using a 8.5 mm drill. The cable grommet was then inserted and super glue was used to keep it in place.</p>
+<p><img alt="router_small_box_1" src="../images/build/frame/router_small_box_1.jpg" /></p>
+<p><img alt="router_small_box_2" src="../images/build/frame/router_small_box_2.jpg" /></p>
+<p><img alt="router_small_box_3" src="../images/build/frame/router_small_box_3.jpg" /></p>
+<p><img alt="router_small_box_4" src="../images/build/frame/router_small_box_4.jpg" /></p>
+<p><img alt="router_small_box_5" src="../images/build/frame/router_small_box_5.jpg" /></p>
+<p>The router cable was then inserted into the cable grommet. Some ordinary soap was used to reduce the friction between the rubber cable grommet and the rubber cable.</p>
+<p>A cable tie (<strong>O11</strong>) was closed around the router cable on the inside of the box as a strain relief.</p>
+<p><img alt="router_small_box_6" src="../images/build/frame/router_small_box_6.jpg" /></p>
+<p><img alt="router_small_box_7" src="../images/build/frame/router_small_box_7.jpg" /></p>
+<p><img alt="router_small_box_6_1" src="../images/build/frame/router_small_box_6_1.jpg" /></p>
+<p>The large electronic box was opened once more and the router cable was inserted through the flexible conduit into the large electronic box. A cable clip (<strong>O10</strong>) was then used to position the router cable inside the small box.</p>
+<p>The small electronic box was then carefully closed. It's really important that you don't have to force it closed. If that's the case you need to move some cables for it to close smoothly.</p>
+<p><img alt="router_small_box_8" src="../images/build/frame/router_small_box_8.jpg" /></p>
+<p><img alt="router_small_box_9" src="../images/build/frame/router_small_box_9.jpg" /></p>
+<p><img alt="router_small_box_10" src="../images/build/frame/router_small_box_10.jpg" /></p>
+<p><img alt="router_small_box_11" src="../images/build/frame/router_small_box_11.jpg" /></p>
+<p>The blue and brown wires going between the emergency stop switch and the 12V power supply were cut in the middle and stripped and twisted. The router cable and the wires inside were also stripped and twisted.</p>
+<p><img alt="router_small_box_12" src="../images/build/frame/router_small_box_12.jpg" /></p>
+<p><img alt="router_small_box_14" src="../images/build/frame/router_small_box_14.jpg" /></p>
+<p><img alt="router_small_box_15" src="../images/build/frame/router_small_box_15.jpg" /></p>
+<p><img alt="router_small_box_13" src="../images/build/frame/router_small_box_13.jpg" /></p>
+<p>The three brown wires were inserted and locked into a 3-way Wago 221-413 (<strong>E07</strong>). The three blue wires were also inserted and locked into a 3-way Wago 221-413 (<strong>E07</strong>).</p>
+<p>The large electronic box was then carefully closed once more. It's really important that you don't have to force it closed. If that's the case you need to move some cables for it to close smoothly.</p>
+<p><img alt="router_small_box_16" src="../images/build/frame/router_small_box_16.jpg" /></p>
+<p><img alt="router_small_box_17" src="../images/build/frame/router_small_box_17.jpg" /></p>
+<p><img alt="router_small_box_18" src="../images/build/frame/router_small_box_18.jpg" /></p>
+<h2 id="final-test-of-electrical-wiring">Final test of electrical wiring</h2>
+<p>The electrical wiring was tested by plugging in a C13 cable (<strong>E30</strong>) into the C14 socket and the C14 switch and emergency stop switch were turned on. But before this was done, I made sure that the router was turned off.</p>
+<p>The red LED should light up, both fans should rotate and the router should rotate when turned on.</p>
+<p><img alt="test_electrical_wiring_1" src="../images/build/frame/test_electrical_wiring_1.jpg" /></p>
+<p><img alt="test_electrical_wiring_2" src="../images/build/frame/test_electrical_wiring_2.jpg" /></p>
+<p><img alt="test_electrical_wiring_3" src="../images/build/frame/test_electrical_wiring_3.jpg" /></p>
+<p><img alt="test_electrical_wiring_4" src="../images/build/frame/test_electrical_wiring_4.jpg" /></p>
+<p><img alt="test_electrical_wiring_5" src="../images/build/frame/test_electrical_wiring_5.jpg" /></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../assets/javascripts/toc-toggle.js"></script>
+      
+        <script src="../assets/javascripts/shopping.js"></script>
+      
+    
+  </body>
+</html>

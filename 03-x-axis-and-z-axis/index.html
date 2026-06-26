@@ -1,0 +1,1215 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://ergonomic-keyboard.github.io/DIY-3-axis-CNC-machine/03-x-axis-and-z-axis/">
+      
+      
+        <link rel="prev" href="../02-y-axis/">
+      
+      
+        <link rel="next" href="../04-stepper-motors-and-end-stops/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>X-axis and Z-axis - DIY-CNC-machine</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/toc-toggle.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/shopping.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#x-axis-and-z-axis" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="DIY-CNC-machine" class="md-header__button md-logo" aria-label="DIY-CNC-machine" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DIY-CNC-machine
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              X-axis and Z-axis
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="DIY-CNC-machine" class="md-nav__button md-logo" aria-label="DIY-CNC-machine" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DIY-CNC-machine
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../BILLOFMATERIAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bill of materials
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shopping/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shopping
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-main-frame/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Main frame
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-y-axis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Y-axis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    X-axis and Z-axis
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    X-axis and Z-axis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#rails-to-bridge-beams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rails to bridge beams
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#x-axis-tensioner-and-end-stop-mount-to-lower-bridge-beam" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        X-axis tensioner and end-stop mount to lower bridge beam
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bridge-beams-to-side-plates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bridge beams to side plates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rod-bearings-to-carriage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rod bearings to carriage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#carriage-to-bridge-beams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Carriage to bridge beams
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#x-axis-motor-idlers-and-pulley-to-carriage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        X-axis motor, idlers and pulley to carriage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#x-axis-htd5m-belt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        X-axis HTD5M belt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acme-nut-and-rails-to-carriage-slider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Acme nut and rails to carriage slider
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acme-rod-and-vertical-slider-to-carriage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Acme rod and vertical slider to carriage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#z-motor-mount-and-x-axis-cable-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Z motor mount and X-axis cable chain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#y-axis-cable-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Y-axis cable chain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#z-stepper-motor-pulleys-and-belt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Z stepper motor, pulleys and belt
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-stepper-motors-and-end-stops/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stepper motors and end-stops
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-router/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Router
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-electronic-boxes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Electronic boxes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-electrical-wiring-and-connect-components/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Electrical wiring and connect components
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-wasteboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wasteboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-dust-shoe/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dust shoe
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10-software/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Software
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11-g-code-sender/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    G-Code sender
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12-final-notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Final notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#rails-to-bridge-beams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rails to bridge beams
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#x-axis-tensioner-and-end-stop-mount-to-lower-bridge-beam" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        X-axis tensioner and end-stop mount to lower bridge beam
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bridge-beams-to-side-plates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bridge beams to side plates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rod-bearings-to-carriage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rod bearings to carriage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#carriage-to-bridge-beams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Carriage to bridge beams
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#x-axis-motor-idlers-and-pulley-to-carriage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        X-axis motor, idlers and pulley to carriage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#x-axis-htd5m-belt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        X-axis HTD5M belt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acme-nut-and-rails-to-carriage-slider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Acme nut and rails to carriage slider
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acme-rod-and-vertical-slider-to-carriage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Acme rod and vertical slider to carriage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#z-motor-mount-and-x-axis-cable-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Z motor mount and X-axis cable chain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#y-axis-cable-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Y-axis cable chain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#z-stepper-motor-pulleys-and-belt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Z stepper motor, pulleys and belt
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="x-axis-and-z-axis">X-axis and Z-axis</h1>
+<h2 id="rails-to-bridge-beams">Rails to bridge beams</h2>
+<p>The last two 600 mm MGN12H rails (<strong>O21</strong>) were attached to two of the 803 mm aluminium bridge beams (<strong>O05</strong>, used for the X-axis). First, the MGN12H blocks (<strong>O22</strong>) were carefully removed from the rails.</p>
+<p><img alt="attach_rails_to_beams_1" src="../images/build/frame/attach_rails_to_beams_1.jpg" /></p>
+<p><img alt="attach_rails_to_beams_2" src="../images/build/frame/attach_rails_to_beams_2.jpg" /></p>
+<p>The same 100 mm distance used to align the belt tension sliders were used to align the rails. Because they will be off center by 3 mm, make sure that you later attach the bridge beams to the side plates in a way so the rails line up. </p>
+<p>The same 3d-printed support tools (<strong>P25</strong>) used to align the rails on the 900 mm aluminium profiles were used here as well. Everything was clamped into position. A bradawl and a hammer were used to make indentations and a 2 mm drill and a M3 drill tap was used to make the screw holes.</p>
+<p><img alt="attach_rails_to_beams_3" src="../images/build/frame/attach_rails_to_beams_3.jpg" /></p>
+<p><img alt="attach_rails_to_beams_4" src="../images/build/frame/attach_rails_to_beams_4.jpg" /></p>
+<p><img alt="attach_rails_to_beams_5" src="../images/build/frame/attach_rails_to_beams_5.jpg" /></p>
+<p><img alt="attach_rails_to_beams_6" src="../images/build/frame/attach_rails_to_beams_6.jpg" /></p>
+<p><img alt="attach_rails_to_beams_7" src="../images/build/frame/attach_rails_to_beams_7.jpg" /></p>
+<p><img alt="attach_rails_to_beams_8" src="../images/build/frame/attach_rails_to_beams_8.jpg" /></p>
+<p><img alt="attach_rails_to_beams_9" src="../images/build/frame/attach_rails_to_beams_9.jpg" /></p>
+<p><img alt="attach_rails_to_beams_10" src="../images/build/frame/attach_rails_to_beams_10.jpg" /></p>
+<p><img alt="attach_rails_to_beams_11" src="../images/build/frame/attach_rails_to_beams_11.jpg" /></p>
+<p>The rails were finally attached using 16 mm M3 screws (<strong>S03</strong>) and the MGN12H  rail blocks (<strong>O22</strong>) were gently slided back onto the rails.</p>
+<p><img alt="attach_rails_to_beams_12" src="../images/build/frame/attach_rails_to_beams_12.jpg" /></p>
+<p><img alt="attach_rails_to_beams_13" src="../images/build/frame/attach_rails_to_beams_13.jpg" /></p>
+<p><img alt="attach_rails_to_beams_14" src="../images/build/frame/attach_rails_to_beams_14.jpg" /></p>
+<p><img alt="attach_rails_to_beams_15" src="../images/build/frame/attach_rails_to_beams_15.jpg" /></p>
+<h2 id="x-axis-tensioner-and-end-stop-mount-to-lower-bridge-beam">X-axis tensioner and end-stop mount to lower bridge beam</h2>
+<p>The fixed tensioner (<strong>P28</strong>) and end-stop mount (<strong>P08</strong>) were attached to the lower bridge beam in the same fashion as on the 900 mm aluminium profiles, using 4x 20mm M5 screws (<strong>S12</strong>). When aligning the fixed tensioner, make sure that the "belt opening" is pointing in the direction of the rail. A bradawl and a hammer were used to make indentations at the center of the holes. Cutting fluid was applied and a 4 mm drill was used to drill the holes, followed by a M5 drill tap.</p>
+<p><img alt="attach_tensioners_to_beams_1" src="../images/build/frame/attach_tensioners_to_beams_1.jpg" /></p>
+<p><img alt="attach_tensioners_to_beams_2" src="../images/build/frame/attach_tensioners_to_beams_2.jpg" /></p>
+<p><img alt="attach_tensioners_to_beams_3" src="../images/build/frame/attach_tensioners_to_beams_3.jpg" /></p>
+<p><img alt="attach_tensioners_to_beams_4" src="../images/build/frame/attach_tensioners_to_beams_4.jpg" /></p>
+<p><img alt="attach_tensioners_to_beams_5" src="../images/build/frame/attach_tensioners_to_beams_5.jpg" /></p>
+<p><img alt="attach_tensioners_to_beams_6" src="../images/build/frame/attach_tensioners_to_beams_6.jpg" /></p>
+<p><img alt="attach_tensioners_to_beams_7" src="../images/build/frame/attach_tensioners_to_beams_7.jpg" /></p>
+<p><img alt="attach_tensioners_to_beams_8" src="../images/build/frame/attach_tensioners_to_beams_8.jpg" /></p>
+<p><img alt="attach_tensioners_to_beams_9" src="../images/build/frame/attach_tensioners_to_beams_9.jpg" /></p>
+<p><img alt="attach_tensioners_to_beams_10" src="../images/build/frame/attach_tensioners_to_beams_10.jpg" /></p>
+<p><img alt="attach_tensioners_to_beams_11" src="../images/build/frame/attach_tensioners_to_beams_11.jpg" /></p>
+<p><img alt="attach_tensioners_to_beams_12" src="../images/build/frame/attach_tensioners_to_beams_12.jpg" /></p>
+<h2 id="bridge-beams-to-side-plates">Bridge beams to side plates</h2>
+<p>All three bridge beams (<strong>O05</strong>) were then inserted into the slots on the side plates. Make sure that the two beams with the rails are on top of each other, with the rails pointing outwards. Also, make sure that you insert them in the correct orientation, so that the rails are lined up (due to the rails being 3 mm off center).</p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_1.jpg" /></p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_2.jpg" /></p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_3.jpg" /></p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_4.jpg" /></p>
+<p>When the bridge beams were aligned, the blocker clips (<strong>P21</strong>, <strong>P22</strong>, <strong>P23</strong>, <strong>P30</strong>, <strong>P31</strong>, <strong>P32</strong>) were placed in their correct place and a sharpie was used to mark the center of the holes to be drilled. Similar to before, a bradawl and a hammer were used to make indentations at the center of the holes.</p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_5.jpg" /></p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_6.jpg" /></p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_7.jpg" /></p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_8.jpg" /></p>
+<p>A 7 mm drill bit was used to drill the holes. As these holes were going straight through the profiles, a bench drill was used for precision. A metal file was used to remove all excess metal around the holes.</p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_9.jpg" /></p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_10.jpg" /></p>
+<p>The bridge beams were then inserted into the slots on the side plates once more, along with all the blocker clips. 2x 140 mm threaded M5 rod (<strong>T01</strong>) was inserted through the bottom two beams and 2x 60 mm M5 (<strong>S14</strong>) screws was inserted through the top bridge beam. It was all tightened using M5 nuts (<strong>N02</strong>).</p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_11.jpg" /></p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_12.jpg" /></p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_13.jpg" /></p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_14.jpg" /></p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_15.jpg" /></p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_16.jpg" /></p>
+<p><img alt="attach_beams_to_side_plates_1" src="../images/build/frame/attach_beams_to_side_plates_17.jpg" /></p>
+<h2 id="rod-bearings-to-carriage">Rod bearings to carriage</h2>
+<p>Before attaching the carriage (<strong>P07</strong>) to the bridge beams, two KFL08 rod bearings (<strong>O19</strong>) were attached on the top and the bottom of the carriage (inside) using 4x 20 mm M5 screws (<strong>S12</strong>) and 4x M5 nuts (<strong>N02</strong>). A tip is to temporarily use the acme rod (used in an upcoming step) to vertically align the two bearings.</p>
+<p><img alt="assemble_carriage_1" src="../images/build/frame/assemble_carriage_1.jpg" /></p>
+<p><img alt="assemble_carriage_2" src="../images/build/frame/assemble_carriage_2.jpg" /></p>
+<p><img alt="assemble_carriage_3" src="../images/build/frame/assemble_carriage_3.jpg" /></p>
+<p><img alt="assemble_carriage_4" src="../images/build/frame/assemble_carriage_4.jpg" /></p>
+<p><img alt="assemble_carriage_5" src="../images/build/frame/assemble_carriage_5.jpg" /></p>
+<h2 id="carriage-to-bridge-beams">Carriage to bridge beams</h2>
+<p>The carriage was attached to the 4x MGN12H blocks (<strong>O22</strong>) on the bridge beams, using 16x 25 mm M3 screws (<strong>S05</strong>).</p>
+<p><img alt="attach_carriage_to_beams_1" src="../images/build/frame/attach_carriage_to_beams_1.jpg" /></p>
+<p><img alt="attach_carriage_to_beams_2" src="../images/build/frame/attach_carriage_to_beams_2.jpg" /></p>
+<p><img alt="attach_carriage_to_beams_3" src="../images/build/frame/attach_carriage_to_beams_3.jpg" /></p>
+<p><img alt="attach_carriage_to_beams_4" src="../images/build/frame/attach_carriage_to_beams_4.jpg" /></p>
+<h2 id="x-axis-motor-idlers-and-pulley-to-carriage">X-axis motor, idlers and pulley to carriage</h2>
+<p>Each idler were made up out of 1x 60 mm fully threaded M8 screw (<strong>S15</strong>), 3x 698zz bearings (<strong>O01</strong>) and 4x (15 mm x 8.5 mm x 1.5mm) washers (<strong>W03</strong>) (1 closest to the idler blocker and 3 closest to the side plate). 2x idlers were then attached to each side plate using 2x M8 nuts (<strong>N03</strong>). Make sure that the bearings are spinning freely.</p>
+<p><img alt="attach_side_plate_motors_1" src="../images/build/frame/attach_side_plate_motors_1.jpg" /></p>
+<p><img alt="attach_side_plate_motors_2" src="../images/build/frame/attach_side_plate_motors_2.jpg" /></p>
+<p>As I designed and added the idler blocker later on in the build, some of the images doesn't have it and they also have 3 washers instead of 1 washer closest to the screw head. I left these images anyways in the guide so you can see how it looks when you attach the idlers, but please ignore the wrong number of washers. Also ignore all the other things around the idlers in the upcoming image, they are taken later on in the build.</p>
+<p><img alt="attach_idlers_motor_to_carriage_3" src="../images/build/frame/attach_idlers_motor_to_carriage_2.jpg" /></p>
+<p>Should be idler blockers and a different number of washers in the upcoming images.</p>
+<p><img alt="attach_idlers_motor_to_carriage_3" src="../images/build/frame/attach_idlers_motor_to_carriage_3.jpg" /></p>
+<p><img alt="attach_idlers_motor_to_carriage_4" src="../images/build/frame/attach_idlers_motor_to_carriage_4.jpg" /></p>
+<p><img alt="attach_idlers_motor_to_carriage_5" src="../images/build/frame/attach_idlers_motor_to_carriage_5.jpg" /></p>
+<p>To attach the stepper motor to the carriage, the 4x M3 screws locking the gear box to the motor were removed.</p>
+<p><img alt="attach_idlers_motor_to_carriage_6" src="../images/build/frame/attach_idlers_motor_to_carriage_6.jpg" /></p>
+<p><img alt="attach_idlers_motor_to_carriage_7" src="../images/build/frame/attach_idlers_motor_to_carriage_7.jpg" /></p>
+<p><img alt="attach_idlers_motor_to_carriage_8" src="../images/build/frame/attach_idlers_motor_to_carriage_8.jpg" /></p>
+<p>The stepper motor was then inserted into the large hole on the carriage, facing towards the bridge beams/idlers. 4x 40 mm M3 screws (<strong>S06</strong>) and 4x M3 washers (<strong>W05</strong>) were used to lock the stepper motor onto the carriage. The motor should be attached so that the cables are facing upwards.</p>
+<p><img alt="attach_idlers_motor_to_carriage_9" src="../images/build/frame/attach_idlers_motor_to_carriage_9.jpg" /></p>
+<p><img alt="attach_idlers_motor_to_carriage_10" src="../images/build/frame/attach_idlers_motor_to_carriage_10.jpg" /></p>
+<p><img alt="attach_idlers_motor_to_carriage_11" src="../images/build/frame/attach_idlers_motor_to_carriage_11.jpg" /></p>
+<p>1x HTD5M timing pulley (<strong>O18</strong>) was attached to the motor shaft using set screws.</p>
+<p><img alt="attach_idlers_motor_to_carriage_12" src="../images/build/frame/attach_idlers_motor_to_carriage_12.jpg" /></p>
+<p><img alt="attach_idlers_motor_to_carriage_13" src="../images/build/frame/attach_idlers_motor_to_carriage_13.jpg" /></p>
+<h2 id="x-axis-htd5m-belt">X-axis HTD5M belt</h2>
+<p>The HTD5M belt (<strong>O17</strong>) was first inserted into the fixed belt tensioner using a flat screw driver. It was then stretched along the aluminium profile, below the first idler, around the timing pulley, below the second idler and all the way to the other side.</p>
+<p>The belt was cut at an appropriate length and inserted into the belt tensioner (<strong>P27</strong>) using a flat screw driver.</p>
+<p><img alt="attach_x_axis_belt_1" src="../images/build/frame/attach_x_axis_belt_1.jpg" /></p>
+<p><img alt="attach_x_axis_belt_2" src="../images/build/frame/attach_x_axis_belt_2.jpg" /></p>
+<p><img alt="attach_x_axis_belt_3" src="../images/build/frame/attach_x_axis_belt_3.jpg" /></p>
+<p><img alt="attach_x_axis_belt_4" src="../images/build/frame/attach_x_axis_belt_4.jpg" /></p>
+<p><img alt="attach_x_axis_belt_5" src="../images/build/frame/attach_x_axis_belt_5.jpg" /></p>
+<p>The belt tensioner was then attached to the side plate using 1x 60mm fully threaded M8 screw (<strong>S15</strong>), 1x M8 nut (<strong>N03</strong>) and 1x (20mm x 10mm x 2mm) washer (<strong>W04</strong>). The M8 screw in the image is not fully threaded as I lost the one I was suppose to use and had to use another one, so please ignore :)</p>
+<p><img alt="attach_x_axis_belt_6" src="../images/build/frame/attach_x_axis_belt_6.jpg" /></p>
+<p><img alt="attach_x_axis_belt_7" src="../images/build/frame/attach_x_axis_belt_7.jpg" /></p>
+<p>Make sure that the belt is not too loose and not too tight.</p>
+<p><img alt="attach_x_axis_belt_8" src="../images/build/frame/attach_x_axis_belt_8.jpg" /></p>
+<h2 id="acme-nut-and-rails-to-carriage-slider">Acme nut and rails to carriage slider</h2>
+<p>1x acme nut (<strong>O03</strong>) was inserted from the outside, into the the center hole at the top of the vertical carriage slider (<strong>P36</strong>). It was locked in place using 4x 25mm M3 screws (<strong>S05</strong>).</p>
+<p><img alt="assemble_carriage_6" src="../images/build/frame/assemble_carriage_6_0.jpg" /></p>
+<p><img alt="assemble_carriage_6" src="../images/build/frame/assemble_carriage_6.jpg" /></p>
+<p><img alt="assemble_carriage_7" src="../images/build/frame/assemble_carriage_7.jpg" /></p>
+<p><img alt="assemble_carriage_8" src="../images/build/frame/assemble_carriage_8.jpg" /></p>
+<p>2x smaller 200 mm MGN12H rails (<strong>O20</strong>) were then attached to the back of the vertical carriage slider. First, the MGN12H blocks (<strong>O22</strong>) were carefully removed from each rail. After that, the rails were screwed in place on the back of the vertical carriage slider using 16x 20 mm M3 screws (<strong>S04</strong>). The MGN12H blocks were then slided back on and each end were blocked using tape. </p>
+<p><img alt="assemble_carriage_9" src="../images/build/frame/assemble_carriage_9.jpg" /></p>
+<p><img alt="assemble_carriage_10" src="../images/build/frame/assemble_carriage_10.jpg" /></p>
+<p><img alt="assemble_carriage_11" src="../images/build/frame/assemble_carriage_11.jpg" /></p>
+<p><img alt="assemble_carriage_12" src="../images/build/frame/assemble_carriage_12.jpg" /></p>
+<p><img alt="assemble_carriage_13" src="../images/build/frame/assemble_carriage_13.jpg" /></p>
+<h2 id="acme-rod-and-vertical-slider-to-carriage">Acme rod and vertical slider to carriage</h2>
+<p>To attach the vertical slider to the carriage, 16x 25 mm M3 screws (<strong>S05</strong>) were first inserted into the holes on the carriage. You might need to "open up" the holes using a narrow tool (depending on the direction you 3d-printed the carriage).</p>
+<p><img alt="assemble_carriage_17" src="../images/build/frame/assemble_carriage_17.jpg" /></p>
+<p><img alt="assemble_carriage_18" src="../images/build/frame/assemble_carriage_18.jpg" /></p>
+<p><img alt="assemble_carriage_19" src="../images/build/frame/assemble_carriage_19.jpg" /></p>
+<p>1x acme rod (<strong>O02</strong>) was then inserted through the two KFL08 rod bearings and the acme nut, and the set screws on the bearings were tightened.</p>
+<p><img alt="assemble_carriage_14" src="../images/build/frame/assemble_carriage_14.jpg" /></p>
+<p><img alt="assemble_carriage_15" src="../images/build/frame/assemble_carriage_15.jpg" /></p>
+<p><img alt="assemble_carriage_16" src="../images/build/frame/assemble_carriage_16.jpg" /></p>
+<p>The vertical slider was finally attached to the carriage by attaching the previously mentioned 16x 25 mm M3 screws (<strong>S05</strong>) to the MGN12H blocks on the vertical slider.</p>
+<p><img alt="assemble_carriage_20" src="../images/build/frame/assemble_carriage_20.jpg" /></p>
+<p><img alt="assemble_carriage_21" src="../images/build/frame/assemble_carriage_21.jpg" /></p>
+<h2 id="z-motor-mount-and-x-axis-cable-chain">Z motor mount and X-axis cable chain</h2>
+<p>The first step was to find a good length of the X-axis cable chain (<strong>O09</strong>). To simplify this process, the X-axis belt was removed to easier move the carriage along the X-axis.</p>
+<p><img alt="assemble_carriage_22" src="../images/build/frame/assemble_carriage_22.jpg" /></p>
+<p>The Z motor mount (<strong>P40</strong>) and the X-axis cable chain mount (<strong>P38</strong>) were then attached using 3x 25 mm M4 screws (<strong>S10</strong>), 3x M4 nuts (<strong>N01</strong>) and 3x (10mm x 5mm x 1mm) washers (<strong>W01</strong>).</p>
+<p><img alt="assemble_carriage_23" src="../images/build/frame/assemble_carriage_23.jpg" /></p>
+<p><img alt="assemble_carriage_24" src="../images/build/frame/assemble_carriage_24.jpg" /></p>
+<p><img alt="assemble_carriage_25" src="../images/build/frame/assemble_carriage_25.jpg" /></p>
+<p><img alt="assemble_carriage_26" src="../images/build/frame/assemble_carriage_26.jpg" /></p>
+<p><img alt="assemble_carriage_27" src="../images/build/frame/assemble_carriage_27.jpg" /></p>
+<p><img alt="assemble_carriage_28" src="../images/build/frame/assemble_carriage_28.jpg" /></p>
+<p><img alt="assemble_carriage_29" src="../images/build/frame/assemble_carriage_29.jpg" /></p>
+<p><img alt="assemble_carriage_30" src="../images/build/frame/assemble_carriage_30_1.jpg" /></p>
+<p>They Z motor mount was then attached to the carriage using 2x 80mm M8 screws (<strong>S16</strong>), 2x M8 nuts (<strong>N03</strong>) and 1x (20mm x 10mm x 2mm) washers (<strong>W04</strong>). The vaccum mount was also inserted and attached to the right-side M8 screw. Please ignore the timing pulley attached to the acme rod in some of the images, it will be attached in a later step.</p>
+<p><img alt="assemble_carriage_30" src="../images/build/frame/assemble_carriage_30.jpg" /></p>
+<p><img alt="assemble_carriage_31" src="../images/build/frame/assemble_carriage_31.jpg" /></p>
+<p><img alt="assemble_carriage_32" src="../images/build/frame/assemble_carriage_32.jpg" /></p>
+<p><img alt="assemble_carriage_33" src="../images/build/frame/assemble_carriage_33.jpg" /></p>
+<p><img alt="assemble_carriage_34" src="../images/build/frame/assemble_carriage_34.jpg" /></p>
+<p><img alt="assemble_carriage_35" src="../images/build/frame/assemble_carriage_35.jpg" /></p>
+<p>1x 1 meter cable chain (<strong>O09</strong>) were then clamped to the cable chain mount and to the back-side bridge beam. The carriage was then moved as far to the sides as possible. It's important that the chain doesn't touch any of the side plates when moved. In my case, I had to remove 3 links from the cable chain to get a good length of the chain.</p>
+<p><img alt="assemble_carriage_36" src="../images/build/frame/assemble_carriage_36.jpg" /></p>
+<p><img alt="assemble_carriage_37" src="../images/build/frame/assemble_carriage_37.jpg" /></p>
+<p><img alt="assemble_carriage_38" src="../images/build/frame/assemble_carriage_38.jpg" /></p>
+<p><img alt="assemble_carriage_39" src="../images/build/frame/assemble_carriage_39_0.jpg" /></p>
+<p><img alt="assemble_carriage_39" src="../images/build/frame/assemble_carriage_39.jpg" /></p>
+<p>The Z motor mount and cable chain mount were then disassembled and the cable chain was properly attached to the cable chain mount using 2x 25mm M4 screws (<strong>S10</strong>), 2x M4 nuts (<strong>N01</strong>) and 2x (10mm x 5mm x 1mm) washers (<strong>W01</strong>).</p>
+<p><img alt="assemble_carriage_40" src="../images/build/frame/assemble_carriage_40.jpg" /></p>
+<p><img alt="assemble_carriage_41" src="../images/build/frame/assemble_carriage_41.jpg" /></p>
+<p><img alt="assemble_carriage_42" src="../images/build/frame/assemble_carriage_42.jpg" /></p>
+<p><img alt="assemble_carriage_43" src="../images/build/frame/assemble_carriage_43.jpg" /></p>
+<p>The Z motor mount and cable chain mount were then assembled again and attached to the carriage in the same fashion as before.</p>
+<p><img alt="assemble_carriage_44" src="../images/build/frame/assemble_carriage_44.jpg" /></p>
+<p><img alt="assemble_carriage_45" src="../images/build/frame/assemble_carriage_45.jpg" /></p>
+<p><img alt="assemble_carriage_46" src="../images/build/frame/assemble_carriage_46.jpg" /></p>
+<p><img alt="assemble_carriage_47" src="../images/build/frame/assemble_carriage_47.jpg" /></p>
+<p>The carriage was move all the way to the right side plate and the cable chain was clamped to the lower back bridge beam.</p>
+<p><img alt="assemble_carriage_48" src="../images/build/frame/assemble_carriage_48.jpg" /></p>
+<p><img alt="assemble_carriage_49" src="../images/build/frame/assemble_carriage_49.jpg" /></p>
+<p>A bradawl and a hammer were used to make indentations at the center of the two holes. Cutting fluid was applied and a 3 mm drill was used to drill the holes, followed by a M4 drill tap. The cable chain was then attached to the bridge beam using 2x 25 mm M4 screws (<strong>S10</strong>).</p>
+<p><img alt="assemble_carriage_50" src="../images/build/frame/assemble_carriage_50.jpg" /></p>
+<p><img alt="assemble_carriage_51" src="../images/build/frame/assemble_carriage_51.jpg" /></p>
+<p><img alt="assemble_carriage_52" src="../images/build/frame/assemble_carriage_52.jpg" /></p>
+<p><img alt="assemble_carriage_53" src="../images/build/frame/assemble_carriage_53.jpg" /></p>
+<p><img alt="assemble_carriage_54" src="../images/build/frame/assemble_carriage_54.jpg" /></p>
+<p><img alt="assemble_carriage_55" src="../images/build/frame/assemble_carriage_55.jpg" /></p>
+<p><img alt="assemble_carriage_56" src="../images/build/frame/assemble_carriage_56.jpg" /></p>
+<p><img alt="assemble_carriage_57" src="../images/build/frame/assemble_carriage_57.jpg" /></p>
+<p><img alt="assemble_carriage_58" src="../images/build/frame/assemble_carriage_58.jpg" /></p>
+<p><img alt="assemble_carriage_59" src="../images/build/frame/assemble_carriage_59.jpg" /></p>
+<p><img alt="assemble_carriage_60" src="../images/build/frame/assemble_carriage_60.jpg" /></p>
+<p>Finally, the X-axis belt was reattached and tightened.</p>
+<p><img alt="assemble_carriage_61" src="../images/build/frame/assemble_carriage_61.jpg" /></p>
+<h2 id="y-axis-cable-chain">Y-axis cable chain</h2>
+<p>The Y-axis cable chain (<strong>O09</strong>) was attached to the frame using 1x cable chain mount (<strong>P05</strong>) and 1x cable chain support (<strong>P06</strong>). The cable chain mount was clamped to the left side of the lower frame and aligned with the last vertial beam. A bradawl and a hammer were used to make indentations at the center of the two holes. Cutting fluid was applied and a 4 mm drill was used to drill the holes, followed by a M5 drill tap. The cable chain mount was then attached to the lower frame using 2x 20 mm M5 screws (<strong>S12</strong>).</p>
+<p><img alt="assemble_cable_support_y_axis_1" src="../images/build/frame/assemble_cable_support_y_axis_1.jpg" /></p>
+<p><img alt="assemble_cable_support_y_axis_2" src="../images/build/frame/assemble_cable_support_y_axis_2.jpg" /></p>
+<p><img alt="assemble_cable_support_y_axis_3" src="../images/build/frame/assemble_cable_support_y_axis_3.jpg" /></p>
+<p><img alt="assemble_cable_support_y_axis_4" src="../images/build/frame/assemble_cable_support_y_axis_4.jpg" /></p>
+<p><img alt="assemble_cable_support_y_axis_5" src="../images/build/frame/assemble_cable_support_y_axis_5.jpg" /></p>
+<p>The cable chain support was only attached to the lower frame for the cable chain to rest on. It was aligned and attached it at the center between the second and third vertical beam. Make sure that it does not go below the bottom frame!</p>
+<p>In the same way as the cable chain mount, a bradawl and a hammer were used to make indentations at the center of the two holes. Cutting fluid was applied and a 4 mm drill was used to drill the holes, followed by a M5 drill tap. The support was then attached to the lower frame using 2x 20 mm M5 screws (<strong>S12</strong>).</p>
+<p><img alt="assemble_cable_support_y_axis_6" src="../images/build/frame/assemble_cable_support_y_axis_6.jpg" /></p>
+<p><img alt="assemble_cable_support_y_axis_6" src="../images/build/frame/assemble_cable_support_y_axis_6_1.jpg" /></p>
+<p><img alt="assemble_cable_support_y_axis_7" src="../images/build/frame/assemble_cable_support_y_axis_7.jpg" /></p>
+<p><img alt="assemble_cable_support_y_axis_8" src="../images/build/frame/assemble_cable_support_y_axis_8.jpg" /></p>
+<p><img alt="assemble_cable_support_y_axis_9" src="../images/build/frame/assemble_cable_support_y_axis_9.jpg" /></p>
+<p><img alt="assemble_cable_support_y_axis_10" src="../images/build/frame/assemble_cable_support_y_axis_10.jpg" /></p>
+<p><img alt="assemble_cable_support_y_axis_11" src="../images/build/frame/assemble_cable_support_y_axis_11.jpg" /></p>
+<p>The Y-axis cable chain (<strong>O09</strong>) was then attached to the left side plate (<strong>P20</strong>) and lower frame support using 4x 25 mm M4 screws (<strong>S10</strong>), 4x M4 nuts (<strong>N01</strong>) and 4x (10mm x 5mm x 1mm) washers (<strong>W01</strong>).</p>
+<p><img alt="assemble_cable_support_y_axis_12" src="../images/build/frame/assemble_cable_support_y_axis_12.jpg" /></p>
+<p><img alt="assemble_cable_support_y_axis_13" src="../images/build/frame/assemble_cable_support_y_axis_13.jpg" /></p>
+<p><img alt="assemble_cable_support_y_axis_14" src="../images/build/frame/assemble_cable_support_y_axis_14.jpg" /></p>
+<p><img alt="assemble_cable_support_y_axis_15" src="../images/build/frame/assemble_cable_support_y_axis_15.jpg" /></p>
+<p><img alt="assemble_cable_support_y_axis_16" src="../images/build/frame/assemble_cable_support_y_axis_16.jpg" /></p>
+<p><img alt="assemble_cable_support_y_axis_17" src="../images/build/frame/assemble_cable_support_y_axis_17.jpg" /></p>
+<h2 id="z-stepper-motor-pulleys-and-belt">Z stepper motor, pulleys and belt</h2>
+<p>The non-geared NEMA17 stepper motor (<strong>E11</strong>) was attached to the Z-axis motor mount using 4x 8mm M3 screws (<strong>S08</strong>) and 4x M3 washers (<strong>W06</strong>). Make sure that the motor cable connector is pointing in the same direction as the opening of the X-axis cable chain.</p>
+<p>1x 16 teeth GT2 timing pulley (<strong>O15</strong>) was then attached to the motor shaft and 1x 60 teeth GT2 timing pulley (<strong>O16</strong>) was attached to the acme rod. Both were locked in place using set screws. Make sure that they line up. </p>
+<p><img alt="attach_z_stepper_pulleys_belt_1" src="../images/build/frame/attach_z_stepper_pulleys_belt_1.jpg" /></p>
+<p><img alt="attach_z_stepper_pulleys_belt_2" src="../images/build/frame/attach_z_stepper_pulleys_belt_2.jpg" /></p>
+<p><img alt="attach_z_stepper_pulleys_belt_3" src="../images/build/frame/attach_z_stepper_pulleys_belt_3.jpg" /></p>
+<p><img alt="attach_z_stepper_pulleys_belt_4" src="../images/build/frame/attach_z_stepper_pulleys_belt_4.jpg" /></p>
+<p><img alt="attach_z_stepper_pulleys_belt_5" src="../images/build/frame/attach_z_stepper_pulleys_belt_5.jpg" /></p>
+<p><img alt="attach_z_stepper_pulleys_belt_6" src="../images/build/frame/attach_z_stepper_pulleys_belt_6.jpg" /></p>
+<p>1x GT2 timing belt (<strong>O14</strong>) was looped around both timing pulleys and stretched. Before tightning the M3 screws and locking the motor into place, make sure that the belt is not too loose and not too tight. </p>
+<p><img alt="attach_z_stepper_pulleys_belt_7" src="../images/build/frame/attach_z_stepper_pulleys_belt_7.jpg" /></p>
+<p><img alt="attach_z_stepper_pulleys_belt_8" src="../images/build/frame/attach_z_stepper_pulleys_belt_8.jpg" /></p>
+<p><img alt="attach_z_stepper_pulleys_belt_9" src="../images/build/frame/attach_z_stepper_pulleys_belt_9.jpg" /></p>
+<p><img alt="attach_z_stepper_pulleys_belt_10" src="../images/build/frame/attach_z_stepper_pulleys_belt_10.jpg" /></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../assets/javascripts/toc-toggle.js"></script>
+      
+        <script src="../assets/javascripts/shopping.js"></script>
+      
+    
+  </body>
+</html>
