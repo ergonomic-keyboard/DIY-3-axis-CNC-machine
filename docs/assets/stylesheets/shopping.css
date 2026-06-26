@@ -414,10 +414,12 @@
 
 .shopping-item__title {
   display: inline-flex;
-  align-items: baseline;
+  /* SL-10.Q: the alts dropdown lives inline with code and qty now, so
+     center-align so the select doesn't sit awkwardly on the text baseline. */
+  align-items: center;
   gap: 0.4rem;
   min-width: 0;
-  flex: 1 1 12rem;
+  flex: 1 1 14rem;
   overflow: hidden;
   white-space: nowrap;
 }
@@ -429,12 +431,6 @@
   padding: 0.05rem 0.35rem;
   border-radius: 0.2rem;
   flex: 0 0 auto;
-}
-.shopping-item__name {
-  font-weight: 500;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .shopping-item__qty {
   color: var(--shopping-muted);
@@ -453,7 +449,9 @@
 .shopping-item__alts-select {
   font-size: 0.78rem;
   padding: 0.2rem 0.4rem;
-  max-width: 11rem;
+  /* SL-10.Q: the select holds the item's name now, so give it more room. */
+  max-width: 14rem;
+  min-width: 6rem;
 }
 .shopping-item__alts-remove {
   background: transparent;
@@ -613,6 +611,30 @@
 .shopping-item__add--shop.is-open { border-color: #2ea44f; color: #2ea44f; background: rgba(46, 164, 79, 0.08); }
 .shopping-item__add-icon { font-size: 0.85rem; font-weight: 700; line-height: 1; }
 
+/* SL-10.R: single "Visit" link per item row, target tied to current shop. */
+.shopping-item__visit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: transparent;
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.18rem 0.45rem;
+  font: inherit;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--shopping-muted);
+  text-decoration: none;
+  flex: 0 0 auto;
+}
+.shopping-item__visit:hover {
+  border-color: var(--shopping-accent);
+  color: var(--shopping-accent);
+}
+.shopping-item__visit-icon { font-size: 0.85rem; line-height: 1; }
+
 /* SL-10.P: EAN button + popover on the head row. */
 .shopping-item__ean-wrap {
   position: relative;
@@ -728,18 +750,6 @@
 }
 .shopping-item__body .shopping-shops { margin-left: 0; }
 .shopping-item__body .shopping-override { margin-left: 0; }
-.shopping-item__alt-badge {
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.05rem 0.35rem;
-  border-radius: 999px;
-  background: transparent;
-  border: 1px solid var(--shopping-accent);
-  color: var(--shopping-accent);
-  flex: 0 0 auto;
-}
 
 /* -- shop list ------------------------------------------------------ */
 .shopping-shops {

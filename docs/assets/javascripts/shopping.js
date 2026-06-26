@@ -1430,16 +1430,22 @@
 
     head.appendChild(renderItemThumb(effective));
 
+    // SL-10.Q: the alts dropdown IS the item-name display now — no separate
+    // name span, no "Alt" badge. The dropdown's selected option text shows
+    // the current product's name (parent or alt).
     var titleWrap = el('div', 'shopping-item__title');
     titleWrap.appendChild(el('span', 'shopping-item__code', parentItem.code));
-    titleWrap.appendChild(el('span', 'shopping-item__name', effective.name));
-    if (isAlt) titleWrap.appendChild(el('span', 'shopping-item__alt-badge', 'Alt'));
+    titleWrap.appendChild(renderAltsDropdown(parentItem, effectiveCode));
     var qtyText = '×' + (effective.qty != null ? effective.qty : '?');
     titleWrap.appendChild(el('span', 'shopping-item__qty', qtyText));
     head.appendChild(titleWrap);
 
-    head.appendChild(renderAltsDropdown(parentItem, effectiveCode));
     head.appendChild(renderShopSummary(effective));
+    // SL-10.R: a single "Visit" link whose target depends on which item AND
+    // shop the user has picked. Sits beside the shop summary since it's
+    // entirely shop-scoped.
+    var visitEl = renderVisitLink(effective);
+    if (visitEl) head.appendChild(visitEl);
     // SL-10.P: EAN affordance for the currently-selected shop, immediately
     // beside the shop summary so the user reads "this is THIS shop's EAN".
     var eanEl = renderEanControl(effective);
@@ -1503,6 +1509,32 @@
       var f = document.getElementById(firstFieldId);
       if (f) f.focus();
     });
+  }
+
+  // SL-10.R: a single "Visit" link per item row, target tied to whichever
+  // item (parent or alt via the alts dropdown) and shop (via the shop
+  // dropdown) the user has picked. Falls back to the shop's home_url when
+  // the entry itself has no url; omitted when no URL is available anywhere.
+  function renderVisitLink(effective) {
+    var entries = entriesForItem(effective.code);
+    if (entries.length === 0) return null;
+    var chosenId = chosenShopForItem(effective.code);
+    var shopId = chosenId || entries[0].shop;
+    var entry = (data.prices[effective.code] || []).find(function (e) { return e.shop === shopId; });
+    var shop = data.shopsById[shopId];
+    var url = (entry && entry.url) || (shop && shop.home_url) || null;
+    if (!url) return null;
+    var shopName = (shop && shop.name) || shopId;
+    var a = document.createElement('a');
+    a.className = 'shopping-item__visit';
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.title = 'Visit ' + shopName + ' product page';
+    a.setAttribute('aria-label', a.title);
+    a.appendChild(el('span', 'shopping-item__visit-icon', '↗'));
+    a.appendChild(el('span', 'shopping-item__visit-text', 'Visit'));
+    return a;
   }
 
   // SL-10.P: EAN button + popover for the currently-selected shop. Edit/Save
@@ -1647,9 +1679,12 @@
     sel.setAttribute('aria-label', 'Choose an alternative product for ' + parentItem.name);
     sel.title = 'Pick the variant of ' + parentItem.name + ' you want';
 
+    // SL-10.Q: default option text IS the parent name (no "Default · " prefix),
+    // so when the user picks the default the dropdown shows the actual product
+    // name on the row.
     var defaultOpt = document.createElement('option');
     defaultOpt.value = '';
-    defaultOpt.textContent = alts.length === 0 ? 'Default' : 'Default · ' + parentItem.name;
+    defaultOpt.textContent = parentItem.name;
     if (effectiveCode === parentItem.code) defaultOpt.selected = true;
     sel.appendChild(defaultOpt);
 
