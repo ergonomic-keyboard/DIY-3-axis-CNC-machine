@@ -866,6 +866,14 @@
       return g;
     });
 
+    // SL-10.Y: stable per-shop ordering for the summary — alphabetical by shop
+    // display name, falling back to the shop id so unknown ids still sort.
+    groups.sort(function (a, b) {
+      var an = (data.shopsById[a.shopId] && data.shopsById[a.shopId].name) || a.shopId;
+      var bn = (data.shopsById[b.shopId] && data.shopsById[b.shopId].name) || b.shopId;
+      return an.localeCompare(bn);
+    });
+
     var grandTotal = groups.reduce(function (sum, g) { return sum + g.total; }, 0);
 
     return { groups: groups, unassigned: unassigned, grandTotal: grandTotal };
@@ -2795,20 +2803,58 @@
     return box;
   }
 
+  // SL-10.Y: order-summary groups list every line bought at the shop and
+  // expose the shop's shipping cost as an inline-editable label that writes
+  // through to state.userShopShipping (same overlay SL-10.W's per-row edit
+  // uses), so a single source of truth controls both views.
   function renderGroup(g) {
     var shop = data.shopsById[g.shopId];
     var displayName = shop ? shop.name : g.shopId;
+    var currency = (shop && shop.currency) || 'EUR';
     var card = el('div', 'shopping-summary__group');
 
     var head = el('div', 'shopping-summary__group-head');
     head.appendChild(el('span', 'shopping-summary__group-name', displayName));
-    head.appendChild(el('span', 'shopping-money', formatMoney(g.total, 'EUR')));
+    head.appendChild(el('span', 'shopping-money', formatMoney(g.total, currency)));
     card.appendChild(head);
 
+    // Per-shop line list — one row per item bought from this shop.
+    var lineList = el('ul', 'shopping-summary__lines');
+    g.lines.forEach(function (line) {
+      var li = el('li', 'shopping-summary__line');
+      var label = el('span', 'shopping-summary__line-label',
+        line.item.code + ' × ' + line.qty);
+      label.title = line.item.name;
+      li.appendChild(label);
+      var unitText = line.unitPrice == null
+        ? '—'
+        : formatMoney(line.unitPrice, currency);
+      li.appendChild(el('span', 'shopping-summary__line-unit', '@ ' + unitText));
+      var totalText = line.lineTotal == null
+        ? '—'
+        : formatMoney(line.lineTotal, currency);
+      var totalSpan = el('span', 'shopping-summary__line-total shopping-money', totalText);
+      if (line.lineTotal == null) totalSpan.classList.add('is-missing');
+      li.appendChild(totalSpan);
+      lineList.appendChild(li);
+    });
+    card.appendChild(lineList);
+
     var meta = el('div', 'shopping-summary__group-meta');
-    meta.appendChild(el('span', null, g.lines.length + ' item' + (g.lines.length === 1 ? '' : 's')));
-    meta.appendChild(el('span', null, 'Subtotal ' + formatMoney(g.subtotal, 'EUR')));
-    meta.appendChild(el('span', null, 'Shipping ' + g.shipping.label));
+    meta.appendChild(el('span', null, 'Subtotal ' + formatMoney(g.subtotal, currency)));
+    var shipWrap = el('span', 'shopping-summary__group-ship', 'Shipping ' + g.shipping.label);
+    // Editable shipping label — reuses the SL-10.W editor + setUserShopShipping
+    // overlay, so the row-level edit and summary-level edit stay consistent.
+    if (shop) {
+      var currentCost = shop.shipping && typeof shop.shipping.standard_cost === 'number'
+        ? shop.shipping.standard_cost
+        : null;
+      makeEditableShipping(shipWrap, {
+        currentCost: currentCost,
+        onSave: function (v) { setUserShopShipping(g.shopId, v); }
+      });
+    }
+    meta.appendChild(shipWrap);
     card.appendChild(meta);
 
     if (g.missingPrice) {
