@@ -54,6 +54,31 @@ SKIP_SHOPS = {
     "3dhubs_print_service",  # quote-only, no fixed price
 }
 
+# Hosts whose product pages are known to be unfetchable. User-added shops
+# (`user-…` ids) at any of these hosts get the same skip treatment as their
+# canonical seeded counterparts, so the dry-run output stays clean.
+SKIP_HOSTS = {
+    "amazon.nl", "amazon.com", "amazon.de", "amazon.fr",
+    "bol.com",
+    "conrad.nl", "conrad.com", "conrad.de",
+    "aliexpress.com", "aliexpress.nl",
+    "alibaba.com",  # same marketplace family as aliexpress — listing-style URLs
+}
+
+
+def _entry_host_skipped(entry: dict) -> bool:
+    url = entry.get("url") or ""
+    if not url:
+        return False
+    try:
+        from urllib.parse import urlparse
+        host = (urlparse(url).hostname or "").lower()
+        if host.startswith("www."):
+            host = host[4:]
+        return host in SKIP_HOSTS
+    except Exception:
+        return False
+
 
 # URLs that are clearly listing/search/category pages get skipped without
 # even fetching — they never expose a single product offer.
@@ -319,7 +344,7 @@ def refresh_entry(entry: dict[str, Any], *, today: str | None = None) -> dict[st
     shop = entry.get("shop", "?")
     url = entry.get("url")
 
-    if shop in SKIP_SHOPS:
+    if shop in SKIP_SHOPS or _entry_host_skipped(entry):
         return {"status": "skipped", "reason": "not auto-fetchable", "observation": None}
     if looks_like_listing_url(url):
         return {"status": "skipped", "reason": "listing/search/category URL, not a product page", "observation": None}
@@ -364,7 +389,7 @@ def refresh(prices: dict[str, Any], *, dry_run: bool) -> tuple[int, int, int]:
         label = f"{item} @ {shop}"
 
         # Pre-fetch skips get their own log line so the user sees why nothing happened.
-        if shop in SKIP_SHOPS:
+        if shop in SKIP_SHOPS or _entry_host_skipped(entry):
             skipped += 1
             print(f"[skip ] {label}: not auto-fetchable")
             continue

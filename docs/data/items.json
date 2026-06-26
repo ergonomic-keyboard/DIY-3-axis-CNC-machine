@@ -505,7 +505,14 @@
       "category": "electronics",
       "name": "12V Fan 40x40 mm",
       "qty": 2,
-      "image": "images/parts/electronics/fan.jpg"
+      "image": "images/parts/electronics/fan.jpg",
+      "alternatives": [
+        {
+          "code": "E01-user-6881",
+          "name": "Noctua NF-A4x10 FLX",
+          "ean": "4716123314691"
+        }
+      ]
     },
     {
       "code": "E02",
@@ -564,7 +571,14 @@
       "category": "electronics",
       "name": "Arduino Uno",
       "qty": 1,
-      "image": "images/parts/electronics/Arduino_Uno.jpg"
+      "image": "images/parts/electronics/Arduino_Uno.jpg",
+      "alternatives": [
+        {
+          "code": "E09-user-2cf2",
+          "name": "Arduino R4 wifi",
+          "ean": "7630049204591"
+        }
+      ]
     },
     {
       "code": "E10",
@@ -598,7 +612,14 @@
       "category": "electronics",
       "name": "C14 terminal",
       "qty": 1,
-      "image": "images/parts/electronics/c14_terminal.jpg"
+      "image": "images/parts/electronics/c14_terminal.jpg",
+      "alternatives": [
+        {
+          "code": "E14-user-dc1a",
+          "name": "C14 10Amp",
+          "ean": "4064161203683"
+        }
+      ]
     },
     {
       "code": "E15",
