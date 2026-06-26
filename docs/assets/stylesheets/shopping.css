@@ -423,14 +423,27 @@
   overflow: hidden;
   white-space: nowrap;
 }
+/* SL-10.S: the code badge is a click-to-copy button — keep the monospace
+   badge look, but signal interactivity on hover/focus. */
 .shopping-item__code {
   font-family: var(--md-code-font, monospace);
   font-size: 0.72rem;
   color: var(--shopping-muted);
   background: var(--md-code-bg-color, transparent);
-  padding: 0.05rem 0.35rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid transparent;
   border-radius: 0.2rem;
   flex: 0 0 auto;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+.shopping-item__code:hover,
+.shopping-item__code:focus-visible {
+  color: var(--shopping-accent);
+  border-color: var(--shopping-accent);
+  background: rgba(0, 0, 0, 0.02);
 }
 .shopping-item__qty {
   color: var(--shopping-muted);

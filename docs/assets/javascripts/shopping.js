@@ -1433,8 +1433,10 @@
     // SL-10.Q: the alts dropdown IS the item-name display now — no separate
     // name span, no "Alt" badge. The dropdown's selected option text shows
     // the current product's name (parent or alt).
+    // SL-10.S: the code badge doubles as a click-to-copy button that copies
+    // the dropdown's currently-selected product name to the clipboard.
     var titleWrap = el('div', 'shopping-item__title');
-    titleWrap.appendChild(el('span', 'shopping-item__code', parentItem.code));
+    titleWrap.appendChild(renderItemCodeButton(parentItem));
     titleWrap.appendChild(renderAltsDropdown(parentItem, effectiveCode));
     var qtyText = '×' + (effective.qty != null ? effective.qty : '?');
     titleWrap.appendChild(el('span', 'shopping-item__qty', qtyText));
@@ -1687,6 +1689,30 @@
     return renderHistoryControl(entry, effective);
   }
 
+  // SL-10.S: item-code badge as a click-to-copy button. Clicking reads the
+  // sibling alts dropdown's selected option text and copies that product
+  // name to the clipboard with a transient "Copied!" flash.
+  function renderItemCodeButton(parentItem) {
+    var btn = el('button', 'shopping-item__code');
+    btn.type = 'button';
+    btn.textContent = parentItem.code;
+    btn.title = 'Copy product name to clipboard';
+    btn.setAttribute('aria-label',
+      'Copy currently-selected product name for ' + parentItem.code);
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var titleEl = btn.closest('.shopping-item__title');
+      var sel = titleEl && titleEl.querySelector('.shopping-item__alts-select');
+      if (!sel) return;
+      var opt = sel.options[sel.selectedIndex];
+      var name = opt && opt.text;
+      if (!name) return;
+      copyTextWithFlash(name, btn);
+    });
+    return btn;
+  }
+
   // SL-10.C: alternatives picker as a real <select> on the item's head row.
   // The trailing "+ Add alternative…" option opens the expanded body so the
   // user can fill in name + shop details inline.
@@ -1721,14 +1747,6 @@
     addOpt.value = '__add__';
     addOpt.textContent = '+ Add alternative…';
     sel.appendChild(addOpt);
-
-    // SL-10.S: double-clicking the dropdown copies the displayed product
-    // name to the clipboard with a brief on-screen "Copied!" flash.
-    sel.addEventListener('dblclick', function (e) {
-      var name = sel.options[sel.selectedIndex] && sel.options[sel.selectedIndex].text;
-      if (!name) return;
-      copyTextWithFlash(name, sel);
-    });
 
     sel.addEventListener('change', function () {
       if (sel.value === '__add__') {
