@@ -26,3 +26,16 @@ or
 * Hackaday's podcast (~25:30): [https://open.spotify.com/episode/2YuxrVAgbQvVTjcUljJ3rj?si=lkp1L061R7ix6WkA7s1ieA](https://open.spotify.com/episode/2YuxrVAgbQvVTjcUljJ3rj?si=lkp1L061R7ix6WkA7s1ieA)
 * Arduino's official blog: [https://blog.arduino.cc/2021/11/03/learn-how-to-build-your-own-massive-3d-printed-cnc-router/](https://blog.arduino.cc/2021/11/03/learn-how-to-build-your-own-massive-3d-printed-cnc-router/)
 * Weekly robotics newsletter: [https://weeklyrobotics.com/weekly-robotics-168](https://weeklyrobotics.com/weekly-robotics-168)
+
+---
+
+**Build the site locally** (single command — runs mkdocs serve and the
+write-through helper together so edits on the Shopping page land directly in
+`docs/data/*.json`):
+
+```sh
+python3 tools/dev.py
+```
+
+Then open <http://127.0.0.1:8000/DIY-3-axis-CNC-machine/shopping/>. See
+[`developers.md`](./developers.md) for everything else.

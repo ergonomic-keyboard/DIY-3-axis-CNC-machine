@@ -12,17 +12,34 @@ pip install mkdocs-material
 ```
 
 ## Commands to run locally
-To serve the website locally with live-reload at <http://127.0.0.1:8000/>:
+
+One command — starts both `mkdocs serve` (the site) and `tools/refresh_server.py`
+(the write-through helper) so that any edit you make on the Shopping page lands
+directly in `docs/data/*.json` and shows up in `git diff` — no Export/merge
+step, no "oops I forgot the helper and lost my edits" failure mode (SL-10.U /
+SL-10.V):
+
+```sh
+python3 tools/dev.py
+```
+
+The shopping page is then at
+<http://127.0.0.1:8000/DIY-3-axis-CNC-machine/shopping/>. Ctrl-C stops both
+processes cleanly. Pass `--mkdocs-port` / `--helper-port` if you need
+non-default ports.
+
+If you only want the site (no write-through) — for example when reviewing
+content that has nothing to do with shopping:
 ```sh
 mkdocs serve
 ```
 
-To build the static site into `site/`:
+Build the static site into `site/`:
 ```sh
 mkdocs build
 ```
 
-To deploy manually to GitHub Pages (normally handled by CI):
+Deploy manually to GitHub Pages (normally handled by CI):
 ```sh
 mkdocs gh-deploy --force
 ```
