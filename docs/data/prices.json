@@ -1,13 +1,13 @@
 {
   "$schema_version": 2,
-  "last_updated_at": "2026-06-25T17:40:35Z",
+  "last_updated_at": "2026-06-26T00:53:29Z",
   "notes": "One entry per (item_code, shop) pair. The newest observation in `observations` is what the UI displays; history is appended, never overwritten. Each observation carries a `technique` (jsonld | opengraph | affiliate-api | manual) per SL-9.e. Refresh via tools/refresh_prices.py or the refresh-prices GitHub Action. Only add entries whose `url` points at a concrete product page — the refresh tool skips listing / search / category URLs by design (see SL-9.b).",
   "entries": [
     {
       "item_code": "E09",
       "shop": "tinytronics",
       "url": "https://www.tinytronics.nl/nl/development-boards/microcontroller-boards/arduino-compatible/arduino-uno-r3",
-      "ean": null,
+      "ean": "7630049200050",
       "observations": [
         {
           "ts": "2026-06-25T12:42:59Z",
@@ -47,7 +47,7 @@
       "item_code": "E16",
       "shop": "tinytronics",
       "url": "https://www.tinytronics.nl/nl/mechanica-en-actuatoren/motoraansturingen-en-drivers/stappen-motoraansturingen-en-drivers/drv8825-motor-driver-module",
-      "ean": null,
+      "ean": "0691835835723",
       "observations": [
         {
           "ts": "2026-06-25T12:42:59Z",
@@ -63,7 +63,7 @@
       "item_code": "E11",
       "shop": "tinytronics",
       "url": "https://www.tinytronics.nl/nl/mechanica-en-actuatoren/motoren/stappenmotoren/stappenmotor-0.41n.m-1.7a-nema17",
-      "ean": null,
+      "ean": "5904422334635",
       "observations": [
         {
           "ts": "2026-06-25T12:42:59Z",
@@ -348,6 +348,14 @@
           "in_stock": true,
           "eta_days": 2,
           "technique": "manual"
+        },
+        {
+          "ts": "2026-06-25T22:35:54.187Z",
+          "price": 48.1,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": null,
+          "technique": "manual"
         }
       ]
     },
@@ -355,7 +363,7 @@
       "item_code": "E02",
       "shop": "conrad_nl",
       "url": "https://www.conrad.nl/p/mean-well-uhp-200-12-acdc-inbouwnetvoeding-167-a-126-vdc-uitgangsspanning-regelbaar-1837975",
-      "ean": null,
+      "ean": "4711287432359",
       "observations": [
         {
           "ts": "2026-06-25T17:40:35Z",
@@ -364,6 +372,14 @@
           "in_stock": true,
           "eta_days": 3,
           "technique": "manual"
+        },
+        {
+          "ts": "2026-06-25T22:36:21.325Z",
+          "price": 61.99,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": null,
+          "technique": "manual"
         }
       ]
     },
@@ -371,7 +387,7 @@
       "item_code": "E07",
       "shop": "amazon_nl",
       "url": "https://www.amazon.nl/Wago-221-413-Compact-verbindingsklemmen-3-geleiders-stuks/dp/B00JB3U9CG",
-      "ean": null,
+      "ean": "4050821808442",
       "observations": [
         {
           "ts": "2026-06-25T17:40:35Z",
@@ -403,7 +419,7 @@
       "item_code": "E18",
       "shop": "amazon_nl",
       "url": "https://www.amazon.nl/STEPPERONLINE-Nema17-Gear-Motor-1-68A/dp/B077ZP7NX3",
-      "ean": null,
+      "ean": "17HS19-1684S-PG19",
       "observations": [
         {
           "ts": "2026-06-25T17:40:35Z",
@@ -555,6 +571,134 @@
           "currency": "EUR",
           "in_stock": true,
           "eta_days": 3,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E02",
+      "shop": "user-elpro-org",
+      "url": "https://www.elpro.org/gb/content/4-kontakt",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T23:39:44.175Z",
+          "price": 34.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 5,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E01-user-6881",
+      "shop": "user-conrad",
+      "url": "https://www.conrad.nl/nl/p/noctua-nf-a4x10-flx-pc-ventilator-beige-bruin-b-x-h-x-d-40-x-10-x-40-mm-3222417.html?searchType=SearchRedirect",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-25T23:42:03.225Z",
+          "price": 18.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E09",
+      "shop": "user-amazon-nl",
+      "url": "https://www.amazon.nl/dp/B008GRTSV6/?tag=tweakersnl-21&creative=380333&creativeASIN=B008GRTSV6&linkCode=asn&th=1",
+      "ean": "7630049200050",
+      "observations": [
+        {
+          "ts": "2026-06-25T23:58:32.887Z",
+          "price": 21.98,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E14",
+      "shop": "user-conrad-e14",
+      "url": "https://www.conrad.nl/nl/p/tru-components-tc-13599520-apparaatstekker-koud-stekker-inbouw-verticaal-totaal-aantal-polen-3-10-a-zwart-1-stuk-s-3399880.html",
+      "ean": "4064161476216",
+      "observations": [
+        {
+          "ts": "2026-06-26T00:14:51.050Z",
+          "price": 4.99,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E18",
+      "shop": "user-aliexpres",
+      "url": "https://www.alibaba.com/product-detail/Ratio-19-1-NEMA17-Geared-Motor_1600203751381.html",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T00:36:37.726Z",
+          "price": 21.29,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 5,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E01-user-6881",
+      "shop": "user-amazon",
+      "url": "https://www.amazon.nl/dp/B009NQLT0M?tag=noctua02-21",
+      "ean": "4716123314691",
+      "observations": [
+        {
+          "ts": "2026-06-26T00:53:29Z",
+          "price": 15.9,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": null,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E09-user-2cf2",
+      "shop": "user-amazon-e09-user-2cf2",
+      "url": "https://www.amazon.nl/dp/B0C8V88Z9D/?tag=tweakers0e-21&creative=380333&creativeASIN=B0C8V88Z9D&linkCode=asn",
+      "ean": "7630049204591",
+      "observations": [
+        {
+          "ts": "2026-06-26T00:53:29Z",
+          "price": 30.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": null,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E14-user-dc1a",
+      "shop": "user-conrad-e14-user-dc1a",
+      "url": "https://www.conrad.nl/nl/p/tru-components-tc-10088416-apparaatstekker-koud-c14-stekker-inbouw-verticaal-totaal-aantal-polen-3-10-a-zwart-1-stuk-2522104.html",
+      "ean": "4064161203744",
+      "observations": [
+        {
+          "ts": "2026-06-26T00:53:29Z",
+          "price": 3.49,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 2,
           "technique": "manual"
         }
       ]
