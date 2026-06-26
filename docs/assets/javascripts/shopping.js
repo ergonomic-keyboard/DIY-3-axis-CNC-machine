@@ -108,7 +108,11 @@
       // shop.shipping.standard_cost after each user-shop sync. The seed value
       // is snapshotted into shop._seedShippingCost on first sight so revert /
       // re-sync paths can restore it cleanly.
-      userShopShipping: {}
+      userShopShipping: {},
+      // SL-10.Z / SL-12: per-user overrides for the row's editable amount /
+      // attribute fields. Keyed by item code; userAttributes nests by key.
+      userQty: {},
+      userAttributes: {}
     };
     try {
       var raw = localStorage.getItem(STATE_KEY);
@@ -130,6 +134,8 @@
         merged.userShops = merged.userShops || {};
         merged.userEans = merged.userEans || {};
         merged.userShopShipping = merged.userShopShipping || {};
+        merged.userQty = merged.userQty || {};
+        merged.userAttributes = merged.userAttributes || {};
         return merged;
       }
       return fallback;
@@ -229,6 +235,8 @@
       syncUserPriceObservationsIntoData();
       applyUserEansToData();
       applyUserShopShippingToData();
+      applyUserAttributesToData();
+      applyUserQtyToData();
       applyDefaultSelection();
       snapActiveConfigFromCustom();
       ensureTocBodyObserver();
@@ -517,6 +525,85 @@
     if (!ean) delete state.userEans[key];
     else state.userEans[key] = ean;
     applyUserEansToData();
+    saveState();
+    pushManualToHelper();
+    render();
+  }
+
+  // SL-11/SL-12: which attribute keys are editable per category. The UI
+  // walks this schema to render inline editable fields on each row.
+  // `type` is 'text' or 'number'; 'amount' is special-cased and maps to qty.
+  var ATTRIBUTE_SCHEMA = {
+    screws:  [ { key: 'Size', label: 'Size', type: 'text', placeholder: 'M3' },
+               { key: 'length', label: 'len', type: 'number', placeholder: 'mm', suffix: 'mm', step: 1 } ],
+    nuts:    [ { key: 'Size', label: 'Size', type: 'text', placeholder: 'M5' } ],
+    washers: [ { key: 'Size', label: 'Size', type: 'text', placeholder: '10x5x1mm' } ],
+    rods:    [ { key: 'Size', label: 'Size', type: 'text', placeholder: 'M8' },
+               { key: 'length', label: 'len', type: 'number', placeholder: 'mm', suffix: 'mm', step: 1 } ],
+    other:   [ { key: 'identifier', label: 'id', type: 'text', placeholder: 'part' } ]
+  };
+
+  function attributeSchemaFor(item) {
+    return ATTRIBUTE_SCHEMA[item && item.category] || null;
+  }
+
+  // SL-11/SL-12: per-item attribute overlay. Mirrors applyUserEansToData —
+  // restore each item's seed attributes (snapshotted on first sight) then
+  // overlay state.userAttributes[code][key].
+  function applyUserAttributesToData() {
+    data.items.forEach(function (it) {
+      if (!Object.prototype.hasOwnProperty.call(it, '_seedAttributes')) {
+        it._seedAttributes = JSON.parse(JSON.stringify(it.attributes || {}));
+      }
+      it.attributes = JSON.parse(JSON.stringify(it._seedAttributes));
+    });
+    var ua = state.userAttributes || {};
+    Object.keys(ua).forEach(function (code) {
+      var it = data.itemsByCode[code];
+      if (!it) return;
+      if (!it.attributes) it.attributes = {};
+      var bag = ua[code] || {};
+      Object.keys(bag).forEach(function (k) {
+        it.attributes[k] = bag[k];
+      });
+    });
+  }
+
+  // SL-10.Z: amount/qty overlay — snapshot the seeded qty and overlay
+  // state.userQty[code]. Editing qty via the row writes through setUserQty.
+  function applyUserQtyToData() {
+    data.items.forEach(function (it) {
+      if (!Object.prototype.hasOwnProperty.call(it, '_seedQty')) {
+        it._seedQty = it.qty;
+      }
+      it.qty = it._seedQty;
+    });
+    var uq = state.userQty || {};
+    Object.keys(uq).forEach(function (code) {
+      var it = data.itemsByCode[code];
+      if (!it) return;
+      it.qty = uq[code];
+    });
+  }
+
+  function setUserQty(code, value) {
+    if (!state.userQty) state.userQty = {};
+    if (value == null || value === '' || !isFinite(value)) delete state.userQty[code];
+    else state.userQty[code] = value;
+    applyUserQtyToData();
+    saveState();
+    pushManualToHelper();
+    render();
+  }
+
+  function setUserAttribute(code, key, value) {
+    if (!state.userAttributes) state.userAttributes = {};
+    var bag = state.userAttributes[code] || {};
+    if (value == null || value === '') delete bag[key];
+    else bag[key] = value;
+    if (Object.keys(bag).length === 0) delete state.userAttributes[code];
+    else state.userAttributes[code] = bag;
+    applyUserAttributesToData();
     saveState();
     pushManualToHelper();
     render();
@@ -1584,30 +1671,31 @@
     // the current product's name (parent or alt).
     // SL-10.S: the code badge doubles as a click-to-copy button that copies
     // the dropdown's currently-selected product name to the clipboard.
+    // SL-11/SL-12: inline editable category-specific attributes between alts
+    //   and qty so the row stays at one line.
+    // SL-10.Z (d): qty is an editable numeric input, not a static span.
     var titleWrap = el('div', 'shopping-item__title');
     titleWrap.appendChild(renderItemCodeButton(parentItem));
     titleWrap.appendChild(renderAltsDropdown(parentItem, effectiveCode));
-    var qtyText = '×' + (effective.qty != null ? effective.qty : '?');
-    titleWrap.appendChild(el('span', 'shopping-item__qty', qtyText));
+    renderItemAttributes(effective).forEach(function (n) { titleWrap.appendChild(n); });
+    titleWrap.appendChild(renderItemQty(effective));
     head.appendChild(titleWrap);
 
-    head.appendChild(renderShopSummary(effective));
-    // SL-10.R: a single "Visit" link whose target depends on which item AND
-    // shop the user has picked. Sits beside the shop summary since it's
-    // entirely shop-scoped.
-    var visitEl = renderVisitLink(effective);
-    if (visitEl) head.appendChild(visitEl);
-    // SL-10.P: EAN affordance for the currently-selected shop, immediately
-    // beside the shop summary so the user reads "this is THIS shop's EAN".
+    // SL-10.Z (a): EAN button moves to BEFORE the shop dropdown.
     var eanEl = renderEanControl(effective);
     if (eanEl) head.appendChild(eanEl);
-    // History popover for the currently-selected shop (SL-8.f/g preservation).
-    var historyEl = renderHeadHistoryControl(effective);
-    if (historyEl) head.appendChild(historyEl);
+
+    head.appendChild(renderShopSummary(effective));
+
     head.appendChild(renderAddAltButton(parentItem, openKind === 'alt'));
     head.appendChild(renderAddShopButton(parentItem, effective, openKind === 'shop'));
-    // SL-10.G: price lives at the rightmost edge of the row, "—" when missing.
+    // SL-10.G: price lives at the right side of the row, "—" when missing.
+    // SL-10.Z (e): hovering reveals the price-history popover (no separate
+    // sparkline button anymore). Dblclick still opens the inline editor.
     head.appendChild(renderItemPrice(effective));
+    // SL-10.Z (c): shipping label is its own slot, to the right of price.
+    var shipEl = renderItemShipping(effective);
+    if (shipEl) head.appendChild(shipEl);
 
     return head;
   }
@@ -1795,7 +1883,9 @@
       Object.keys(state.userShops || {}).length > 0 ||
       Object.keys(state.userAlternatives || {}).length > 0 ||
       Object.keys(state.userEans || {}).length > 0 ||
-      Object.keys(state.userShopShipping || {}).length > 0;
+      Object.keys(state.userShopShipping || {}).length > 0 ||
+      Object.keys(state.userQty || {}).length > 0 ||
+      Object.keys(state.userAttributes || {}).length > 0;
     if (!hasAnything) return Promise.resolve(null);
 
     var payload = JSON.stringify({
@@ -1805,7 +1895,9 @@
         userShops: state.userShops || {},
         userAlternatives: state.userAlternatives || {},
         userEans: state.userEans || {},
-        userShopShipping: state.userShopShipping || {}
+        userShopShipping: state.userShopShipping || {},
+        userQty: state.userQty || {},
+        userAttributes: state.userAttributes || {}
       }
     });
     return fetch(REFRESH_HELPER_URL + '/api/save-manual', {
@@ -1845,6 +1937,12 @@
     });
     (c.userShopShipping || []).forEach(function (shopId) {
       if (state.userShopShipping) delete state.userShopShipping[shopId];
+    });
+    (c.userQty || []).forEach(function (code) {
+      if (state.userQty) delete state.userQty[code];
+    });
+    (c.userAttributes || []).forEach(function (code) {
+      if (state.userAttributes) delete state.userAttributes[code];
     });
     // Rewrite any state.shopOverride values that referenced synthetic shop
     // ids the helper just promoted to stable user-<slug> ids.
@@ -2196,15 +2294,28 @@
       saveState();
       render();
     });
+    // SL-10.Z (b): double-click the shop dropdown to open the selected shop's
+    // product URL for the current item in a new tab (the old ↗ Visit button
+    // is gone). Works whether the dropdown is open or closed because the
+    // dblclick lands on the <select> itself, not on an internal <option>.
+    sel.addEventListener('dblclick', function (e) {
+      e.preventDefault();
+      var entry = (data.prices[effective.code] || []).find(function (x) { return x.shop === sel.value; });
+      var shop = data.shopsById[sel.value];
+      var url = (entry && entry.url) || (shop && shop.home_url) || null;
+      if (url) window.open(url, '_blank', 'noopener,noreferrer');
+    });
+    sel.title = 'Double-click to open this shop\'s product page for ' +
+      effective.code + ' in a new tab.';
     wrap.appendChild(sel);
 
     wrap.appendChild(renderShopMetaForSelected(effective, effectiveShopId, entries));
     return wrap;
   }
 
-  // Stock dot · ETA · shipping cost beside the shop dropdown for whichever
-  // shop is currently chosen. Falls back to the first scoped entry when no
-  // shop has an in-stock price (chosenShopForItem may return null).
+  // Stock dot · ETA beside the shop dropdown for whichever shop is currently
+  // chosen. SL-10.Z (c) moved the shipping label out of here into its own
+  // slot to the right of the price; see renderItemShipping below.
   function renderShopMetaForSelected(effective, chosenId, entries) {
     var meta = el('span', 'shopping-item__shop-meta');
     var shopId = chosenId || (entries[0] && entries[0].shop);
@@ -2221,11 +2332,23 @@
     if (etaDays != null) {
       meta.appendChild(el('span', 'shopping-item__shop-eta', etaDays + 'd'));
     }
-    // SL-10.W: shipping label is always rendered (even when 0 / unknown) and
-    // double-click-editable so the user has a single inline affordance to set
-    // the chosen shop's shipping cost from the row.
+    return meta;
+  }
+
+  // SL-10.Z (c): shipping cost moved out of the shop-meta cluster into its
+  // own slot at the right edge of the row, sitting just after the price.
+  // Still double-click-editable; still routes through setUserShopShipping
+  // (SL-10.W) so the per-row, summary-group, and any future surface share
+  // the same overlay.
+  function renderItemShipping(effective) {
+    var entries = entriesForItem(effective.code);
+    if (entries.length === 0) return null;
+    var chosenId = chosenShopForItem(effective.code);
+    var shopId = chosenId || (entries[0] && entries[0].shop);
+    var shop = shopId ? data.shopsById[shopId] : null;
+    if (!shop) return null;
     var shipLabel = shopShippingLabelShort(shop) || 'ship —';
-    var shipNode = el('span', 'shopping-item__shop-ship', shipLabel);
+    var shipNode = el('span', 'shopping-item__shop-ship shopping-item__shop-ship--slot', shipLabel);
     var currentCost = shop.shipping && typeof shop.shipping.standard_cost === 'number'
       ? shop.shipping.standard_cost
       : null;
@@ -2233,8 +2356,68 @@
       currentCost: currentCost,
       onSave: function (v) { setUserShopShipping(shop.id, v); }
     });
-    meta.appendChild(shipNode);
-    return meta;
+    return shipNode;
+  }
+
+  // SL-10.Z (d): qty is an editable numeric input on the row. Writes through
+  // setUserQty so the value lands in items.json via the helper.
+  function renderItemQty(effective) {
+    var wrap = el('span', 'shopping-item__qty-wrap');
+    wrap.appendChild(el('span', 'shopping-item__qty-prefix', '×'));
+    var inp = document.createElement('input');
+    inp.type = 'number';
+    inp.min = '0';
+    inp.step = '1';
+    inp.className = 'shopping-item__qty-input';
+    inp.value = effective.qty != null ? String(effective.qty) : '';
+    inp.title = 'Amount of ' + effective.code + ' to order — edit to change';
+    inp.setAttribute('aria-label', 'Amount for ' + effective.code);
+    inp.addEventListener('change', function () {
+      var raw = inp.value.trim();
+      if (raw === '') { setUserQty(effective.code, null); return; }
+      var n = parseInt(raw, 10);
+      if (!isFinite(n) || n < 0) { inp.value = effective.qty != null ? String(effective.qty) : ''; return; }
+      setUserQty(effective.code, n);
+    });
+    wrap.appendChild(inp);
+    return wrap;
+  }
+
+  // SL-11/SL-12: per-category attribute inputs (Size, length, identifier).
+  // Returns a flat list of nodes; renderItemHead inserts them into the title
+  // wrap, between the alts dropdown and the qty input, so the row stays
+  // single-line.
+  function renderItemAttributes(effective) {
+    var schema = attributeSchemaFor(effective);
+    if (!schema) return [];
+    var attrs = effective.attributes || {};
+    return schema.map(function (def) {
+      var wrap = el('span', 'shopping-item__attr shopping-item__attr--' + def.type);
+      wrap.title = def.label + ' attribute for ' + effective.code;
+      wrap.appendChild(el('span', 'shopping-item__attr-label', def.label));
+      var inp = document.createElement('input');
+      inp.type = def.type;
+      if (def.step) inp.step = String(def.step);
+      inp.className = 'shopping-item__attr-input';
+      if (def.placeholder) inp.placeholder = def.placeholder;
+      var val = attrs[def.key];
+      if (val != null) inp.value = String(val);
+      inp.setAttribute('aria-label', def.label + ' for ' + effective.code);
+      inp.addEventListener('change', function () {
+        var raw = (inp.value || '').trim();
+        if (def.type === 'number') {
+          if (raw === '') { setUserAttribute(effective.code, def.key, null); return; }
+          var n = parseFloat(raw);
+          if (!isFinite(n)) { inp.value = val != null ? String(val) : ''; return; }
+          setUserAttribute(effective.code, def.key, n);
+        } else {
+          setUserAttribute(effective.code, def.key, raw || null);
+        }
+      });
+      wrap.appendChild(inp);
+      if (def.suffix) wrap.appendChild(el('span', 'shopping-item__attr-suffix', def.suffix));
+      return wrap;
+    });
   }
 
   function makeStockDot(inStock) {
@@ -2275,8 +2458,9 @@
     var chosenId = chosenShopForItem(effective.code);
     var effectiveShopId = chosenId || (entries[0] && entries[0].shop) || null;
     var price = null, currency = 'EUR';
+    var entry = null;
     if (effectiveShopId) {
-      var entry = (data.prices[effective.code] || []).find(function (e) { return e.shop === effectiveShopId; });
+      entry = (data.prices[effective.code] || []).find(function (e) { return e.shop === effectiveShopId; });
       var obs = entry ? latestObservation(entry) : null;
       if (obs && typeof obs.price === 'number') {
         price = obs.price;
@@ -2284,17 +2468,31 @@
         currency = obs.currency || (shop && shop.currency) || 'EUR';
       }
     }
-    wrap.textContent = price != null ? formatMoney(price, currency) : '—';
-    if (price == null) wrap.classList.add('is-missing');
+    var priceText = el('span', 'shopping-item__price-text', price != null ? formatMoney(price, currency) : '—');
+    if (price == null) priceText.classList.add('is-missing');
+    wrap.appendChild(priceText);
 
     // SL-10.L + SL-10.K: double-click the head price → edit the selected
     // shop's price inline. No separate "Your override" surface.
     if (effectiveShopId) {
-      makeEditablePrice(wrap, {
+      makeEditablePrice(priceText, {
         currentPrice: price,
         currency: currency,
         onSave: function (v) { recordUserPrice(effective.code, effectiveShopId, v); }
       });
+    }
+
+    // SL-10.Z (e): hover the price reveals the price-history popover. No
+    // separate sparkline button anymore. We attach the popover as a child
+    // node; CSS controls visibility via :hover on the parent.
+    if (entry && entry.observations && entry.observations.length > 0) {
+      var sortedAsc = (entry.observations || []).slice().sort(function (a, b) {
+        return new Date(a.ts) - new Date(b.ts);
+      });
+      var pop = buildHistoryPopover(sortedAsc, entry, effective);
+      pop.classList.add('shopping-item__price-pop');
+      wrap.appendChild(pop);
+      wrap.classList.add('has-history');
     }
     return wrap;
   }

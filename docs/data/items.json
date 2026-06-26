@@ -316,189 +316,287 @@
       "category": "screws",
       "name": "Screw 3.5mm x 20mm",
       "qty": 14,
-      "image": "images/parts/consumables/screws/other/3-5mm_20mm.jpg"
+      "image": "images/parts/consumables/screws/other/3-5mm_20mm.jpg",
+      "attributes": {
+        "Size": "3.5mm",
+        "length": 20
+      }
     },
     {
       "code": "S02",
       "category": "screws",
       "name": "Screw M3 x 12mm",
       "qty": 20,
-      "image": "images/parts/consumables/screws/M3/M3_12mm.jpg"
+      "image": "images/parts/consumables/screws/M3/M3_12mm.jpg",
+      "attributes": {
+        "Size": "M3",
+        "length": 12
+      }
     },
     {
       "code": "S03",
       "category": "screws",
       "name": "Screw M3 x 16mm",
       "qty": 96,
-      "image": "images/parts/consumables/screws/M3/M3_16mm.jpg"
+      "image": "images/parts/consumables/screws/M3/M3_16mm.jpg",
+      "attributes": {
+        "Size": "M3",
+        "length": 16
+      }
     },
     {
       "code": "S04",
       "category": "screws",
       "name": "Screw M3 x 20mm",
       "qty": 32,
-      "image": "images/parts/consumables/screws/M3/M3_20mm.jpg"
+      "image": "images/parts/consumables/screws/M3/M3_20mm.jpg",
+      "attributes": {
+        "Size": "M3",
+        "length": 20
+      }
     },
     {
       "code": "S05",
       "category": "screws",
       "name": "Screw M3 x 25mm",
       "qty": 36,
-      "image": "images/parts/consumables/screws/M3/M3_25mm.jpg"
+      "image": "images/parts/consumables/screws/M3/M3_25mm.jpg",
+      "attributes": {
+        "Size": "M3",
+        "length": 25
+      }
     },
     {
       "code": "S06",
       "category": "screws",
       "name": "Screw M3 x 40mm",
       "qty": 12,
-      "image": "images/parts/consumables/screws/M3/M3_40mm.jpg"
+      "image": "images/parts/consumables/screws/M3/M3_40mm.jpg",
+      "attributes": {
+        "Size": "M3",
+        "length": 40
+      }
     },
     {
       "code": "S07",
       "category": "screws",
       "name": "Screw M3 x 5mm",
       "qty": 8,
-      "image": "images/parts/consumables/screws/M3/M3_5mm.jpg"
+      "image": "images/parts/consumables/screws/M3/M3_5mm.jpg",
+      "attributes": {
+        "Size": "M3",
+        "length": 5
+      }
     },
     {
       "code": "S08",
       "category": "screws",
       "name": "Screw M3 x 8mm",
       "qty": 4,
-      "image": "images/parts/consumables/screws/M3/M3_8mm.jpg"
+      "image": "images/parts/consumables/screws/M3/M3_8mm.jpg",
+      "attributes": {
+        "Size": "M3",
+        "length": 8
+      }
     },
     {
       "code": "S09",
       "category": "screws",
       "name": "Screw M4 x 18mm",
       "qty": 2,
-      "image": "images/parts/consumables/screws/M4/M4_18mm.jpg"
+      "image": "images/parts/consumables/screws/M4/M4_18mm.jpg",
+      "attributes": {
+        "Size": "M4",
+        "length": 18
+      }
     },
     {
       "code": "S10",
       "category": "screws",
       "name": "Screw M4 x 25mm",
       "qty": 19,
-      "image": "images/parts/consumables/screws/M4/M4_25mm.jpg"
+      "image": "images/parts/consumables/screws/M4/M4_25mm.jpg",
+      "attributes": {
+        "Size": "M4",
+        "length": 25
+      }
     },
     {
       "code": "S11",
       "category": "screws",
       "name": "Screw M4 x 40mm",
       "qty": 8,
-      "image": "images/parts/consumables/screws/M4/M4_40mm.jpg"
+      "image": "images/parts/consumables/screws/M4/M4_40mm.jpg",
+      "attributes": {
+        "Size": "M4",
+        "length": 40
+      }
     },
     {
       "code": "S12",
       "category": "screws",
       "name": "Screw M5 x 20mm",
       "qty": 26,
-      "image": "images/parts/consumables/screws/M5/M5_20mm.jpg"
+      "image": "images/parts/consumables/screws/M5/M5_20mm.jpg",
+      "attributes": {
+        "Size": "M5",
+        "length": 20
+      }
     },
     {
       "code": "S13",
       "category": "screws",
       "name": "Screw M5 x 40mm",
       "qty": 6,
-      "image": "images/parts/consumables/screws/M5/M5_40mm.jpg"
+      "image": "images/parts/consumables/screws/M5/M5_40mm.jpg",
+      "attributes": {
+        "Size": "M5",
+        "length": 40
+      }
     },
     {
       "code": "S14",
       "category": "screws",
       "name": "Screw M5 x 60mm",
       "qty": 2,
-      "image": "images/parts/consumables/screws/M5/M5_60mm.jpg"
+      "image": "images/parts/consumables/screws/M5/M5_60mm.jpg",
+      "attributes": {
+        "Size": "M5",
+        "length": 60
+      }
     },
     {
       "code": "S15",
       "category": "screws",
       "name": "Screw M8 x 60mm",
       "qty": 9,
-      "image": "images/parts/consumables/screws/M8/M8_60mm.jpg"
+      "image": "images/parts/consumables/screws/M8/M8_60mm.jpg",
+      "attributes": {
+        "Size": "M8",
+        "length": 60
+      }
     },
     {
       "code": "S16",
       "category": "screws",
       "name": "Screw M8 x 80mm",
       "qty": 2,
-      "image": "images/parts/consumables/screws/M8/M8_80mm.jpg"
+      "image": "images/parts/consumables/screws/M8/M8_80mm.jpg",
+      "attributes": {
+        "Size": "M8",
+        "length": 80
+      }
     },
     {
       "code": "S17",
       "category": "screws",
       "name": "Screw M5 x 80mm",
       "qty": 1,
-      "image": "images/parts/consumables/screws/M5/M5_80mm.jpg"
+      "image": "images/parts/consumables/screws/M5/M5_80mm.jpg",
+      "attributes": {
+        "Size": "M5",
+        "length": 80
+      }
     },
     {
       "code": "N01",
       "category": "nuts",
       "name": "Nut M4",
       "qty": 11,
-      "image": "images/parts/consumables/nuts/M4.jpg"
+      "image": "images/parts/consumables/nuts/M4.jpg",
+      "attributes": {
+        "Size": "M4"
+      }
     },
     {
       "code": "N02",
       "category": "nuts",
       "name": "Nut M5",
       "qty": 15,
-      "image": "images/parts/consumables/nuts/M5.jpg"
+      "image": "images/parts/consumables/nuts/M5.jpg",
+      "attributes": {
+        "Size": "M5"
+      }
     },
     {
       "code": "N03",
       "category": "nuts",
       "name": "Nut M8",
       "qty": 35,
-      "image": "images/parts/consumables/nuts/M8.jpg"
+      "image": "images/parts/consumables/nuts/M8.jpg",
+      "attributes": {
+        "Size": "M8"
+      }
     },
     {
       "code": "W01",
       "category": "washers",
       "name": "Washer 10x5x1mm",
       "qty": 13,
-      "image": "images/parts/consumables/washers/10mm_5mm_1mm.jpg"
+      "image": "images/parts/consumables/washers/10mm_5mm_1mm.jpg",
+      "attributes": {
+        "Size": "10x5x1mm"
+      }
     },
     {
       "code": "W02",
       "category": "washers",
       "name": "Washer 15x5x1mm",
       "qty": 14,
-      "image": "images/parts/consumables/washers/15mm_5mm_1mm.jpg"
+      "image": "images/parts/consumables/washers/15mm_5mm_1mm.jpg",
+      "attributes": {
+        "Size": "15x5x1mm"
+      }
     },
     {
       "code": "W03",
       "category": "washers",
       "name": "Washer 15x8.5x1.5mm",
       "qty": 24,
-      "image": "images/parts/consumables/washers/15mm_8-5mm_1-5mm.jpg"
+      "image": "images/parts/consumables/washers/15mm_8-5mm_1-5mm.jpg",
+      "attributes": {
+        "Size": "15x8.5x1.5mm"
+      }
     },
     {
       "code": "W04",
       "category": "washers",
       "name": "Washer 20x10x2mm",
       "qty": 27,
-      "image": "images/parts/consumables/washers/20mm_10mm_2mm.jpg"
+      "image": "images/parts/consumables/washers/20mm_10mm_2mm.jpg",
+      "attributes": {
+        "Size": "20x10x2mm"
+      }
     },
     {
       "code": "W05",
       "category": "washers",
       "name": "Washer 8x4x0.5mm",
       "qty": 12,
-      "image": "images/parts/consumables/washers/8mm_4mm_0-5mm.jpg"
+      "image": "images/parts/consumables/washers/8mm_4mm_0-5mm.jpg",
+      "attributes": {
+        "Size": "8x4x0.5mm"
+      }
     },
     {
       "code": "W06",
       "category": "washers",
       "name": "Washer 8x4x1mm",
       "qty": 4,
-      "image": "images/parts/consumables/washers/8mm_4mm_1mm.jpg"
+      "image": "images/parts/consumables/washers/8mm_4mm_1mm.jpg",
+      "attributes": {
+        "Size": "8x4x1mm"
+      }
     },
     {
       "code": "W07",
       "category": "washers",
       "name": "Washer 9x4.5x1mm",
       "qty": 2,
-      "image": "images/parts/consumables/washers/9_4-5_1mm.jpg"
+      "image": "images/parts/consumables/washers/9_4-5_1mm.jpg",
+      "attributes": {
+        "Size": "9x4.5x1mm"
+      }
     },
     {
       "code": "E01",
@@ -744,70 +842,103 @@
       "category": "rods",
       "name": "Threaded rod M5 x 140mm",
       "qty": 2,
-      "image": "images/parts/other/threaded_rod_M5_140_mm.jpg"
+      "image": "images/parts/other/threaded_rod_M5_140_mm.jpg",
+      "attributes": {
+        "Size": "M5",
+        "length": 140
+      }
     },
     {
       "code": "T02",
       "category": "rods",
       "name": "Threaded rod M8 x 120mm",
       "qty": 8,
-      "image": "images/parts/other/threaded_rod_M8_120_mm.jpg"
+      "image": "images/parts/other/threaded_rod_M8_120_mm.jpg",
+      "attributes": {
+        "Size": "M8",
+        "length": 120
+      }
     },
     {
       "code": "T03",
       "category": "rods",
       "name": "Threaded rod M8 x 717mm",
       "qty": 4,
-      "image": "images/parts/other/threaded_rod_M8_717_mm.jpg"
+      "image": "images/parts/other/threaded_rod_M8_717_mm.jpg",
+      "attributes": {
+        "Size": "M8",
+        "length": 717
+      }
     },
     {
       "code": "O01",
       "category": "other",
       "name": "698zz bearing",
       "qty": 18,
-      "image": "images/parts/other/698zz_bearing.jpg"
+      "image": "images/parts/other/698zz_bearing.jpg",
+      "attributes": {
+        "identifier": "698zz bearing"
+      }
     },
     {
       "code": "O02",
       "category": "other",
       "name": "Acme threaded rod (300mm, 8x8mm)",
       "qty": 1,
-      "image": "images/parts/other/acme_threaded_rod.jpg"
+      "image": "images/parts/other/acme_threaded_rod.jpg",
+      "attributes": {
+        "identifier": "Acme threaded rod"
+      }
     },
     {
       "code": "O03",
       "category": "other",
       "name": "Acme threaded rod nut (8x8mm)",
       "qty": 1,
-      "image": "images/parts/other/acme_nut.jpg"
+      "image": "images/parts/other/acme_nut.jpg",
+      "attributes": {
+        "identifier": "Acme threaded rod nut"
+      }
     },
     {
       "code": "O04",
       "category": "other",
       "name": "Aluminium profile (677x30x30 mm)",
       "qty": 4,
-      "image": "images/parts/other/aluminium_profiles_677mm_30mm_30mm.jpg"
+      "image": "images/parts/other/aluminium_profiles_677mm_30mm_30mm.jpg",
+      "attributes": {
+        "identifier": "Aluminium profile"
+      }
     },
     {
       "code": "O05",
       "category": "other",
       "name": "Aluminium profile (803x30x30 mm)",
       "qty": 3,
-      "image": "images/parts/other/aluminium_profiles_803mm_30mm_30mm.jpg"
+      "image": "images/parts/other/aluminium_profiles_803mm_30mm_30mm.jpg",
+      "attributes": {
+        "identifier": "Aluminium profile"
+      }
     },
     {
       "code": "O06",
       "category": "other",
       "name": "Aluminium profile (80x30x30 mm)",
       "qty": 8,
-      "image": "images/parts/other/aluminium_profiles_80mm_30mm_30mm.jpg"
+      "image": "images/parts/other/aluminium_profiles_80mm_30mm_30mm.jpg",
+      "attributes": {
+        "identifier": "Aluminium profile"
+      }
     },
     {
       "code": "O07",
       "category": "other",
       "name": "Aluminium profile (900x30x30 mm)",
       "qty": 4,
-      "image": "images/parts/other/aluminium_profiles_900mm_30mm_30mm.jpg"
+      "image": "images/parts/other/aluminium_profiles_900mm_30mm_30mm.jpg",
+      "attributes": {
+        "identifier": "Aluminium profile"
+      }
     },
     {
       "code": "O08",
@@ -815,21 +946,30 @@
       "name": "Braided cable sleeve (20mm)",
       "qty": 1,
       "qty_note": "5m",
-      "image": "images/parts/other/cable_sleeve.jpg"
+      "image": "images/parts/other/cable_sleeve.jpg",
+      "attributes": {
+        "identifier": "Braided cable sleeve"
+      }
     },
     {
       "code": "O09",
       "category": "other",
       "name": "Cable chain (1m, 30x15mm inner)",
       "qty": 2,
-      "image": "images/parts/other/cable_chain.jpg"
+      "image": "images/parts/other/cable_chain.jpg",
+      "attributes": {
+        "identifier": "Cable chain"
+      }
     },
     {
       "code": "O10",
       "category": "other",
       "name": "Cable clip",
       "qty": 1,
-      "image": "images/parts/other/cable_clip.jpg"
+      "image": "images/parts/other/cable_clip.jpg",
+      "attributes": {
+        "identifier": "Cable clip"
+      }
     },
     {
       "code": "O11",
@@ -837,7 +977,10 @@
       "name": "Cable ties",
       "qty": 30,
       "qty_note": "~30",
-      "image": "images/parts/other/cable_ties.jpg"
+      "image": "images/parts/other/cable_ties.jpg",
+      "attributes": {
+        "identifier": "Cable ties"
+      }
     },
     {
       "code": "O12",
@@ -845,7 +988,10 @@
       "name": "Flat end mill",
       "qty": 1,
       "qty_note": "NA",
-      "image": "images/parts/other/flat_end_mills.jpg"
+      "image": "images/parts/other/flat_end_mills.jpg",
+      "attributes": {
+        "identifier": "Flat end mill"
+      }
     },
     {
       "code": "O13",
@@ -853,28 +999,40 @@
       "name": "Flexible conduit",
       "qty": 1,
       "qty_note": "2m",
-      "image": "images/parts/other/cable_conduit.jpg"
+      "image": "images/parts/other/cable_conduit.jpg",
+      "attributes": {
+        "identifier": "Flexible conduit"
+      }
     },
     {
       "code": "O14",
       "category": "other",
       "name": "GT2 belt (6mm width, 300mm)",
       "qty": 1,
-      "image": "images/parts/other/2GT_belt_300_mm.jpg"
+      "image": "images/parts/other/2GT_belt_300_mm.jpg",
+      "attributes": {
+        "identifier": "GT2 belt"
+      }
     },
     {
       "code": "O15",
       "category": "other",
       "name": "GT2 pulley (16T, 5mm bore, 6mm belt)",
       "qty": 1,
-      "image": "images/parts/other/2GT_pulley_16_teeth.jpg"
+      "image": "images/parts/other/2GT_pulley_16_teeth.jpg",
+      "attributes": {
+        "identifier": "GT2 pulley"
+      }
     },
     {
       "code": "O16",
       "category": "other",
       "name": "GT2 pulley (60T, 8mm bore, 6mm belt)",
       "qty": 1,
-      "image": "images/parts/other/2GT_pulley_60_teeth.jpg"
+      "image": "images/parts/other/2GT_pulley_60_teeth.jpg",
+      "attributes": {
+        "identifier": "GT2 pulley"
+      }
     },
     {
       "code": "O17",
@@ -882,49 +1040,70 @@
       "name": "HTD5M belt (15mm width)",
       "qty": 1,
       "qty_note": "4m",
-      "image": "images/parts/other/HTD5M_belt.jpg"
+      "image": "images/parts/other/HTD5M_belt.jpg",
+      "attributes": {
+        "identifier": "HTD5M belt"
+      }
     },
     {
       "code": "O18",
       "category": "other",
       "name": "HTD5M pulley (12T, 8mm bore, 15mm belt)",
       "qty": 3,
-      "image": "images/parts/other/HTD5M_pulley.jpg"
+      "image": "images/parts/other/HTD5M_pulley.jpg",
+      "attributes": {
+        "identifier": "HTD5M pulley"
+      }
     },
     {
       "code": "O19",
       "category": "other",
       "name": "KFL08 rod bearing (8mm)",
       "qty": 2,
-      "image": "images/parts/other/KFL08_rod_bearing.jpg"
+      "image": "images/parts/other/KFL08_rod_bearing.jpg",
+      "attributes": {
+        "identifier": "KFL08 rod bearing"
+      }
     },
     {
       "code": "O20",
       "category": "other",
       "name": "MGN12H linear rail (200mm)",
       "qty": 2,
-      "image": "images/parts/other/MGN12H_rail_200_mm.jpg"
+      "image": "images/parts/other/MGN12H_rail_200_mm.jpg",
+      "attributes": {
+        "identifier": "MGN12H linear rail"
+      }
     },
     {
       "code": "O21",
       "category": "other",
       "name": "MGN12H linear rail (600mm)",
       "qty": 4,
-      "image": "images/parts/other/MGN12H_rail_600_mm.jpg"
+      "image": "images/parts/other/MGN12H_rail_600_mm.jpg",
+      "attributes": {
+        "identifier": "MGN12H linear rail"
+      }
     },
     {
       "code": "O22",
       "category": "other",
       "name": "MGN12H linear rail block",
       "qty": 12,
-      "image": "images/parts/other/MGN12H_rail_block.jpg"
+      "image": "images/parts/other/MGN12H_rail_block.jpg",
+      "attributes": {
+        "identifier": "MGN12H linear rail block"
+      }
     },
     {
       "code": "O23",
       "category": "other",
       "name": "Masking tape",
       "qty": 1,
-      "image": "images/parts/other/masking_tape.jpg"
+      "image": "images/parts/other/masking_tape.jpg",
+      "attributes": {
+        "identifier": "Masking tape"
+      }
     },
     {
       "code": "O24",
@@ -932,21 +1111,30 @@
       "name": "Shrinking tubes",
       "qty": 1,
       "qty_note": "NA",
-      "image": "images/parts/other/shrinking_tubes.jpg"
+      "image": "images/parts/other/shrinking_tubes.jpg",
+      "attributes": {
+        "identifier": "Shrinking tubes"
+      }
     },
     {
       "code": "O25",
       "category": "other",
       "name": "Cable grommet",
       "qty": 1,
-      "image": "images/parts/other/cable_grommet.jpg"
+      "image": "images/parts/other/cable_grommet.jpg",
+      "attributes": {
+        "identifier": "Cable grommet"
+      }
     },
     {
       "code": "O26",
       "category": "other",
       "name": "Plywood (~12x1500x1500mm)",
       "qty": 1,
-      "image": "images/parts/other/plywood.jpg"
+      "image": "images/parts/other/plywood.jpg",
+      "attributes": {
+        "identifier": "Plywood"
+      }
     },
     {
       "code": "O27",
@@ -954,7 +1142,10 @@
       "name": "Brush (dust shoe)",
       "qty": 1,
       "qty_note": "0.5m",
-      "image": "images/parts/other/dust_shoe.jpg"
+      "image": "images/parts/other/dust_shoe.jpg",
+      "attributes": {
+        "identifier": "Brush"
+      }
     }
   ]
 }

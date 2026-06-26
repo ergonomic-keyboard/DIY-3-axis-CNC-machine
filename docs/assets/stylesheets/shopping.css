@@ -452,6 +452,72 @@
   flex: 0 0 auto;
 }
 
+/* SL-10.Z (d): editable amount input on the row. */
+.shopping-item__qty-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  flex: 0 0 auto;
+  color: var(--shopping-muted);
+  font-size: 0.78rem;
+}
+.shopping-item__qty-prefix { font-variant-numeric: tabular-nums; }
+.shopping-item__qty-input {
+  width: 3rem;
+  padding: 0.1rem 0.25rem;
+  font: inherit;
+  font-size: 0.78rem;
+  border: 1px solid var(--shopping-border);
+  border-radius: 0.2rem;
+  background: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.shopping-item__qty-input::-webkit-inner-spin-button,
+.shopping-item__qty-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* SL-11/SL-12: inline category-attribute inputs between alts and qty. */
+.shopping-item__attr {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  flex: 0 0 auto;
+  font-size: 0.74rem;
+  color: var(--shopping-muted);
+}
+.shopping-item__attr-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+}
+.shopping-item__attr-suffix {
+  font-size: 0.7rem;
+}
+.shopping-item__attr-input {
+  padding: 0.1rem 0.25rem;
+  font: inherit;
+  font-size: 0.74rem;
+  border: 1px solid var(--shopping-border);
+  border-radius: 0.2rem;
+  background: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+}
+.shopping-item__attr--text .shopping-item__attr-input { width: 4.5rem; }
+.shopping-item__attr--number .shopping-item__attr-input {
+  width: 3.2rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.shopping-item__attr--number .shopping-item__attr-input::-webkit-inner-spin-button,
+.shopping-item__attr--number .shopping-item__attr-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 /* SL-10.C: alts dropdown on the head row. */
 .shopping-item__alts {
   display: inline-flex;
@@ -523,11 +589,13 @@
   flex: 0 0 auto;
 }
 
-/* SL-10.G: rightmost price column on every item's head row.
-   Pushes itself to the row's end with margin-left:auto and shows a
-   muted "—" when no price has been found yet. */
+/* SL-10.G: price column on the item head row.
+   SL-10.Z (c): shipping slot now sits after the price, so the price is no
+   longer the rightmost cell — it gets margin-left:auto to push the
+   (price + shipping) cluster to the right side. */
 .shopping-item__price {
   margin-left: auto;
+  position: relative;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   font-size: 0.92rem;
@@ -536,29 +604,62 @@
   text-align: right;
   color: var(--md-default-fg-color);
 }
-.shopping-item__price.is-missing {
+.shopping-item__price-text { display: inline-block; }
+.shopping-item__price-text.is-missing {
   color: var(--shopping-muted);
   font-weight: 500;
+}
+/* SL-10.Z (e): hovering the price reveals the price-history popover, which
+   now lives inside the price element itself. */
+.shopping-item__price-pop {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 0.25rem;
+  z-index: 30;
+  min-width: 14rem;
+  text-align: left;
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--shopping-border);
+  border-radius: var(--shopping-radius);
+  padding: 0.55rem 0.7rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  font-weight: 400;
+  font-size: 0.78rem;
+}
+.shopping-item__price.has-history:hover .shopping-item__price-pop,
+.shopping-item__price.has-history:focus-within .shopping-item__price-pop {
+  display: block;
+}
+
+/* SL-10.Z (c): standalone shipping slot, sits to the right of the price. */
+.shopping-item__shop-ship--slot {
+  flex: 0 0 auto;
+  margin-left: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--shopping-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* SL-10.K: editable prices announce themselves with a dotted underline + a
    hover hint. The inline editor swaps the text for a numeric input.
    SL-10.W: the shipping label beside the shop dropdown uses the same
    affordance (dotted underline, dblclick to edit). */
-.shopping-item__price.is-editable,
+.shopping-item__price-text.is-editable,
 .shopping-shop__price.is-editable,
 .shopping-item__shop-ship.is-editable {
   cursor: pointer;
   border-bottom: 1px dotted var(--shopping-muted);
   padding-bottom: 1px;
 }
-.shopping-item__price.is-editable:hover,
+.shopping-item__price-text.is-editable:hover,
 .shopping-shop__price.is-editable:hover,
 .shopping-item__shop-ship.is-editable:hover {
   border-bottom-color: var(--shopping-accent);
   color: var(--shopping-accent);
 }
-.shopping-item__price.is-editing,
+.shopping-item__price-text.is-editing,
 .shopping-shop__price.is-editing,
 .shopping-item__shop-ship.is-editing {
   border-bottom-color: transparent;

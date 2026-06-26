@@ -194,6 +194,8 @@ def merge_state(state: dict, *, data_dir: Path = DATA_DIR, dry_run: bool = False
         "observations_skipped_duplicate": 0,
         "eans_set": 0,
         "shipping_updates": [],
+        "qty_updates": [],
+        "attribute_updates": [],
     }
     id_translations: dict[str, str] = {}
     consumed = {
@@ -202,6 +204,8 @@ def merge_state(state: dict, *, data_dir: Path = DATA_DIR, dry_run: bool = False
         "userAlternatives": [],
         "userEans": [],
         "userShopShipping": [],
+        "userQty": [],
+        "userAttributes": [],
     }
 
     # 1) Translate state.userShops → real shops + price entries.
@@ -346,6 +350,35 @@ def merge_state(state: dict, *, data_dir: Path = DATA_DIR, dry_run: bool = False
         summary["shipping_updates"].append({"id": real_id, "cost": float(cost)})
         consumed["userShopShipping"].append(shop_id)
 
+    # 6) state.userQty → set items.json[code].qty (SL-10.Z amount editor).
+    items_by_code_w = {i.get("code"): i for i in items.get("items", [])}
+    for code, n in (state.get("userQty") or {}).items():
+        it = items_by_code_w.get(code)
+        if it is None:
+            print(f"warn: userQty references unknown item {code}", file=sys.stderr)
+            continue
+        try:
+            it["qty"] = int(n)
+        except (TypeError, ValueError):
+            print(f"warn: userQty[{code}] = {n!r} not int — skipping", file=sys.stderr)
+            continue
+        summary["qty_updates"].append({"code": code, "qty": it["qty"]})
+        consumed["userQty"].append(code)
+
+    # 7) state.userAttributes → set items.json[code].attributes[key] (SL-11/12).
+    for code, bag in (state.get("userAttributes") or {}).items():
+        if not isinstance(bag, dict):
+            continue
+        it = items_by_code_w.get(code)
+        if it is None:
+            print(f"warn: userAttributes references unknown item {code}", file=sys.stderr)
+            continue
+        attrs = it.setdefault("attributes", {})
+        for k, v in bag.items():
+            attrs[k] = v
+            summary["attribute_updates"].append({"code": code, "key": k, "value": v})
+        consumed["userAttributes"].append(code)
+
     prices["last_updated_at"] = _now_iso()
 
     if not dry_run:
@@ -379,6 +412,14 @@ def _print_summary(s: dict, id_translations: dict | None = None) -> None:
     print(f"Shipping updates:   {len(ship_updates)}")
     for x in ship_updates:
         print(f"  - {x['id']:<28} → €{x['cost']:.2f}")
+    qty_updates = s.get("qty_updates") or []
+    print(f"Qty updates:        {len(qty_updates)}")
+    for x in qty_updates:
+        print(f"  - {x['code']:<6} qty = {x['qty']}")
+    attr_updates = s.get("attribute_updates") or []
+    print(f"Attribute updates:  {len(attr_updates)}")
+    for x in attr_updates:
+        print(f"  - {x['code']:<6} {x['key']} = {x['value']!r}")
     if id_translations:
         print(f"Shop-id rewrites:   {len(id_translations)}")
         for synth, real in id_translations.items():

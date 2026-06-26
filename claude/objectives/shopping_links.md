@@ -84,6 +84,20 @@ SL-10.X The repo owner's currently-shown selection and UI preferences (`selected
 
 SL-10.Y The "Combined order" summary shall group orders per webshop with stable alphabetical ordering by shop name, list each line bought at that shop (code × qty @ unit = line total), and show the per-shop subtotal, shipping cost, and shop total. The shipping cost displayed in each group shall be double-click-editable inline, writing through to the same `state.userShopShipping` overlay (SL-10.W) so the summary and the per-item row remain consistent.
 
+SL-10.Z The item head row shall keep its single-line layout, with the following slot order: checkbox → thumb → `[code-button · alts-select · attributes · qty]` → EAN button → shop dropdown + meta(stock · ETA) → +Alt → +Shop → price → shipping. (a) The EAN button moves to **before** the shop dropdown. (b) The standalone "↗ Visit" link is removed; double-clicking an option in the shop dropdown (whether the dropdown is open or closed) opens that shop's product URL for the currently selected item in a new tab. (c) The shipping label shall sit to the right of the price (was: in the shop-meta cluster). (d) The qty (amount) shall be an editable numeric input in the row, not a static label. (e) The standalone history sparkline button is removed; hovering over the price reveals the price-history popover. Double-clicking the price still opens the inline price editor (SL-10.K).
+
+SL-11.a Each item shall support a `attributes` map of arbitrary string-keyed values (per-key string or number). The shopping-page row shall render the attributes that match the item's category schema (SL-12.*) as editable inline fields, persisting edits to the repo via the same write-through pipeline used for prices and EANs.
+
+SL-12.a Items in the `screws` category shall expose three custom data fields on the row: **Size** (e.g. "M3"), **length** (mm), and **amount**. `length` is numeric; `Size` is a short string; `amount` reuses the existing `qty` field.
+
+SL-12.b Items in the `nuts` category shall expose **Size** and **amount**.
+
+SL-12.c Items in the `washers` category shall expose **Size** (outer × inner × thickness, e.g. "10x5x1mm") and **amount**.
+
+SL-12.d Items in the `rods` category shall expose **Size**, **length**, and **amount**.
+
+SL-12.e Items in the `other` category shall expose **identifier** (free-form short label) and **amount**.
+
 
 SL-11.a Each Item shall support custom attributes (specific name and specific value).
 SL-12.b The Screws shall have custom datafields: Size, length and amount.
@@ -91,3 +105,5 @@ SL-12.C The ScrewsNuts shall have custom datafields: Size and amount.
 SL-12.D The washers shall have custom datafields: Size and amount.
 SL-12.D The threaded rods shall have custom datafields: Size, length and amount.
 SL-12.D The other shall have custom datafields: identifier amount.
+
+Keep it all at 1 row, move the ean to before the shop, instead of having a separate button for "visit" just open the new tab with the link if the user doublclicks the selected shop entry from the dropdown (with or without it being dropped down). Put the shipping cost after the product cost. Make the amount a editable field. Make the pricehistory instead of a sepaarate button just show it when the user hovers over the price. Doubleclicking the price is still setting the price. 
