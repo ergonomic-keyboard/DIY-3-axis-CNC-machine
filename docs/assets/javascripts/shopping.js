@@ -103,7 +103,12 @@
       userShops: {},
       // SL-10.P: per-user EAN per (item, shop) — keyed "<item>::<shop>".
       // Overlaid on entry.ean after every render cycle (seed is restored first).
-      userEans: {}
+      userEans: {},
+      // SL-10.W: per-user shipping-cost overrides per shop id. Overlaid on
+      // shop.shipping.standard_cost after each user-shop sync. The seed value
+      // is snapshotted into shop._seedShippingCost on first sight so revert /
+      // re-sync paths can restore it cleanly.
+      userShopShipping: {}
     };
     try {
       var raw = localStorage.getItem(STATE_KEY);
@@ -124,20 +129,47 @@
         merged.userPriceObservations = merged.userPriceObservations || {};
         merged.userShops = merged.userShops || {};
         merged.userEans = merged.userEans || {};
+        merged.userShopShipping = merged.userShopShipping || {};
         return merged;
       }
       return fallback;
     } catch (e) { return fallback; }
   }
 
-  // SL-8.b: every non-3D-printed item starts selected; 3D-printed parts start
-  // deselected. Runs once per user (gated by state.defaultsApplied) so the
-  // user's later deselections aren't reset on every load.
+  // SL-10.X: when docs/data/defaults.json exists, its selection / customUses /
+  // shopOverride / activeConfig / savedConfigurations / country / thumbRem /
+  // collapsedCategories become the starting point for a fresh visitor. When
+  // it doesn't (or has no `selected` map), SL-8.b's "non-printed selected"
+  // baseline is used instead. Runs once per user (gated by
+  // state.defaultsApplied) so the visitor's later deselections aren't reset
+  // on every load.
   function applyDefaultSelection() {
     if (state.defaultsApplied) return;
-    data.items.forEach(function (item) {
-      if (item.category !== 'printed') state.selected[item.code] = true;
-    });
+    var defaults = (data.siteDefaults && data.siteDefaults.state) || null;
+    var siteSelected = defaults && defaults.selected;
+    if (siteSelected && Object.keys(siteSelected).length > 0) {
+      Object.keys(siteSelected).forEach(function (code) {
+        state.selected[code] = !!siteSelected[code];
+      });
+    } else {
+      data.items.forEach(function (item) {
+        if (item.category !== 'printed') state.selected[item.code] = true;
+      });
+    }
+    if (defaults) {
+      ['customUses', 'shopOverride', 'collapsedCategories'].forEach(function (k) {
+        if (defaults[k] && typeof defaults[k] === 'object') {
+          Object.keys(defaults[k]).forEach(function (code) { state[k][code] = defaults[k][code]; });
+        }
+      });
+      if (typeof defaults.country === 'string') state.country = defaults.country;
+      if (typeof defaults.thumbRem === 'number') state.thumbRem = clampThumbRem(defaults.thumbRem);
+      if (typeof defaults.activeConfig === 'string') state.activeConfig = defaults.activeConfig;
+      if (Array.isArray(defaults.savedConfigurations) && defaults.savedConfigurations.length > 0
+          && (!state.savedConfigurations || state.savedConfigurations.length === 0)) {
+        state.savedConfigurations = defaults.savedConfigurations.slice();
+      }
+    }
     state.defaultsApplied = true;
     saveState();
   }
@@ -172,6 +204,10 @@
       fetchJSON(DATA_BASE + 'shops.json'),
       fetchJSON(DATA_BASE + 'items.json'),
       fetchJSON(DATA_BASE + 'prices.json'),
+      // SL-10.X: site-default selection / configuration. Soft 404: the file is
+      // optional — when missing or unreadable the page falls back to the
+      // built-in "non-printed selected by default" behavior (SL-8.b).
+      fetchJSON(DATA_BASE + 'defaults.json').catch(function () { return null; }),
       pollRefreshHelper()  // never rejects; populates refreshHelper.state
     ]).then(function (results) {
       // Close any open EAN popover when the user clicks outside it.
@@ -182,6 +218,7 @@
         });
       });
       ingest(results[0], results[1], results[2]);
+      data.siteDefaults = (results[3] && typeof results[3] === 'object') ? results[3] : null;
       syncUserAlternativesIntoData();
       syncUserShopsIntoData();
       // SL-10.L: legacy state.itemOverride data is preserved as manual
@@ -191,6 +228,7 @@
       migrateExpandedItemsToOpenAdd();
       syncUserPriceObservationsIntoData();
       applyUserEansToData();
+      applyUserShopShippingToData();
       applyDefaultSelection();
       snapActiveConfigFromCustom();
       ensureTocBodyObserver();
@@ -297,7 +335,10 @@
           country: state.country,
           currency: ua.shop.currency || 'EUR',
           home_url: ua.shop.url || '#',
-          shipping: { standard_cost: 0, default_eta_days: ua.shop.eta_days != null ? ua.shop.eta_days : null }
+          shipping: {
+            standard_cost: typeof ua.shop.shipping_cost === 'number' ? ua.shop.shipping_cost : 0,
+            default_eta_days: ua.shop.eta_days != null ? ua.shop.eta_days : null
+          }
         };
         data.shops.push(synthShop);
         data.shopsById[shopId] = synthShop;
@@ -481,6 +522,69 @@
     render();
   }
 
+  // SL-10.W: snapshot each seeded shop's standard_cost into _seedShippingCost
+  // on first sight, then reset-and-overlay state.userShopShipping. Synthetic
+  // user-added shops (ADDED_SHOP_PREFIX / USER_SHOP_PREFIX) are rebuilt fresh
+  // by the user-shop / user-alt syncs each time and are not seeded here —
+  // edits to those are written back to state.userShops / state.userAlternatives
+  // directly by setUserShopShipping so the next sync produces the right value.
+  function applyUserShopShippingToData() {
+    data.shops.forEach(function (s) {
+      if (!s.shipping) return;
+      if (s.id.indexOf(ADDED_SHOP_PREFIX) === 0) return;
+      if (s.id.indexOf(USER_SHOP_PREFIX) === 0) return;
+      if (Object.prototype.hasOwnProperty.call(s, '_seedShippingCost')) {
+        s.shipping.standard_cost = s._seedShippingCost;
+      } else {
+        s._seedShippingCost = typeof s.shipping.standard_cost === 'number'
+          ? s.shipping.standard_cost
+          : 0;
+      }
+    });
+    var uss = state.userShopShipping || {};
+    Object.keys(uss).forEach(function (shopId) {
+      var shop = data.shopsById[shopId];
+      if (!shop) return;
+      if (!shop.shipping) shop.shipping = { standard_cost: 0 };
+      shop.shipping.standard_cost = uss[shopId];
+    });
+  }
+
+  // SL-10.W: set or clear the shipping cost for a shop. Routes synthetic
+  // user-added shop ids to mutate the underlying state.userShops /
+  // state.userAlternatives entry (so the next sync picks the new value up);
+  // routes stable shop ids through the state.userShopShipping overlay.
+  function setUserShopShipping(shopId, value) {
+    if (shopId.indexOf(ADDED_SHOP_PREFIX) === 0) {
+      Object.keys(state.userShops || {}).forEach(function (itemCode) {
+        (state.userShops[itemCode] || []).forEach(function (us) {
+          if (us.id === shopId) {
+            us.shipping_cost = value;
+          }
+        });
+      });
+      syncUserShopsIntoData();
+    } else if (shopId.indexOf(USER_SHOP_PREFIX) === 0) {
+      var altCode = shopId.slice(USER_SHOP_PREFIX.length);
+      Object.keys(state.userAlternatives || {}).forEach(function (parentCode) {
+        (state.userAlternatives[parentCode] || []).forEach(function (ua) {
+          if (ua.code === altCode && ua.shop) {
+            ua.shop.shipping_cost = value;
+          }
+        });
+      });
+      syncUserAlternativesIntoData();
+    } else {
+      if (!state.userShopShipping) state.userShopShipping = {};
+      if (value == null) delete state.userShopShipping[shopId];
+      else state.userShopShipping[shopId] = value;
+    }
+    applyUserShopShippingToData();
+    saveState();
+    pushManualToHelper();
+    render();
+  }
+
   function generateAddedShopId(itemCode) {
     var bytes = new Uint8Array(2);
     var src = window.crypto || window.msCrypto;
@@ -575,7 +679,8 @@
         url: vals.url || null,
         price: typeof vals.price === 'number' ? vals.price : null,
         currency: vals.currency || 'EUR',
-        eta_days: typeof vals.eta_days === 'number' ? vals.eta_days : null
+        eta_days: typeof vals.eta_days === 'number' ? vals.eta_days : null,
+        shipping_cost: typeof vals.shipping_cost === 'number' ? vals.shipping_cost : null
       }
     });
     syncUserAlternativesIntoData();
@@ -944,10 +1049,31 @@
     // into the repo's docs/data/*.json (primary source of truth).
     var exportBtn = el('button', 'shopping-link', '↓ Export data');
     exportBtn.type = 'button';
-    exportBtn.title = 'Download your prices / shops / alternatives / EANs as JSON ' +
-      'so tools/merge_user_data.py can fold them into the repo.';
+    exportBtn.title = 'Download your selection / prices / shops / alternatives / EANs as JSON ' +
+      'so tools/merge_user_data.py can fold them into the repo or another visitor can import them.';
     exportBtn.addEventListener('click', exportUserDataToFile);
     right.appendChild(exportBtn);
+
+    // SL-10.X: visitors load an exported state JSON to overwrite their own
+    // selection / settings. Triggers a hidden file input.
+    var importBtn = el('button', 'shopping-link', '↑ Import data');
+    importBtn.type = 'button';
+    importBtn.title = 'Load a previously-exported state JSON, replacing your current selection and settings.';
+    importBtn.addEventListener('click', triggerImportUserDataFromFile);
+    right.appendChild(importBtn);
+
+    // SL-10.X: when the local write-through helper is running (i.e. this is
+    // the repo owner running tools/dev.py), expose a button that writes the
+    // current selection + UI prefs to docs/data/defaults.json so visitors
+    // inherit it as the site default.
+    if (refreshHelper.writeThrough) {
+      var saveDefaultsBtn = el('button', 'shopping-link', '★ Save as site default');
+      saveDefaultsBtn.type = 'button';
+      saveDefaultsBtn.title = 'Write current selection + settings to docs/data/defaults.json. ' +
+        'Visitors landing fresh on the site will start from this state.';
+      saveDefaultsBtn.addEventListener('click', function () { saveCurrentAsSiteDefaults(saveDefaultsBtn); });
+      right.appendChild(saveDefaultsBtn);
+    }
 
     // SL-9.d: when the local helper isn't running, expose the start command
     // here as a small details/summary chip rather than a dead disabled row.
@@ -1660,7 +1786,8 @@
       Object.keys(state.userPriceObservations || {}).length > 0 ||
       Object.keys(state.userShops || {}).length > 0 ||
       Object.keys(state.userAlternatives || {}).length > 0 ||
-      Object.keys(state.userEans || {}).length > 0;
+      Object.keys(state.userEans || {}).length > 0 ||
+      Object.keys(state.userShopShipping || {}).length > 0;
     if (!hasAnything) return Promise.resolve(null);
 
     var payload = JSON.stringify({
@@ -1669,7 +1796,8 @@
         userPriceObservations: state.userPriceObservations || {},
         userShops: state.userShops || {},
         userAlternatives: state.userAlternatives || {},
-        userEans: state.userEans || {}
+        userEans: state.userEans || {},
+        userShopShipping: state.userShopShipping || {}
       }
     });
     return fetch(REFRESH_HELPER_URL + '/api/save-manual', {
@@ -1707,6 +1835,9 @@
     (c.userAlternatives || []).forEach(function (code) {
       if (state.userAlternatives) delete state.userAlternatives[code];
     });
+    (c.userShopShipping || []).forEach(function (shopId) {
+      if (state.userShopShipping) delete state.userShopShipping[shopId];
+    });
     // Rewrite any state.shopOverride values that referenced synthetic shop
     // ids the helper just promoted to stable user-<slug> ids.
     var t = body.id_translations || {};
@@ -1715,6 +1846,106 @@
       if (t[v]) state.shopOverride[code] = t[v];
     });
     saveState();
+  }
+
+  // SL-10.X: read a previously-exported state JSON from disk and apply its
+  // `state` slice on top of localStorage, then reload so the page picks up
+  // the new state from scratch (avoids drift between in-memory mutations
+  // and the helper write-through bookkeeping). The user picks the file via
+  // a transient <input type=file> we attach and click programmatically.
+  function triggerImportUserDataFromFile() {
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'application/json,.json';
+    inp.style.position = 'fixed';
+    inp.style.opacity = '0';
+    document.body.appendChild(inp);
+    inp.addEventListener('change', function () {
+      var file = inp.files && inp.files[0];
+      document.body.removeChild(inp);
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        var payload;
+        try { payload = JSON.parse(reader.result); }
+        catch (e) { alert('Could not parse JSON: ' + e.message); return; }
+        applyImportedState(payload);
+      };
+      reader.onerror = function () { alert('Could not read file: ' + reader.error); };
+      reader.readAsText(file);
+    });
+    inp.click();
+  }
+
+  function applyImportedState(payload) {
+    if (!payload || typeof payload !== 'object') {
+      alert('Imported file is not a JSON object.');
+      return;
+    }
+    if (payload.$kind && payload.$kind !== 'cnc-shopping-user-export' &&
+        payload.$kind !== 'cnc-shopping-site-default') {
+      alert('Unexpected $kind ' + JSON.stringify(payload.$kind) + ' — expected a shopping export.');
+      return;
+    }
+    var imported = payload.state;
+    if (!imported || typeof imported !== 'object') {
+      alert('Imported file has no .state object.');
+      return;
+    }
+    if (!window.confirm('Replace your current selection and settings with the imported data? This cannot be undone.')) {
+      return;
+    }
+    try { localStorage.setItem(STATE_KEY, JSON.stringify(imported)); }
+    catch (e) { alert('Could not write to localStorage: ' + e.message); return; }
+    window.location.reload();
+  }
+
+  // SL-10.X: writes the current selection + UI preferences (NOT prices /
+  // shops / alternatives / EANs, which already live in docs/data/*.json) to
+  // docs/data/defaults.json via the local helper. Only callable when the
+  // helper is running.
+  function saveCurrentAsSiteDefaults(btn) {
+    if (!refreshHelper.writeThrough) {
+      alert('Local helper is offline — Save as site default only works with tools/dev.py running.');
+      return;
+    }
+    var slice = {
+      selected: copyPlainObject(state.selected),
+      customUses: copyPlainObject(state.customUses),
+      shopOverride: copyPlainObject(state.shopOverride),
+      collapsedCategories: copyPlainObject(state.collapsedCategories),
+      country: state.country,
+      thumbRem: state.thumbRem,
+      activeConfig: state.activeConfig,
+      savedConfigurations: (state.savedConfigurations || []).slice()
+    };
+    var originalLabel = btn ? btn.textContent : null;
+    if (btn) { btn.disabled = true; btn.textContent = '… saving'; }
+    fetch(REFRESH_HELPER_URL + '/api/save-defaults', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+      body: JSON.stringify({ state: slice })
+    }).then(function (r) {
+      if (!r.ok) return r.json().catch(function () { return {}; }).then(function (body) {
+        throw new Error(body.detail || ('save-defaults ' + r.status));
+      });
+      return r.json();
+    }).then(function (body) {
+      data.siteDefaults = body && body.payload ? body.payload : { state: slice };
+      flashCopiedNear(btn, 'Saved as site default');
+    }).catch(function (err) {
+      alert('Could not save site default: ' + (err && err.message ? err.message : err));
+    }).then(function () {
+      if (btn) { btn.disabled = false; if (originalLabel != null) btn.textContent = originalLabel; }
+    });
+  }
+
+  function copyPlainObject(o) {
+    var out = {};
+    if (!o || typeof o !== 'object') return out;
+    Object.keys(o).forEach(function (k) { out[k] = o[k]; });
+    return out;
   }
 
   // SL-10.T: dump the user's localStorage state to a downloadable JSON file
@@ -1962,10 +2193,19 @@
     if (etaDays != null) {
       meta.appendChild(el('span', 'shopping-item__shop-eta', etaDays + 'd'));
     }
-    var shipLabel = shopShippingLabelShort(shop);
-    if (shipLabel) {
-      meta.appendChild(el('span', 'shopping-item__shop-ship', shipLabel));
-    }
+    // SL-10.W: shipping label is always rendered (even when 0 / unknown) and
+    // double-click-editable so the user has a single inline affordance to set
+    // the chosen shop's shipping cost from the row.
+    var shipLabel = shopShippingLabelShort(shop) || 'ship —';
+    var shipNode = el('span', 'shopping-item__shop-ship', shipLabel);
+    var currentCost = shop.shipping && typeof shop.shipping.standard_cost === 'number'
+      ? shop.shipping.standard_cost
+      : null;
+    makeEditableShipping(shipNode, {
+      currentCost: currentCost,
+      onSave: function (v) { setUserShopShipping(shop.id, v); }
+    });
+    meta.appendChild(shipNode);
     return meta;
   }
 
@@ -2091,6 +2331,67 @@
     });
     input.addEventListener('blur', commit);
     // Stop double-click on the input itself from bubbling and reopening.
+    input.addEventListener('dblclick', function (e) { e.stopPropagation(); });
+  }
+
+  // SL-10.W: same dblclick affordance as the price editor, but writes through
+  // setUserShopShipping (which routes seeded vs synthetic shop ids correctly).
+  function makeEditableShipping(elNode, opts) {
+    elNode.classList.add('is-editable');
+    var existingTitle = elNode.getAttribute('title');
+    elNode.setAttribute('title',
+      (existingTitle ? existingTitle + ' · ' : '') + 'Double-click to set shipping cost');
+    elNode.addEventListener('dblclick', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openInlineShippingEditor(elNode, opts);
+    });
+  }
+
+  function openInlineShippingEditor(elNode, opts) {
+    if (elNode.classList.contains('is-editing')) return;
+    var original = elNode.textContent;
+    var originalClasses = elNode.className;
+    elNode.classList.add('is-editing');
+    elNode.textContent = '';
+    var input = document.createElement('input');
+    input.type = 'number';
+    input.step = '0.01';
+    input.min = '0';
+    input.className = 'shopping-price-editor';
+    input.placeholder = 'ship €';
+    if (typeof opts.currentCost === 'number') input.value = String(opts.currentCost);
+    input.setAttribute('aria-label', 'Set shipping cost in EUR');
+    elNode.appendChild(input);
+    input.focus();
+    input.select();
+
+    var done = false;
+    function finish(newCost) {
+      if (done) return;
+      done = true;
+      elNode.className = originalClasses;
+      opts.onSave(newCost);
+    }
+    function commit() {
+      if (done) return;
+      var raw = input.value.trim();
+      if (raw === '') { finish(null); return; }
+      var v = parseFloat(raw);
+      if (!isFinite(v) || v < 0) { cancel(); return; }
+      finish(v);
+    }
+    function cancel() {
+      if (done) return;
+      done = true;
+      elNode.className = originalClasses;
+      elNode.textContent = original;
+    }
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); }
+      else if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+    });
+    input.addEventListener('blur', commit);
     input.addEventListener('dblclick', function (e) { e.stopPropagation(); });
   }
 
@@ -2393,11 +2694,12 @@
       fields.push({ key: 'name', label: 'Product name', type: 'text', placeholder: 'Product name', size: 'name' });
     }
     fields.push(
-      { key: 'shop_label', label: 'Shop name / label', type: 'text',   placeholder: 'Shop',          size: 'shop'  },
-      { key: 'url',        label: 'Product link',      type: 'url',    placeholder: 'https://…',     size: 'url'   },
-      { key: 'ean',        label: 'EAN (optional)',    type: 'text',   placeholder: 'EAN',           size: 'ean'   },
-      { key: 'price',      label: 'Price (EUR)',       type: 'number', step: '0.01', placeholder: '€',   size: 'price' },
-      { key: 'eta_days',   label: 'ETA (days)',        type: 'number', step: '1',    placeholder: 'days',size: 'eta'   }
+      { key: 'shop_label',    label: 'Shop name / label', type: 'text',   placeholder: 'Shop',          size: 'shop'  },
+      { key: 'url',           label: 'Product link',      type: 'url',    placeholder: 'https://…',     size: 'url'   },
+      { key: 'ean',           label: 'EAN (optional)',    type: 'text',   placeholder: 'EAN',           size: 'ean'   },
+      { key: 'price',         label: 'Price (EUR)',       type: 'number', step: '0.01', placeholder: '€',     size: 'price' },
+      { key: 'eta_days',      label: 'ETA (days)',        type: 'number', step: '1',    placeholder: 'days',  size: 'eta'   },
+      { key: 'shipping_cost', label: 'Shipping (EUR)',    type: 'number', step: '0.01', placeholder: 'ship €', size: 'price' }
     );
 
     var form = el('div', 'shopping-inline-form');
@@ -2437,13 +2739,15 @@
       }
       var price = parseFloat(inputs.price.value);
       var eta = parseInt(inputs.eta_days.value, 10);
+      var ship = parseFloat(inputs.shipping_cost.value);
       var payload = {
         shop_label: inputs.shop_label.value.trim() || null,
         url: url,
         ean: ean || null,
         price: isFinite(price) ? price : null,
         currency: 'EUR',
-        eta_days: isFinite(eta) ? eta : null
+        eta_days: isFinite(eta) ? eta : null,
+        shipping_cost: isFinite(ship) ? ship : null
       };
       if (opts.includeName) payload.name = name;
       opts.onSave(payload);

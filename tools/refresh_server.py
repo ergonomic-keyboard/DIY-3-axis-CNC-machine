@@ -53,6 +53,10 @@ sys.path.insert(0, str(_pl.Path(__file__).resolve().parent.parent))
 from tools import refresh_prices  # noqa: E402
 from tools import merge_user_data  # noqa: E402
 
+import datetime as _dt  # noqa: E402
+
+DEFAULTS_PATH = _pl.Path(__file__).resolve().parent.parent / "docs" / "data" / "defaults.json"
+
 DEFAULT_PORT = 8765
 ALLOWED_ORIGINS = (
     "http://127.0.0.1:8012", "http://localhost:8012",
@@ -71,6 +75,25 @@ BOT_SUFFIX = "-bot"
 # Serializes concurrent /api/save-manual writes so two near-simultaneous edits
 # on the page don't fight over docs/data/ writes.
 SAVE_MANUAL_LOCK = threading.Lock()
+
+# Serializes /api/save-defaults so two near-simultaneous clicks don't race on
+# docs/data/defaults.json.
+SAVE_DEFAULTS_LOCK = threading.Lock()
+
+# SL-10.X: only these keys are accepted when writing defaults.json. Anything
+# else in the request body is dropped — visitor-private data (manual prices,
+# user-added shops, EANs, alts, shipping overrides) lives in shops.json /
+# items.json / prices.json and shouldn't be duplicated here.
+DEFAULTS_ALLOWED_KEYS = (
+    "selected",
+    "customUses",
+    "shopOverride",
+    "collapsedCategories",
+    "country",
+    "thumbRem",
+    "activeConfig",
+    "savedConfigurations",
+)
 
 
 def _is_loopback_origin(origin: str) -> bool:
@@ -268,6 +291,45 @@ class RefreshHandler(BaseHTTPRequestHandler):
             "id_translations": result["id_translations"],
         })
 
+    # SL-10.X: POST /api/save-defaults — write the page's current selection /
+    # UI prefs to docs/data/defaults.json so visitors landing fresh inherit
+    # the owner's setup. Body shape: {"state": { selected, customUses, ... }}.
+    def _handle_save_defaults(self) -> None:
+        length = int(self.headers.get("Content-Length") or 0)
+        if length <= 0:
+            self._send_json(400, {"error": "missing_body"})
+            return
+        try:
+            body = json.loads(self.rfile.read(length).decode("utf-8"))
+        except Exception as e:  # noqa: BLE001
+            self._send_json(400, {"error": "bad_json", "detail": str(e)})
+            return
+        raw_state = body.get("state") if isinstance(body, dict) else None
+        if not isinstance(raw_state, dict):
+            self._send_json(400, {"error": "missing_state"})
+            return
+        clean: dict[str, Any] = {}
+        for key in DEFAULTS_ALLOWED_KEYS:
+            if key in raw_state:
+                clean[key] = raw_state[key]
+        payload = {
+            "$kind": "cnc-shopping-site-default",
+            "$schema_version": 1,
+            "updated_at": _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "state": clean,
+        }
+        try:
+            with SAVE_DEFAULTS_LOCK:
+                DEFAULTS_PATH.parent.mkdir(parents=True, exist_ok=True)
+                DEFAULTS_PATH.write_text(
+                    json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+                    encoding="utf-8",
+                )
+        except Exception as e:  # noqa: BLE001
+            self._send_json(500, {"error": "write_failed", "detail": str(e)})
+            return
+        self._send_json(200, {"ok": True, "path": str(DEFAULTS_PATH), "payload": payload})
+
     def do_GET(self) -> None:  # noqa: N802
         parsed = urllib.parse.urlparse(self.path)
         if parsed.path == "/api/health":
@@ -291,6 +353,9 @@ class RefreshHandler(BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         if parsed.path == "/api/save-manual":
             self._handle_save_manual()
+            return
+        if parsed.path == "/api/save-defaults":
+            self._handle_save_defaults()
             return
         if parsed.path != "/api/refresh":
             self._send_json(404, {"error": "not_found", "path": parsed.path})
@@ -339,7 +404,11 @@ def main(argv: list[str] | None = None) -> int:
     server = ThreadingHTTPServer((args.host, args.port), RefreshHandler)
     print(f"refresh_server: listening on http://{args.host}:{args.port}", flush=True)
     print(f"refresh_server: CORS origins = {', '.join(ALLOWED_ORIGINS)}", flush=True)
-    print("refresh_server: GET /api/health   POST /api/refresh?bot=<shop>-bot[&item=<code>]   POST /api/save-manual", flush=True)
+    print(
+        "refresh_server: GET /api/health   POST /api/refresh?bot=<shop>-bot[&item=<code>]   "
+        "POST /api/save-manual   POST /api/save-defaults",
+        flush=True,
+    )
     try:
         server.serve_forever()
     except KeyboardInterrupt:

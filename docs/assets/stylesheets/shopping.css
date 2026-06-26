@@ -542,20 +542,25 @@
 }
 
 /* SL-10.K: editable prices announce themselves with a dotted underline + a
-   hover hint. The inline editor swaps the text for a numeric input. */
+   hover hint. The inline editor swaps the text for a numeric input.
+   SL-10.W: the shipping label beside the shop dropdown uses the same
+   affordance (dotted underline, dblclick to edit). */
 .shopping-item__price.is-editable,
-.shopping-shop__price.is-editable {
+.shopping-shop__price.is-editable,
+.shopping-item__shop-ship.is-editable {
   cursor: pointer;
   border-bottom: 1px dotted var(--shopping-muted);
   padding-bottom: 1px;
 }
 .shopping-item__price.is-editable:hover,
-.shopping-shop__price.is-editable:hover {
+.shopping-shop__price.is-editable:hover,
+.shopping-item__shop-ship.is-editable:hover {
   border-bottom-color: var(--shopping-accent);
   color: var(--shopping-accent);
 }
 .shopping-item__price.is-editing,
-.shopping-shop__price.is-editing {
+.shopping-shop__price.is-editing,
+.shopping-item__shop-ship.is-editing {
   border-bottom-color: transparent;
 }
 .shopping-price-editor {

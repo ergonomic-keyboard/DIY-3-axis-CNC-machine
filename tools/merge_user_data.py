@@ -193,6 +193,7 @@ def merge_state(state: dict, *, data_dir: Path = DATA_DIR, dry_run: bool = False
         "observations_added": 0,
         "observations_skipped_duplicate": 0,
         "eans_set": 0,
+        "shipping_updates": [],
     }
     id_translations: dict[str, str] = {}
     consumed = {
@@ -200,6 +201,7 @@ def merge_state(state: dict, *, data_dir: Path = DATA_DIR, dry_run: bool = False
         "userShops": [],
         "userAlternatives": [],
         "userEans": [],
+        "userShopShipping": [],
     }
 
     # 1) Translate state.userShops → real shops + price entries.
@@ -269,7 +271,7 @@ def merge_state(state: dict, *, data_dir: Path = DATA_DIR, dry_run: bool = False
                     shop_blob.get("url"),
                     shop_blob.get("currency") or "EUR",
                     shop_blob.get("eta_days"),
-                    None,
+                    shop_blob.get("shipping_cost"),
                     country, alt_code,
                 )
                 synth_alt_shop_id = USER_SHOP_PREFIX + alt_code
@@ -322,6 +324,28 @@ def merge_state(state: dict, *, data_dir: Path = DATA_DIR, dry_run: bool = False
         summary["eans_set"] += 1
         consumed["userEans"].append(key)
 
+    # 5) state.userShopShipping → update shop.shipping.standard_cost in shops.json.
+    # Synthetic browser shop ids may have been promoted to stable ids in step 1
+    # or step 2, so apply id_translations before looking up the shop.
+    for shop_id, cost in (state.get("userShopShipping") or {}).items():
+        real_id = id_translations.get(shop_id, shop_id)
+        target = None
+        for s in shops.get("shops", []):
+            if s.get("id") == real_id:
+                target = s
+                break
+        if target is None:
+            print(f"warn: userShopShipping references unknown shop {shop_id} → {real_id}", file=sys.stderr)
+            continue
+        target.setdefault("shipping", {})
+        try:
+            target["shipping"]["standard_cost"] = float(cost)
+        except (TypeError, ValueError):
+            print(f"warn: userShopShipping[{shop_id}] = {cost!r} is not numeric — skipping", file=sys.stderr)
+            continue
+        summary["shipping_updates"].append({"id": real_id, "cost": float(cost)})
+        consumed["userShopShipping"].append(shop_id)
+
     prices["last_updated_at"] = _now_iso()
 
     if not dry_run:
@@ -351,6 +375,10 @@ def _print_summary(s: dict, id_translations: dict | None = None) -> None:
     print(f"Observations added: {s['observations_added']}")
     print(f"  duplicates skipped: {s['observations_skipped_duplicate']}")
     print(f"EANs set:           {s['eans_set']}")
+    ship_updates = s.get("shipping_updates") or []
+    print(f"Shipping updates:   {len(ship_updates)}")
+    for x in ship_updates:
+        print(f"  - {x['id']:<28} → €{x['cost']:.2f}")
     if id_translations:
         print(f"Shop-id rewrites:   {len(id_translations)}")
         for synth, real in id_translations.items():
