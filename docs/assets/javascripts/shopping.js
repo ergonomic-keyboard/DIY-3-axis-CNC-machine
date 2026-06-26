@@ -935,6 +935,15 @@
     });
     right.appendChild(clearBtn);
 
+    // SL-10.T: Export the user's browser-stored data so it can be merged
+    // into the repo's docs/data/*.json (primary source of truth).
+    var exportBtn = el('button', 'shopping-link', '↓ Export data');
+    exportBtn.type = 'button';
+    exportBtn.title = 'Download your prices / shops / alternatives / EANs as JSON ' +
+      'so tools/merge_user_data.py can fold them into the repo.';
+    exportBtn.addEventListener('click', exportUserDataToFile);
+    right.appendChild(exportBtn);
+
     // SL-9.d: when the local helper isn't running, expose the start command
     // here as a small details/summary chip rather than a dead disabled row.
     var offlineChip = renderRefreshOfflineChip();
@@ -1632,6 +1641,35 @@
     wrap.appendChild(btn);
     wrap.appendChild(pop);
     return wrap;
+  }
+
+  // SL-10.T: dump the user's localStorage state to a downloadable JSON file
+  // so it can be merged into the repo via tools/merge_user_data.py. Includes
+  // the full state object plus an `exported_at` timestamp and the storage
+  // key so the merge script can verify it's the right schema.
+  function exportUserDataToFile() {
+    var snapshot;
+    try { snapshot = JSON.parse(localStorage.getItem(STATE_KEY) || '{}'); }
+    catch (e) { snapshot = {}; }
+    var payload = {
+      $kind: 'cnc-shopping-user-export',
+      $schema_version: 1,
+      storage_key: STATE_KEY,
+      exported_at: new Date().toISOString(),
+      state: snapshot
+    };
+    var json = JSON.stringify(payload, null, 2);
+    var blob = new Blob([json], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'cnc-shopping-state-' + new Date().toISOString().replace(/[:.]/g, '-') + '.json';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 0);
   }
 
   function fallbackCopy(text) {
