@@ -190,6 +190,54 @@
         "default_eta_days": 2
       },
       "added_by_user": true
+    },
+    {
+      "id": "karwei_nl",
+      "name": "Karwei",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.karwei.nl/",
+      "shipping": {
+        "standard_cost": 7.5,
+        "free_above": 75.0,
+        "default_eta_days": 3
+      }
+    },
+    {
+      "id": "praxis_nl",
+      "name": "Praxis",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.praxis.nl/",
+      "shipping": {
+        "standard_cost": 5.95,
+        "free_above": 75.0,
+        "default_eta_days": 3
+      }
+    },
+    {
+      "id": "gamma_nl",
+      "name": "Gamma",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.gamma.nl/",
+      "shipping": {
+        "standard_cost": 5.95,
+        "free_above": 75.0,
+        "default_eta_days": 3
+      }
+    },
+    {
+      "id": "hornbach_nl",
+      "name": "Hornbach",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.hornbach.nl/",
+      "shipping": {
+        "standard_cost": 4.99,
+        "free_above": 30.0,
+        "default_eta_days": 3
+      }
     }
   ]
 }

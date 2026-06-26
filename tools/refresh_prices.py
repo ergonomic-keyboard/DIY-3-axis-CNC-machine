@@ -52,6 +52,12 @@ SKIP_SHOPS = {
     "bol_nl",      # bot wall; needs Plaza/affiliate API
     "conrad_nl",   # bot wall; product pages 403 with anything that looks like a script
     "3dhubs_print_service",  # quote-only, no fixed price
+    # DIY chains added for the alu-profile / threaded-rod / 220V swap. They
+    # gate scraping behind the same anti-bot pattern as the marketplaces.
+    "karwei_nl",
+    "praxis_nl",
+    "gamma_nl",
+    "hornbach_nl",
 }
 
 # Hosts whose product pages are known to be unfetchable. User-added shops
@@ -63,6 +69,10 @@ SKIP_HOSTS = {
     "conrad.nl", "conrad.com", "conrad.de",
     "aliexpress.com", "aliexpress.nl",
     "alibaba.com",  # same marketplace family as aliexpress — listing-style URLs
+    "karwei.nl",
+    "praxis.nl",
+    "gamma.nl", "gamma.be",
+    "hornbach.nl", "hornbach.de",
 }
 
 

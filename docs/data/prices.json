@@ -1,6 +1,6 @@
 {
   "$schema_version": 2,
-  "last_updated_at": "2026-06-26T20:21:04Z",
+  "last_updated_at": "2026-06-26T21:29:21Z",
   "notes": "One entry per (item_code, shop) pair. The newest observation in `observations` is what the UI displays; history is appended, never overwritten. Each observation carries a `technique` (jsonld | opengraph | affiliate-api | manual) per SL-9.e. Refresh via tools/refresh_prices.py or the refresh-prices GitHub Action. Only add entries whose `url` points at a concrete product page — the refresh tool skips listing / search / category URLs by design (see SL-9.b).",
   "entries": [
     {
@@ -484,6 +484,14 @@
           "in_stock": true,
           "eta_days": 3,
           "technique": "manual"
+        },
+        {
+          "ts": "2026-06-26T21:29:05.006Z",
+          "price": 6.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": null,
+          "technique": "manual"
         }
       ]
     },
@@ -499,6 +507,14 @@
           "currency": "EUR",
           "in_stock": true,
           "eta_days": 5,
+          "technique": "manual"
+        },
+        {
+          "ts": "2026-06-26T21:29:21.600Z",
+          "price": 13.26,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": null,
           "technique": "manual"
         }
       ]
@@ -732,6 +748,636 @@
           "in_stock": true,
           "eta_days": 2,
           "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E07",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/nl/p/wago-221-413-50-221-verbindingsklem-flexibel-0-14-4-mm-massief-0-2-4-mm-aantal-polen-3-50-stuk-s-transparant-oranje-1188440.html",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T20:54:15Z",
+          "price": 24.99,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Wago 221-413, 50-piece box"
+        }
+      ]
+    },
+    {
+      "item_code": "E12",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/nl/search.html?search=Molex+90142+C-Grid+III+1x2",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T20:54:15Z",
+          "price": 0.45,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Molex SL 50-57-9402 (1x2 housing) — verify Conrad SKU"
+        }
+      ]
+    },
+    {
+      "item_code": "E13",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/nl/search.html?search=Molex+90142+C-Grid+III+1x4",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T20:54:15Z",
+          "price": 0.75,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Molex SL 50-57-9404 (1x4 housing) — verify Conrad SKU"
+        }
+      ]
+    },
+    {
+      "item_code": "E15",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/p/crimpcontact-awg-min-24-awg-max-20-koperlegering-5-a-phoenix-contact-cuc-dsc-c1bau-sdsc24-100-stuks-2137480",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T20:54:15Z",
+          "price": 24.99,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Phoenix Contact 100-pack crimp contact"
+        }
+      ]
+    },
+    {
+      "item_code": "E19",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/nl/search.html?search=dupont+jumper+kabels+arduino",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T20:54:15Z",
+          "price": 7.99,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Dupont jumper kabels — pick a 40-piece M/M+M/F+F/F set"
+        }
+      ]
+    },
+    {
+      "item_code": "E21",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/o/microschakelaars-0216650",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T20:54:15Z",
+          "price": 3.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "V-156-1C25 SPDT roller — pick brand on shelf"
+        }
+      ]
+    },
+    {
+      "item_code": "E22",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/p/conrad-components-led-assortiment-rood-groen-geel-blauw-wit-rond-3-mm-5-mm-1-set-182300",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T20:54:15Z",
+          "price": 26.94,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "LED-assortiment 3+5 mm (rood/groen/geel/blauw/wit)"
+        }
+      ]
+    },
+    {
+      "item_code": "E23",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/p/conrad-components-731306-kabelschoen-assortiment-050-mm-250-mm-blauw-geel-rood-1000-stuks-731306",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T20:54:15Z",
+          "price": 26.99,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "1000-piece kabelschoen-assortiment (M3+M4+spade)"
+        }
+      ]
+    },
+    {
+      "item_code": "E24",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/p/conrad-components-731306-kabelschoen-assortiment-050-mm-250-mm-blauw-geel-rood-1000-stuks-731306",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T20:54:15Z",
+          "price": 26.99,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Same assortment as E23 — M4 included"
+        }
+      ]
+    },
+    {
+      "item_code": "E25",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/nl/search.html?search=vlakstekker+2.8+mm",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T20:54:15Z",
+          "price": 0.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "TE Connectivity 2.8 mm Faston — verify SKU"
+        }
+      ]
+    },
+    {
+      "item_code": "E26",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/nl/search.html?search=vlakstekker+4.8+mm",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T20:54:15Z",
+          "price": 0.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "TE Connectivity 4.8 mm Faston — verify SKU"
+        }
+      ]
+    },
+    {
+      "item_code": "E27",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/p/te-connectivity-faston-vlakstekker-insteekbreedte-63-mm-insteekdikte-08-mm-90-ongeisoleerd-1-stuks-808186",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T20:54:15Z",
+          "price": 0.55,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "TE Connectivity 180430-2, 6.3 mm Faston"
+        }
+      ]
+    },
+    {
+      "item_code": "E29",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/nl/search.html?search=USB-A+connector+PCB+female",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T20:54:15Z",
+          "price": 4.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "TRU Components USB-A 3.0 PCB socket — verify SKU"
+        }
+      ]
+    },
+    {
+      "item_code": "E03",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/nl/o/aansluitdraad-2510113.html",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T20:54:15Z",
+          "price": 5.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Conrad aansluitdraad shelf — pick a roll/length"
+        }
+      ]
+    },
+    {
+      "item_code": "E04",
+      "shop": "karwei_nl",
+      "url": "https://www.karwei.nl/assortiment/handson-stekker-randaarde-wit/p/B275971",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 5.49,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Handson stekker randaarde wit"
+        }
+      ]
+    },
+    {
+      "item_code": "E05",
+      "shop": "karwei_nl",
+      "url": "https://www.karwei.nl/assortiment/handson-contrastekker-rubber-zwart/p/B477663",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 5.99,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Handson contrastekker rubber zwart"
+        }
+      ]
+    },
+    {
+      "item_code": "E06",
+      "shop": "karwei_nl",
+      "url": "https://www.karwei.nl/zoeken.html?text=220V+kabel+3x1.5mm",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 9.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "3-aderige 220V/10A kabel — pick length on shelf"
+        }
+      ]
+    },
+    {
+      "item_code": "E08",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/nl/o/awg22-f3043307",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 7.99,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "AWG22 stranded wire — 4 colors required"
+        }
+      ]
+    },
+    {
+      "item_code": "O02",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/s?k=T8+lead+screw+300mm+8mm+lead",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 19.99,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "T8 Acme leadscrew 8mm pitch / 8mm lead 300mm"
+        }
+      ]
+    },
+    {
+      "item_code": "O03",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/s?k=T8+anti+backlash+nut+8mm+lead",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 9.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "T8 anti-backlash brass nut"
+        }
+      ]
+    },
+    {
+      "item_code": "O04",
+      "shop": "gamma_nl",
+      "url": "https://www.gamma.nl/assortiment/l/bouwmaterialen-hout/bouwmaterialen/profielen/aluminium-profielen",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 18.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "30x30 alu profile, 677mm — DIY stores stock 1m+ then cut"
+        }
+      ]
+    },
+    {
+      "item_code": "O05",
+      "shop": "gamma_nl",
+      "url": "https://www.gamma.nl/assortiment/l/bouwmaterialen-hout/bouwmaterialen/profielen/aluminium-profielen",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 22.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "30x30 alu profile, 803mm"
+        }
+      ]
+    },
+    {
+      "item_code": "O06",
+      "shop": "gamma_nl",
+      "url": "https://www.gamma.nl/assortiment/l/bouwmaterialen-hout/bouwmaterialen/profielen/aluminium-profielen",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 4.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "30x30 alu profile, 80mm — cut from bigger length"
+        }
+      ]
+    },
+    {
+      "item_code": "O07",
+      "shop": "hornbach_nl",
+      "url": "https://www.hornbach.nl/c/ijzerwaren/profielen-metalen-platen/profielen/S4786/",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 27.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "30x30 alu profile, 900mm"
+        }
+      ]
+    },
+    {
+      "item_code": "O08",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/s?k=braided+cable+sleeve+20mm",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 9.99,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Braided cable sleeve, 20mm diameter, ~3m roll"
+        }
+      ]
+    },
+    {
+      "item_code": "O09",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/s?k=cable+chain+30x15+1m",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 14.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Cable chain 1m, 30x15mm inner — pick brand"
+        }
+      ]
+    },
+    {
+      "item_code": "O12",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/s?k=flat+end+mill+CNC+wood",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 14.99,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Flat end mill — pick diameter for the milling router"
+        }
+      ]
+    },
+    {
+      "item_code": "O13",
+      "shop": "hornbach_nl",
+      "url": "https://www.hornbach.nl/s/flexibele+buis",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 8.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Flexibele buis — pick diameter on shelf"
+        }
+      ]
+    },
+    {
+      "item_code": "O14",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/s?k=GT2+belt+6mm+300mm+closed+loop",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 8.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "GT2 closed-loop belt, 6mm × 300mm"
+        }
+      ]
+    },
+    {
+      "item_code": "O18",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/s?k=HTD5M+pulley+12T+8mm+bore+15mm",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 11.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "HTD5M 12T pulley, 8mm bore, 15mm belt width"
+        }
+      ]
+    },
+    {
+      "item_code": "O22",
+      "shop": "amazon_nl",
+      "url": "https://www.amazon.nl/s?k=MGN12H+block",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 9.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "MGN12H carriage block — order ≥12 pieces"
+        }
+      ]
+    },
+    {
+      "item_code": "O24",
+      "shop": "conrad_nl",
+      "url": "https://www.conrad.nl/nl/search.html?search=krimpkous+assortiment",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 9.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Krimpkous assortimentdoos"
+        }
+      ]
+    },
+    {
+      "item_code": "T01",
+      "shop": "hornbach_nl",
+      "url": "https://www.hornbach.nl/p/dresselhaus-draadeind-m5x1-m-din-976-galv-verzinkt/3831306/",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 2.49,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Dresselhaus M5×1m verzinkt — cut to 140mm × 2"
+        }
+      ]
+    },
+    {
+      "item_code": "T02",
+      "shop": "praxis_nl",
+      "url": "https://www.praxis.nl/gereedschap-installatiemateriaal/ijzerwaren/schroeven/draadstangen/draadeind-m8x1000mm-gegalvaniseerd/5368353",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 4.49,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Praxis M8×1000 gegalvaniseerd — cut to 120mm × 8"
+        }
+      ]
+    },
+    {
+      "item_code": "T03",
+      "shop": "gamma_nl",
+      "url": "https://www.gamma.nl/assortiment/gamma-draadeind-verzinkt-m8-x-1000-mm/p/B450535",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T21:20:40Z",
+          "price": 4.95,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual",
+          "partial": true,
+          "note": "Gamma M8×1000 verzinkt — cut to 717mm × 4 (need 4× 1m rods)"
         }
       ]
     }

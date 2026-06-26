@@ -1890,6 +1890,25 @@
       alert('Imported file is not a JSON object.');
       return;
     }
+    // Recognise the repo's own data files and steer the user back to the right
+    // path: prices/items/shops/defaults live in docs/data/ and are not the
+    // import target. Imports come from "↓ Export data" on this page.
+    if (payload.entries && Array.isArray(payload.entries)) {
+      alert('That looks like docs/data/prices.json (it has an "entries" array). ' +
+        'Prices live in the repo, not in your localStorage — Import only loads ' +
+        'a state JSON produced by the "↓ Export data" button on this page.');
+      return;
+    }
+    if (payload.items && Array.isArray(payload.items)) {
+      alert('That looks like docs/data/items.json. Items live in the repo; ' +
+        'Import only loads a state JSON produced by "↓ Export data".');
+      return;
+    }
+    if (payload.shops && Array.isArray(payload.shops)) {
+      alert('That looks like docs/data/shops.json. Shops live in the repo; ' +
+        'Import only loads a state JSON produced by "↓ Export data".');
+      return;
+    }
     if (payload.$kind && payload.$kind !== 'cnc-shopping-user-export' &&
         payload.$kind !== 'cnc-shopping-site-default') {
       alert('Unexpected $kind ' + JSON.stringify(payload.$kind) + ' — expected a shopping export.');
@@ -1897,7 +1916,8 @@
     }
     var imported = payload.state;
     if (!imported || typeof imported !== 'object') {
-      alert('Imported file has no .state object.');
+      alert('Imported file has no .state object. ' +
+        'Use a JSON downloaded via the "↓ Export data" button on this page.');
       return;
     }
     if (!window.confirm('Replace your current selection and settings with the imported data? This cannot be undone.')) {

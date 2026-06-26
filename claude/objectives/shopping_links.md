@@ -84,3 +84,10 @@ SL-10.X The repo owner's currently-shown selection and UI preferences (`selected
 
 SL-10.Y The "Combined order" summary shall group orders per webshop with stable alphabetical ordering by shop name, list each line bought at that shop (code × qty @ unit = line total), and show the per-shop subtotal, shipping cost, and shop total. The shipping cost displayed in each group shall be double-click-editable inline, writing through to the same `state.userShopShipping` overlay (SL-10.W) so the summary and the per-item row remain consistent.
 
+
+SL-11.a Each Item shall support custom attributes (specific name and specific value).
+SL-12.b The Screws shall have custom datafields: Size, length and amount.
+SL-12.C The ScrewsNuts shall have custom datafields: Size and amount.
+SL-12.D The washers shall have custom datafields: Size and amount.
+SL-12.D The threaded rods shall have custom datafields: Size, length and amount.
+SL-12.D The other shall have custom datafields: identifier amount.
