@@ -78,22 +78,16 @@ def find_rectified_image(example: Path, override: Path | None) -> Path:
     return candidates[0]
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--example", type=Path, required=True,
-                    help="example folder (the one containing the 0_..5_ stage dirs)")
-    ap.add_argument("--image", type=Path, default=None,
-                    help="rectified image to trace over (default: the single "
-                         "*_rect.png in <example>/2_flattened_image/)")
-    args = ap.parse_args()
-
-    example: Path = args.example.resolve()
+def run(example: Path, image_override: Path | None = None) -> None:
+    """Trace the polygon for the given example. Used by both the CLI and by
+    rectify.py, which auto-chains into the trace step."""
+    example = example.resolve()
     if not example.is_dir():
-        raise SystemExit(f"--example folder does not exist: {example}")
+        raise SystemExit(f"example folder does not exist: {example}")
     outline_dir = example / "4_outline"
     outline_dir.mkdir(exist_ok=True)
 
-    img_path = find_rectified_image(example, args.image)
+    img_path = find_rectified_image(example, image_override)
     img = imread(img_path)
     h, w = img.shape[:2]
 
@@ -220,6 +214,17 @@ def main() -> None:
     # Auto-save on close if user didn't press 's' but has points.
     if pts and not saved_at_least_once[0]:
         save()
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("--example", type=Path, required=True,
+                    help="example folder (the one containing the 0_..5_ stage dirs)")
+    ap.add_argument("--image", type=Path, default=None,
+                    help="rectified image to trace over (default: the single "
+                         "*_rect.png in <example>/2_flattened_image/)")
+    args = ap.parse_args()
+    run(args.example, args.image)
 
 
 if __name__ == "__main__":

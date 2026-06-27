@@ -66,6 +66,7 @@ from matplotlib.collections import PolyCollection  # noqa: E402
 from stl import mesh  # noqa: E402
 
 from extract_holes import extract_holes  # noqa: E402
+import trace_polygon  # noqa: E402
 
 
 STAGE_DIRS = [
@@ -366,6 +367,7 @@ def collect_calibration_clicks(
     reference_png: Path,
     photo: np.ndarray,
     n: int = 4,
+    initial_clicks: list[tuple[float, float]] | None = None,
 ) -> np.ndarray:
     ref_img = plt.imread(str(reference_png))
     photo_rgb = cv2.cvtColor(photo, cv2.COLOR_BGR2RGB)
@@ -403,7 +405,7 @@ def collect_calibration_clicks(
         except Exception:
             continue
 
-    picked: list[tuple[float, float]] = []
+    picked: list[tuple[float, float]] = list(initial_clicks or [])
     artists: list = []
 
     def update_title():
@@ -453,6 +455,10 @@ def collect_calibration_clicks(
 
     fig.canvas.mpl_connect("button_press_event", on_click)
     fig.canvas.mpl_connect("key_press_event", on_key)
+    # Render any pre-populated clicks before showing the window so the user
+    # sees the loaded points and can keep, edit, or replace them.
+    if picked:
+        redraw()
     plt.show()
 
     if len(picked) != n:
@@ -657,24 +663,75 @@ def main() -> None:
             "for calibration."
         )
 
-    # 2. Pick 4 widest-spread Y-axis holes (honouring --exclude).
+    # 2. Pick 4 widest-spread Y-axis holes (honouring --exclude). If a
+    #    previous rectify run for this photo saved a calibration choice, load
+    #    it as the initial selection so the user only has to re-confirm
+    #    (unless --exclude is passed — that forces a fresh auto-pick).
     exclude = set()
     if args.exclude:
         try:
             exclude = {int(x.strip()) for x in args.exclude.split(",") if x.strip()}
         except ValueError:
             raise SystemExit("--exclude expects comma-separated integers")
-    chosen = pick_calibration_holes(y_holes, n=4, exclude=exclude)
+
+    auto_chosen = pick_calibration_holes(y_holes, n=4, exclude=exclude)
+
+    chosen = auto_chosen
+    source = "auto-picked"
+    cached_clicks: list[tuple[float, float]] | None = None
+    if not exclude:
+        prev_meta = stage2 / f"{photo_path.stem}_rect.json"
+        if prev_meta.exists():
+            try:
+                prev = json.loads(prev_meta.read_text())
+                cached_holes = prev.get("chosen_y_hole_indices")
+                if (
+                    isinstance(cached_holes, list)
+                    and len(cached_holes) == 4
+                    and all(
+                        isinstance(i, int) and 0 <= i < len(y_holes)
+                        for i in cached_holes
+                    )
+                ):
+                    chosen = list(cached_holes)
+                    source = f"loaded from {prev_meta.name}"
+                # Photo clicks: only reuse if hole choice was also reusable
+                # (otherwise the click-order semantics no longer match).
+                cached_pts = prev.get("image_points_px")
+                if (
+                    source.startswith("loaded")
+                    and isinstance(cached_pts, list)
+                    and len(cached_pts) == 4
+                    and all(
+                        isinstance(p, list) and len(p) == 2
+                        and all(isinstance(v, (int, float)) for v in p)
+                        for p in cached_pts
+                    )
+                ):
+                    cached_clicks = [(float(x), float(y)) for x, y in cached_pts]
+            except (json.JSONDecodeError, OSError) as e:
+                print(f"warning: could not read {prev_meta.name} ({e}); using auto-pick")
 
     print(f"\nAll Y-axis holes ({len(y_holes)}):")
     for i, h in enumerate(y_holes):
-        mark = " ← auto-picked" if i in chosen else ""
+        marks = []
+        if i in chosen:
+            marks.append("← selected")
+        if i in auto_chosen and i not in chosen:
+            marks.append("(auto would pick)")
+        mark = "  " + "  ".join(marks) if marks else ""
         print(f"  [{i:2d}]  X={h['cx']:7.2f}  Z={h['cz']:7.2f}  r={h['r']:5.2f}{mark}")
+    print(f"\nInitial selection ({source}): {chosen}")
 
     # 3. Let the user adjust the 4 chosen holes interactively before clicking
     #    the photo. Click any hole on the reference to toggle.
-    print("\nInteractive hole picker — toggle any hole, press q when 4/4.")
+    print("Interactive hole picker — toggle any hole, press D when 4/4.")
+    initial_chosen = list(chosen)
     chosen = interactive_hole_selection(stl_path, y_holes, chosen)
+    if chosen != initial_chosen:
+        # User edited the selection — previous photo clicks no longer
+        # correspond to the new click order, so discard them.
+        cached_clicks = None
     print(f"\nFinal calibration holes (in click order): {chosen}")
     for k, idx in enumerate(chosen, start=1):
         h = y_holes[idx]
@@ -689,7 +746,12 @@ def main() -> None:
     img = cv2.imread(str(photo_path))
     if img is None:
         raise SystemExit(f"could not load {photo_path}")
-    img_pts = collect_calibration_clicks(ref_png, img, n=4)
+    if cached_clicks is not None:
+        print("Pre-loaded the 4 photo clicks from the previous run — press D "
+              "to accept, or U to undo and re-click.")
+    img_pts = collect_calibration_clicks(
+        ref_png, img, n=4, initial_clicks=cached_clicks,
+    )
 
     # 5. Build homography from the 4 (X, Z) real-world coords of the chosen
     #    holes onto the photo clicks.
@@ -766,6 +828,11 @@ def main() -> None:
         rectified, mm_per_px,
         example=example, photo_stem=photo_path.stem,
     )
+
+    # 9. Chain straight into stage 5 — polygon trace on the rectified photo.
+    print("\nStage 5 — trace the plate outline on the rectified photo.")
+    print("Controls: left=add  right/z=undo  c=close loop  s=save  q=quit")
+    trace_polygon.run(example, image_override=out_png)
 
 
 if __name__ == "__main__":
