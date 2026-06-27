@@ -60,6 +60,14 @@ if not os.environ.get("MPLBACKEND"):
         except Exception:
             continue
 
+# Disable matplotlib's default keymap (save, home, grid, …) so our explicit
+# key bindings don't double-trigger matplotlib's native actions — e.g. `s`
+# popping up a save-figure dialog in a random folder while we silently save
+# to the stage folder.
+for _k in list(matplotlib.rcParams):
+    if _k.startswith("keymap.") and _k != "keymap.quit":
+        matplotlib.rcParams[_k] = []
+
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from matplotlib.collections import PolyCollection  # noqa: E402

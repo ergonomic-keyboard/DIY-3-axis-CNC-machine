@@ -31,9 +31,14 @@ Controls (also shown as a persistent banner):
   F                       cycle to the next pair of candidate plastic lines
   M                       manual snap mode — click any plastic boundary
                             segment to snap the selected edge onto it
-  G                       cycle selected edge's group label (0..9; 0 = none).
-                            Edges sharing a group AND a consistent H/V
-                            constraint share the same coord at save time.
+  G                       enter group-edit mode for the selected edge's
+                            group (creates a new group if it had none).
+                            Members are highlighted in magenta. Click any
+                            edge to toggle its membership. Press G again to
+                            commit: all members spring to the longest
+                            edge's position (longest decides H or V), and
+                            from then on nudging any member moves them all
+                            together. Esc cancels without committing.
   ← → ↑ ↓                 nudge selected edge 0.5 mm perpendicular
   Shift + ← → ↑ ↓         nudge by 0.1 mm (fine)
   U                       undo last edit (one step)
@@ -62,6 +67,14 @@ if not os.environ.get("MPLBACKEND"):
             break
         except Exception:
             continue
+
+# Disable matplotlib's default keymap so our explicit single-key bindings
+# (S = save to stage folder, R = reset, F = next candidate, G = group, …)
+# don't double-trigger matplotlib's native actions like opening a save
+# dialog in a random folder.
+for _k in list(matplotlib.rcParams):
+    if _k.startswith("keymap.") and _k != "keymap.quit":
+        matplotlib.rcParams[_k] = []
 
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
@@ -411,6 +424,7 @@ def run(example: Path) -> None:
     dirty = [False]  # have edits been made since last save / since load?
     cand_offset: list[int] = [0]  # which pair of snap candidates is shown
     manual_pick = [False]  # in manual-snap mode, the next left-click picks a plastic segment
+    editing_group: list[int] = [0]  # 0 = not in group-edit mode; otherwise the gid being edited
     history: list[tuple[list[tuple[float, float]], list[str], list[int]]] = []  # 1-step undo
 
     def snapshot():
@@ -421,6 +435,19 @@ def run(example: Path) -> None:
             list(constraints),
             list(groups),
         ))
+
+    def edge_length(i: int) -> float:
+        x1, z1 = verts[i]
+        x2, z2 = verts[(i + 1) % n]
+        return float(np.hypot(x2 - x1, z2 - z1))
+
+    def next_free_group() -> int:
+        used = set(groups)
+        for k in range(1, 10):
+            if k not in used:
+                return k
+        # All taken — reuse the highest. Rare; user would need 9 groups.
+        return 9
 
     fig, ax = plt.subplots(figsize=(10, 12))
     try:
@@ -438,7 +465,7 @@ def run(example: Path) -> None:
         zorder=100,
     )
     status = ax.text(
-        0.99, 1.02, "",
+        0.99, 0.01, "",
         transform=ax.transAxes, ha="right", va="bottom",
         color="white", fontsize=10,
         bbox=dict(boxstyle="round,pad=0.3", fc="black", ec="white", alpha=0.85),
@@ -465,10 +492,15 @@ def run(example: Path) -> None:
                 (h["cx"], h["cz"]), h["r"], fill=False,
                 edgecolor="dimgray", lw=0.6, alpha=0.6,
             ))
-        # Polygon edges (colour by constraint)
+        # Polygon edges (colour by constraint).
+        # During group-edit mode, the group's members get a thick magenta
+        # underlay so they stand out.
         for i in range(n):
             x1, z1 = verts[i]
             x2, z2 = verts[(i + 1) % n]
+            if editing_group[0] != 0 and groups[i] == editing_group[0]:
+                ax.plot([x1, x2], [z1, z2], color="magenta", lw=7.0,
+                        alpha=0.55, zorder=3, solid_capstyle="round")
             colour = CONSTRAINT_COLORS[constraints[i]]
             lw = 4.0 if i == selected[0] else 1.6
             ax.plot([x1, x2], [z1, z2], color=colour, lw=lw, solid_capstyle="round",
@@ -541,10 +573,15 @@ def run(example: Path) -> None:
                 f"MANUAL SNAP — click a cyan plastic segment to snap E{i} onto it  "
                 "|  Esc = cancel"
             )
+        elif editing_group[0] != 0:
+            banner.set_text(
+                f"GROUP EDIT g{editing_group[0]} — click edges to toggle "
+                "membership  |  G = commit (snap to longest)  |  Esc = cancel"
+            )
         else:
             banner.set_text(
                 "click edge  |  H/V/N constraint  |  1/2 snap  |  F next cands  |  "
-                "M manual snap  |  G group(0-9)  |  ←→↑↓ nudge (Shift=fine)  |  "
+                "M manual snap  |  G group-edit  |  ←→↑↓ nudge (Shift=fine)  |  "
                 "U undo  R reset  S save  D save+exit"
             )
         status.set_text(
@@ -556,23 +593,25 @@ def run(example: Path) -> None:
     def shift_selected_edge(dx: float, dz: float):
         snapshot()
         i = selected[0]
-        j = (i + 1) % n
-        c = constraints[i]
-        if c == "horizontal":
-            # Allowed: only Z component.
-            verts[i] = (verts[i][0], verts[i][1] + dz)
-            verts[j] = (verts[j][0], verts[j][1] + dz)
-        elif c == "vertical":
-            # Allowed: only X component.
-            verts[i] = (verts[i][0] + dx, verts[i][1])
-            verts[j] = (verts[j][0] + dx, verts[j][1])
-        else:
-            # Perpendicular shift.
-            px, pz = edge_perp(verts, i)
-            # Take the user's (dx, dz) and project onto the perp direction:
-            mag = dx * px + dz * pz
-            verts[i] = (verts[i][0] + mag * px, verts[i][1] + mag * pz)
-            verts[j] = (verts[j][0] + mag * px, verts[j][1] + mag * pz)
+        gid = groups[i]
+        # If the selected edge is in a committed group (and we're NOT mid-edit
+        # of that group), shift all members by the same delta.
+        in_committed_group = gid != 0 and editing_group[0] != gid
+        members = [k for k, g in enumerate(groups) if g == gid] if in_committed_group else [i]
+        for ei in members:
+            j = (ei + 1) % n
+            c = constraints[ei]
+            if c == "horizontal":
+                verts[ei] = (verts[ei][0], verts[ei][1] + dz)
+                verts[j] = (verts[j][0], verts[j][1] + dz)
+            elif c == "vertical":
+                verts[ei] = (verts[ei][0] + dx, verts[ei][1])
+                verts[j] = (verts[j][0] + dx, verts[j][1])
+            else:
+                px, pz = edge_perp(verts, ei)
+                mag = dx * px + dz * pz
+                verts[ei] = (verts[ei][0] + mag * px, verts[ei][1] + mag * pz)
+                verts[j] = (verts[j][0] + mag * px, verts[j][1] + mag * pz)
         dirty[0] = True
 
     def set_constraint(c: str):
@@ -641,12 +680,75 @@ def run(example: Path) -> None:
                 best = seg
         return best
 
-    def cycle_group():
-        snapshot()
+    def toggle_group_edit():
+        """G key handler — enter/commit group-edit mode."""
         i = selected[0]
-        groups[i] = (groups[i] + 1) % 10
+        if editing_group[0] == 0:
+            # Entering edit mode.
+            snapshot()
+            gid = groups[i]
+            if gid == 0:
+                gid = next_free_group()
+                groups[i] = gid
+            editing_group[0] = gid
+            members = [k for k, g in enumerate(groups) if g == gid]
+            print(f"group edit g{gid}: members {members}")
+        else:
+            # Committing — snap members to the longest edge's position.
+            gid = editing_group[0]
+            commit_group(gid)
+            editing_group[0] = 0
+
+    def commit_group(gid: int):
+        members = [k for k, g in enumerate(groups) if g == gid]
+        if not members:
+            print(f"group g{gid} is empty — nothing to commit.")
+            return
+        snapshot()
+        if len(members) == 1:
+            # A single-member group is just an edge label; nothing to snap.
+            print(f"committed g{gid} (single member, no snap).")
+            dirty[0] = True
+            return
+        # Pick the longest edge as the anchor.
+        longest = max(members, key=edge_length)
+        x1, z1 = verts[longest]
+        x2, z2 = verts[(longest + 1) % n]
+        dx, dz = abs(x2 - x1), abs(z2 - z1)
+        is_h = dx >= dz
+        if is_h:
+            target_z = 0.5 * (z1 + z2)
+            for ei in members:
+                j = (ei + 1) % n
+                verts[ei] = (verts[ei][0], target_z)
+                verts[j] = (verts[j][0], target_z)
+                constraints[ei] = "horizontal"
+            print(f"committed g{gid}: {len(members)} edges → horizontal at Z={target_z:.3f} "
+                  f"(anchor E{longest}, length {edge_length(longest):.2f} mm)")
+        else:
+            target_x = 0.5 * (x1 + x2)
+            for ei in members:
+                j = (ei + 1) % n
+                verts[ei] = (target_x, verts[ei][1])
+                verts[j] = (target_x, verts[j][1])
+                constraints[ei] = "vertical"
+            print(f"committed g{gid}: {len(members)} edges → vertical at X={target_x:.3f} "
+                  f"(anchor E{longest}, length {edge_length(longest):.2f} mm)")
         dirty[0] = True
-        print(f"E{i} group → g{groups[i]}")
+
+    def toggle_group_membership(edge_index: int):
+        """In group-edit mode, clicking an edge toggles its membership."""
+        gid = editing_group[0]
+        if gid == 0:
+            return
+        snapshot()
+        if groups[edge_index] == gid:
+            groups[edge_index] = 0
+            print(f"E{edge_index} removed from g{gid}")
+        else:
+            groups[edge_index] = gid  # an edge is in at most 1 group
+            print(f"E{edge_index} added to g{gid}")
+        dirty[0] = True
 
     def force_next_candidates():
         i = selected[0]
@@ -708,6 +810,13 @@ def run(example: Path) -> None:
             manual_pick[0] = False
             repaint()
             return
+        if editing_group[0] != 0:
+            # In group-edit mode, clicks toggle group membership on the
+            # nearest edge instead of re-selecting.
+            target = nearest_edge_to_point(e.xdata, e.ydata, verts)
+            toggle_group_membership(target)
+            repaint()
+            return
         new_sel = nearest_edge_to_point(e.xdata, e.ydata, verts)
         if new_sel != selected[0]:
             cand_offset[0] = 0  # reset candidate window for the new edge
@@ -717,12 +826,18 @@ def run(example: Path) -> None:
     def on_key(e):
         if e.key is None:
             return
-        # Esc always exits manual-pick mode.
+        # Esc cancels manual-pick or group-edit mode without applying.
         if e.key in ("escape", "esc"):
             if manual_pick[0]:
                 manual_pick[0] = False
                 print("manual snap cancelled.")
                 repaint()
+                return
+            if editing_group[0] != 0:
+                editing_group[0] = 0
+                print("group edit cancelled (members not committed).")
+                repaint()
+                return
             return
         k = e.key.lower()
         step = 0.1 if "shift+" in e.key else 0.5
@@ -733,7 +848,7 @@ def run(example: Path) -> None:
         elif k in ("n", "shift+n"):
             set_constraint("free"); repaint()
         elif k in ("g", "shift+g"):
-            cycle_group(); repaint()
+            toggle_group_edit(); repaint()
         elif k in ("1", "shift+1"):
             snap_to_candidate(1); repaint()
         elif k in ("2", "shift+2"):

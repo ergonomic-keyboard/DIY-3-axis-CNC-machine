@@ -47,6 +47,12 @@ if not os.environ.get("MPLBACKEND"):
         except Exception:
             continue
 
+# Disable matplotlib's default keymap so `s` doesn't open a save dialog in
+# some random folder when we want it to silently save the polygon trace.
+for _k in list(matplotlib.rcParams):
+    if _k.startswith("keymap.") and _k != "keymap.quit":
+        matplotlib.rcParams[_k] = []
+
 import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.image import imread  # noqa: E402
 
