@@ -23,10 +23,20 @@ Writes:
 
 Controls (also shown as a persistent banner):
   left-click on an edge   select that edge
-  H / V / F               mark selected edge horizontal / vertical / free
+  H / V / N               mark selected edge horizontal / vertical / none
                             (immediate snap to mean coord on H or V)
+  1 / 2                   snap selected edge onto the highlighted plastic
+                            candidate line (perpendicular shift, length
+                            preserved)
+  F                       cycle to the next pair of candidate plastic lines
+  M                       manual snap mode — click any plastic boundary
+                            segment to snap the selected edge onto it
+  G                       cycle selected edge's group label (0..9; 0 = none).
+                            Edges sharing a group AND a consistent H/V
+                            constraint share the same coord at save time.
   ← → ↑ ↓                 nudge selected edge 0.5 mm perpendicular
   Shift + ← → ↑ ↓         nudge by 0.1 mm (fine)
+  U                       undo last edit (one step)
   R                       reset to the raw trace (clears all edits)
   S                       save now
   D                       save and exit
@@ -40,6 +50,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+from collections import Counter
 from pathlib import Path
 
 import matplotlib
@@ -122,6 +133,7 @@ def load_initial(example: Path) -> dict:
     n = len(raw_mm)
 
     constraints = ["free"] * n  # one per EDGE (edge i = vertex i -> vertex i+1)
+    groups = [0] * n
     verts = list(raw_mm)
     edited_json: Path | None = None
 
@@ -138,6 +150,10 @@ def load_initial(example: Path) -> dict:
             if len(ev) == n and len(ec) == n:
                 verts = [(float(x), float(z)) for x, z in ev]
                 constraints = list(ec)
+                # Groups are optional; default to 0 for older files.
+                eg = prev.get("edge_groups")
+                if isinstance(eg, list) and len(eg) == n:
+                    groups = [int(g) for g in eg]
                 print(f"loaded existing edit from {edited_json.name}")
             else:
                 print(f"warning: {edited_json.name} vertex count "
@@ -153,6 +169,7 @@ def load_initial(example: Path) -> dict:
         raw_vertices_mm=raw_mm,
         vertices=verts,
         constraints=constraints,
+        groups=groups,
         edited_json_path=edited_json
         or stage4 / f"{raw_json.stem}_edited.json",
         holes_data=holes_data,
@@ -183,13 +200,42 @@ def apply_constraint(verts: list[tuple[float, float]], i: int,
 def apply_all_constraints(
     verts: list[tuple[float, float]],
     constraints: list[str],
+    groups: list[int] | None = None,
 ) -> list[tuple[float, float]]:
-    """Apply every constraint once (left-to-right). Used at save time."""
+    """Apply every constraint once (left-to-right). Used at save time.
+
+    If ``groups`` is given, edges sharing a non-zero group number AND a
+    consistent H/V constraint type are collapsed to a single shared coord
+    (mean of their per-edge means).
+    """
     out = list(verts)
     n = len(out)
+    if groups is None:
+        groups = [0] * n
+    # 1) Apply per-edge H/V constraint (snap to own mean).
     for i, c in enumerate(constraints):
         if c != "free":
             apply_constraint(out, i, c, n)
+    # 2) Collapse groups to a shared coord.
+    by_group: dict[tuple[int, str], list[int]] = {}
+    for i, (g, c) in enumerate(zip(groups, constraints)):
+        if g == 0 or c == "free":
+            continue
+        by_group.setdefault((g, c), []).append(i)
+    for (g, c), edges in by_group.items():
+        # Per-edge coord (each edge is already collinear in its constrained axis).
+        if c == "horizontal":
+            shared = float(np.mean([out[i][1] for i in edges]))
+            for i in edges:
+                j = (i + 1) % n
+                out[i] = (out[i][0], shared)
+                out[j] = (out[j][0], shared)
+        elif c == "vertical":
+            shared = float(np.mean([out[i][0] for i in edges]))
+            for i in edges:
+                j = (i + 1) % n
+                out[i] = (shared, out[i][1])
+                out[j] = (shared, out[j][1])
     return out
 
 
@@ -235,6 +281,95 @@ def edge_perp(verts: list[tuple[float, float]], i: int) -> tuple[float, float]:
 
 
 # =============================================================================
+# Plastic boundary + snap candidates
+# =============================================================================
+def plastic_boundary_segments(
+    tris_xz: np.ndarray,
+) -> list[tuple[tuple[float, float], tuple[float, float]]]:
+    """Return (p1, p2) segments forming the outer boundary of the Y-face projection."""
+    grid = 100  # quantize to 0.01 mm to spot shared edges
+    edge_count: Counter = Counter()
+    edge_points: dict = {}
+    for tri in tris_xz:
+        for k in range(3):
+            a = tri[k]
+            b = tri[(k + 1) % 3]
+            ka = (int(round(a[0] * grid)), int(round(a[1] * grid)))
+            kb = (int(round(b[0] * grid)), int(round(b[1] * grid)))
+            ek = tuple(sorted([ka, kb]))
+            edge_count[ek] += 1
+            edge_points.setdefault(
+                ek,
+                ((float(a[0]), float(a[1])), (float(b[0]), float(b[1]))),
+            )
+    return [edge_points[k] for k, c in edge_count.items() if c == 1]
+
+
+def snap_candidates(
+    metal_edge: tuple[tuple[float, float], tuple[float, float]],
+    plastic_segments: list[tuple[tuple[float, float], tuple[float, float]]],
+    *,
+    angle_tol_deg: float = 8.0,
+    min_overlap_ratio: float = 0.1,
+) -> list[dict]:
+    """Return plastic segments parallel-ish to the metal edge, sorted by perp distance.
+
+    Each candidate dict has:
+        seg     : ((x1,z1), (x2,z2)) of the plastic boundary segment
+        d_perp  : signed perpendicular distance from metal midpoint to plastic
+                  segment's infinite line (used for sorting + the snap shift)
+        target  : projected (x, z) on the plastic line, where the metal mid
+                  would land after snap
+    """
+    (mx1, mz1), (mx2, mz2) = metal_edge
+    mdx, mdz = mx2 - mx1, mz2 - mz1
+    mL = float(np.hypot(mdx, mdz))
+    if mL < 1e-9:
+        return []
+    udx, udz = mdx / mL, mdz / mL
+    mid_x, mid_z = 0.5 * (mx1 + mx2), 0.5 * (mz1 + mz2)
+    cos_tol = float(np.cos(np.deg2rad(angle_tol_deg)))
+
+    out = []
+    for (px1, pz1), (px2, pz2) in plastic_segments:
+        pdx, pdz = px2 - px1, pz2 - pz1
+        pL = float(np.hypot(pdx, pdz))
+        if pL < 1e-9:
+            continue
+        # Parallelism (sign-agnostic): compare unit vectors via |dot|.
+        upd_x, upd_z = pdx / pL, pdz / pL
+        if abs(udx * upd_x + udz * upd_z) < cos_tol:
+            continue
+        # Length-overlap heuristic: project metal endpoints onto plastic line
+        # and require some overlap with [0, pL].
+        def proj_t(x, z):
+            return ((x - px1) * pdx + (z - pz1) * pdz) / (pL * pL)
+
+        t1 = proj_t(mx1, mz1) * pL
+        t2 = proj_t(mx2, mz2) * pL
+        lo, hi = min(t1, t2), max(t1, t2)
+        overlap = max(0.0, min(hi, pL) - max(lo, 0.0))
+        if overlap < min_overlap_ratio * min(mL, pL):
+            continue
+        # Perp distance from metal midpoint to plastic infinite line.
+        # Perp to plastic direction: (-upd_z, upd_x); signed distance:
+        nx, nz = -upd_z, upd_x
+        d_perp = (mid_x - px1) * nx + (mid_z - pz1) * nz
+        # Target on plastic line for the metal midpoint (along the metal direction,
+        # but at the plastic line's perpendicular position).
+        target_x = mid_x - d_perp * nx
+        target_z = mid_z - d_perp * nz
+        out.append(dict(
+            seg=((px1, pz1), (px2, pz2)),
+            d_perp=float(d_perp),
+            target=(float(target_x), float(target_z)),
+        ))
+
+    out.sort(key=lambda c: abs(c["d_perp"]))
+    return out
+
+
+# =============================================================================
 # Main editor
 # =============================================================================
 def run(example: Path) -> None:
@@ -246,6 +381,7 @@ def run(example: Path) -> None:
     rect = state["rect"]
     verts: list[tuple[float, float]] = state["vertices"]
     constraints: list[str] = state["constraints"]
+    groups: list[int] = state.get("groups") or [0] * len(state["vertices"])
     raw_mm = state["raw_vertices_mm"]
     stl_path: Path = state["stl_path"]
     n = len(verts)
@@ -253,8 +389,9 @@ def run(example: Path) -> None:
     # Y-axis hole projection (for the white circles in the overlay)
     y_holes = [h for h in state["holes_data"]["holes"] if h["axis"] == "Y"]
 
-    # Plastic Y-face triangles
+    # Plastic Y-face triangles + boundary segments (for snap targets)
     stl_proj = None
+    plastic_segments: list = []
     if stl_path.exists():
         m = stl_mesh.Mesh.from_file(str(stl_path))
         tris = m.vectors
@@ -264,12 +401,26 @@ def run(example: Path) -> None:
         y_face_mask = np.abs(n_unit[:, 1]) > 0.95
         if y_face_mask.any():
             stl_proj = tris[y_face_mask][:, :, [0, 2]]
+            plastic_segments = plastic_boundary_segments(stl_proj)
+            print(f"plastic boundary: {len(plastic_segments)} segments")
     else:
-        print(f"note: STL not found at {stl_path}; overlay will be skipped.")
+        print(f"note: STL not found at {stl_path}; overlay + snap disabled.")
 
     selected: list[int] = [0]
     saved_at_least_once = [False]
     dirty = [False]  # have edits been made since last save / since load?
+    cand_offset: list[int] = [0]  # which pair of snap candidates is shown
+    manual_pick = [False]  # in manual-snap mode, the next left-click picks a plastic segment
+    history: list[tuple[list[tuple[float, float]], list[str], list[int]]] = []  # 1-step undo
+
+    def snapshot():
+        # Single-step undo: keep at most one snapshot.
+        history.clear()
+        history.append((
+            [tuple(v) for v in verts],
+            list(constraints),
+            list(groups),
+        ))
 
     fig, ax = plt.subplots(figsize=(10, 12))
     try:
@@ -279,8 +430,8 @@ def run(example: Path) -> None:
 
     banner = ax.text(
         0.5, 1.02,
-        "click an edge to select  |  H/V/F = horizontal/vertical/free  |  "
-        "←→↑↓ nudge (Shift = fine)  |  R reset  S save  D save+exit",
+        "click edge  |  H/V/N constraint  |  1/2 snap to candidate  |  F next candidates  |  "
+        "←→↑↓ nudge (Shift=fine)  |  U undo  R reset  S save  D save+exit",
         transform=ax.transAxes, ha="center", va="bottom",
         color="white", fontsize=10,
         bbox=dict(boxstyle="round,pad=0.4", fc="black", ec="white", alpha=0.85),
@@ -302,6 +453,12 @@ def run(example: Path) -> None:
                 stl_proj, facecolor="tab:red", edgecolor="darkred",
                 lw=0.1, alpha=0.18,
             ))
+        # In manual-snap mode, brighten ALL plastic boundary segments so the
+        # user can clearly see what they're clicking on.
+        if manual_pick[0]:
+            for (px1, pz1), (px2, pz2) in plastic_segments:
+                ax.plot([px1, px2], [pz1, pz2], color="cyan", lw=2.2,
+                        alpha=0.95, zorder=5)
         # Hole circles
         for h in y_holes:
             ax.add_patch(plt.Circle(
@@ -320,6 +477,21 @@ def run(example: Path) -> None:
         vx = [v[0] for v in verts]
         vz = [v[1] for v in verts]
         ax.plot(vx, vz, "o", color="yellow", ms=4, mec="black", mew=0.5, zorder=7)
+        # Group labels (small badge near the midpoint, only when group > 0)
+        for ei in range(n):
+            g = groups[ei]
+            if g == 0:
+                continue
+            x1, z1 = verts[ei]
+            x2, z2 = verts[(ei + 1) % n]
+            ax.annotate(
+                f"g{g}", (0.5 * (x1 + x2), 0.5 * (z1 + z2)),
+                color="black", fontsize=8, fontweight="bold",
+                ha="center", va="center",
+                xytext=(0, -14), textcoords="offset points",
+                bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="black", lw=0.6),
+                zorder=8,
+            )
         # Selected-edge midpoint label
         i = selected[0]
         x1, z1 = verts[i]
@@ -331,6 +503,25 @@ def run(example: Path) -> None:
             bbox=dict(boxstyle="round,pad=0.3", fc="yellow", ec="black"),
             zorder=8,
         )
+        # Snap candidates for the selected edge (top 2 within current window).
+        # Skipped in manual-pick mode to keep the canvas readable.
+        if not manual_pick[0]:
+            candidates = snap_candidates((verts[i], verts[(i + 1) % n]), plastic_segments)
+            visible = candidates[cand_offset[0] : cand_offset[0] + 2]
+            cand_colors = ["lime", "darkorange"]
+            for k, c in enumerate(visible, start=1):
+                (cx1, cz1), (cx2, cz2) = c["seg"]
+                ax.plot([cx1, cx2], [cz1, cz2], color=cand_colors[k - 1],
+                        lw=3.0, alpha=0.9, zorder=9)
+                tx, tz = c["target"]
+                ax.annotate(
+                    str(k), (tx, tz),
+                    color="black", fontsize=12, fontweight="bold",
+                    ha="center", va="center",
+                    bbox=dict(boxstyle="circle,pad=0.3",
+                              fc=cand_colors[k - 1], ec="black"),
+                    zorder=10,
+                )
         # Limits
         xs = vx + ([stl_proj[:, :, 0].min(), stl_proj[:, :, 0].max()]
                    if stl_proj is not None else [])
@@ -345,12 +536,25 @@ def run(example: Path) -> None:
         # Re-attach banner / status
         ax.add_artist(banner)
         ax.add_artist(status)
+        if manual_pick[0]:
+            banner.set_text(
+                f"MANUAL SNAP — click a cyan plastic segment to snap E{i} onto it  "
+                "|  Esc = cancel"
+            )
+        else:
+            banner.set_text(
+                "click edge  |  H/V/N constraint  |  1/2 snap  |  F next cands  |  "
+                "M manual snap  |  G group(0-9)  |  ←→↑↓ nudge (Shift=fine)  |  "
+                "U undo  R reset  S save  D save+exit"
+            )
         status.set_text(
-            f"E{i}  {constraints[i]:>10}   {'•dirty' if dirty[0] else 'clean'}"
+            f"E{i}  {constraints[i]:>10}  g{groups[i]}   "
+            f"{'•dirty' if dirty[0] else 'clean'}"
         )
         fig.canvas.draw_idle()
 
     def shift_selected_edge(dx: float, dz: float):
+        snapshot()
         i = selected[0]
         j = (i + 1) % n
         c = constraints[i]
@@ -372,20 +576,109 @@ def run(example: Path) -> None:
         dirty[0] = True
 
     def set_constraint(c: str):
+        snapshot()
         i = selected[0]
         constraints[i] = c
         if c in ("horizontal", "vertical"):
             apply_constraint(verts, i, c, n)
         dirty[0] = True
 
+    def _snap_to_plastic_segment(seg) -> None:
+        """Perpendicular-shift the selected edge so its midpoint sits on
+        ``seg``'s infinite line. Length and direction preserved."""
+        i = selected[0]
+        j = (i + 1) % n
+        (px1, pz1), (px2, pz2) = seg
+        pdx, pdz = px2 - px1, pz2 - pz1
+        pL = float(np.hypot(pdx, pdz))
+        if pL < 1e-9:
+            print("degenerate plastic segment, ignoring.")
+            return
+        # Perp to the plastic line.
+        nx, nz = -pdz / pL, pdx / pL
+        mid_x = 0.5 * (verts[i][0] + verts[j][0])
+        mid_z = 0.5 * (verts[i][1] + verts[j][1])
+        d = (mid_x - px1) * nx + (mid_z - pz1) * nz  # signed perp distance
+        snapshot()
+        verts[i] = (verts[i][0] - d * nx, verts[i][1] - d * nz)
+        verts[j] = (verts[j][0] - d * nx, verts[j][1] - d * nz)
+        dirty[0] = True
+        print(f"snapped E{i} (shift {-d:+.3f} mm perpendicular)")
+
+    def snap_to_candidate(k: int):
+        """Snap the selected edge perpendicularly onto candidate k (1 or 2)."""
+        i = selected[0]
+        candidates = snap_candidates(
+            (verts[i], verts[(i + 1) % n]), plastic_segments,
+        )
+        visible = candidates[cand_offset[0] : cand_offset[0] + 2]
+        if not visible:
+            print("no snap candidates for this edge — try nudging closer or check parallelism.")
+            return
+        if k - 1 >= len(visible):
+            print(f"snap candidate {k} not available (only {len(visible)} shown).")
+            return
+        _snap_to_plastic_segment(visible[k - 1]["seg"])
+
+    def nearest_plastic_segment(px: float, pz: float):
+        if not plastic_segments:
+            return None
+        best = None
+        best_d = float("inf")
+        for seg in plastic_segments:
+            (x1, z1), (x2, z2) = seg
+            dx, dz = x2 - x1, z2 - z1
+            L2 = dx * dx + dz * dz
+            if L2 < 1e-9:
+                d = float(np.hypot(px - x1, pz - z1))
+            else:
+                t = max(0.0, min(1.0, ((px - x1) * dx + (pz - z1) * dz) / L2))
+                cx = x1 + t * dx
+                cz = z1 + t * dz
+                d = float(np.hypot(px - cx, pz - cz))
+            if d < best_d:
+                best_d = d
+                best = seg
+        return best
+
+    def cycle_group():
+        snapshot()
+        i = selected[0]
+        groups[i] = (groups[i] + 1) % 10
+        dirty[0] = True
+        print(f"E{i} group → g{groups[i]}")
+
+    def force_next_candidates():
+        i = selected[0]
+        candidates = snap_candidates(
+            (verts[i], verts[(i + 1) % n]), plastic_segments,
+        )
+        if not candidates:
+            print("no snap candidates for this edge.")
+            return
+        cand_offset[0] = (cand_offset[0] + 2) % max(1, len(candidates))
+        print(f"showing candidates {cand_offset[0] + 1}-{cand_offset[0] + 2} "
+              f"of {len(candidates)}.")
+
+    def undo():
+        if not history:
+            print("nothing to undo.")
+            return
+        prev_verts, prev_constraints, prev_groups = history.pop()
+        verts[:] = [tuple(v) for v in prev_verts]
+        constraints[:] = list(prev_constraints)
+        groups[:] = list(prev_groups)
+        dirty[0] = True
+
     def save():
-        snapped = apply_all_constraints(verts, constraints)
+        snapped = apply_all_constraints(verts, constraints, groups)
         payload = {
             "source_raw": str(state["raw_poly_json"]),
             "coords": "mm",
             "closed": True,
             "vertices_xz_mm": [[float(x), float(z)] for x, z in snapped],
             "edge_constraints": list(constraints),
+            "edge_groups": list(groups),
         }
         state["edited_json_path"].write_text(json.dumps(payload, indent=2))
         saved_at_least_once[0] = True
@@ -393,34 +686,69 @@ def run(example: Path) -> None:
         print(f"wrote {state['edited_json_path']}")
 
     def reset():
-        nonlocal_verts = list(raw_mm)
-        verts[:] = nonlocal_verts
+        snapshot()
+        verts[:] = [tuple(v) for v in raw_mm]
         for k in range(n):
             constraints[k] = "free"
+            groups[k] = 0
         dirty[0] = True
+        cand_offset[0] = 0
+        manual_pick[0] = False
         print("reset to raw trace.")
 
     def on_click(e):
         if e.inaxes is not ax or e.button != 1 or e.xdata is None:
             return
-        selected[0] = nearest_edge_to_point(e.xdata, e.ydata, verts)
+        if manual_pick[0]:
+            seg = nearest_plastic_segment(e.xdata, e.ydata)
+            if seg is None:
+                print("no plastic segments available.")
+            else:
+                _snap_to_plastic_segment(seg)
+            manual_pick[0] = False
+            repaint()
+            return
+        new_sel = nearest_edge_to_point(e.xdata, e.ydata, verts)
+        if new_sel != selected[0]:
+            cand_offset[0] = 0  # reset candidate window for the new edge
+        selected[0] = new_sel
         repaint()
 
     def on_key(e):
         if e.key is None:
             return
+        # Esc always exits manual-pick mode.
+        if e.key in ("escape", "esc"):
+            if manual_pick[0]:
+                manual_pick[0] = False
+                print("manual snap cancelled.")
+                repaint()
+            return
         k = e.key.lower()
-        fine = "shift+" in e.key
-        step = 0.1 if fine else 0.5
+        step = 0.1 if "shift+" in e.key else 0.5
         if k in ("h", "shift+h"):
-            set_constraint("horizontal")
-            repaint()
+            set_constraint("horizontal"); repaint()
         elif k in ("v", "shift+v"):
-            set_constraint("vertical")
-            repaint()
+            set_constraint("vertical"); repaint()
+        elif k in ("n", "shift+n"):
+            set_constraint("free"); repaint()
+        elif k in ("g", "shift+g"):
+            cycle_group(); repaint()
+        elif k in ("1", "shift+1"):
+            snap_to_candidate(1); repaint()
+        elif k in ("2", "shift+2"):
+            snap_to_candidate(2); repaint()
         elif k in ("f", "shift+f"):
-            set_constraint("free")
-            repaint()
+            force_next_candidates(); repaint()
+        elif k in ("m", "shift+m"):
+            if not plastic_segments:
+                print("no plastic segments available — STL not loaded?")
+            else:
+                manual_pick[0] = True
+                print(f"manual snap mode — click a plastic segment to snap E{selected[0]}")
+                repaint()
+        elif k in ("u", "shift+u"):
+            undo(); repaint()
         elif e.key in ("left", "shift+left"):
             shift_selected_edge(-step, 0); repaint()
         elif e.key in ("right", "shift+right"):

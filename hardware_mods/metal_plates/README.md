@@ -31,87 +31,25 @@ and for each component,
 
 8. Ideally you show the transparent overlay of the plastic part mapped on the exactly the same position based on the hole positions so I can easily verify the parts align well/are compatible.
 
-## Example flow
-Pick an input image that will be used to generate the flattened image.
-```sh
-nix-shell hardware_mods/metal_plates/shell.nix --run   "python hardware_mods/metal_plates/rectify.py \
-     --example hardware_mods/metal_plates/examples/side_movement/P20_left_side_plate_p1of3 \
-     --stl docs/stl_files/side_plates/left/LEFT_PLATE.stl --photo hardware_mods/metal_plates/examples/side_movement/P20_left_side_plate_p1of3/0_raw_screenshots/source.png"
-```
+## Commands
 
-## Layout
-
-```
-hardware_mods/metal_plates/
-  shell.nix              Nix shell with all build123d + Qt deps
-  extract_holes.py       reusable: STL → holes.json
-  inspect_stl.py         reusable: bbox + orientation diagnostics
-  rectify.py             reusable: rectify perspective + measure distances
-  examples/              build-video screenshots, by mechanism / part
-  parts/                 design files, mirroring examples/
-    side_movement/
-      P20_left_side_plate/
-        side_plate_left.md            brief
-        side_plate_left.py            build123d model
-        holes.json                    extracted from LEFT_PLATE.stl
-        side_plate_left_metal.{step,stl}
-        side_plate_left_metal_plan.png
-        render_plan.py                2D plan view renderer
-        scan_upper.py                 (diagnostic kept for reference)
-```
-
-## Build the left side plate
+`<EX>` = your example folder (e.g.
+`hardware_mods/metal_plates/examples/side_movement/P20_left_side_plate_p1of3`).
+All commands run inside the project's nix-shell.
 
 ```sh
-nix-shell hardware_mods/metal_plates/shell.nix --run \
-  "python hardware_mods/metal_plates/parts/side_movement/P20_left_side_plate/side_plate_left.py"
-```
-
-Render the 2D plan view PNG:
-
-```sh
-nix-shell hardware_mods/metal_plates/shell.nix --run \
-  "python hardware_mods/metal_plates/parts/side_movement/P20_left_side_plate/render_plan.py"
-```
-
-View the 3D STEP:
-
-```sh
-nix-shell -p f3d --run \
-  "f3d hardware_mods/metal_plates/parts/side_movement/P20_left_side_plate/side_plate_left_metal.step"
-# or
-nix-shell -p freecad --run \
-  "FreeCAD hardware_mods/metal_plates/parts/side_movement/P20_left_side_plate/side_plate_left_metal.step"
-```
-
-## Extract holes for a new part
-
-```sh
-nix-shell hardware_mods/metal_plates/shell.nix --run \
-  "python hardware_mods/metal_plates/extract_holes.py \
-     docs/stl_files/side_plates/right/RIGHT_PLATE.stl \
-     --out hardware_mods/metal_plates/parts/side_movement/P20_right_side_plate/holes.json"
-```
-
-## Inspect an STL (bbox, orientation, face histograms)
-
-```sh
-nix-shell hardware_mods/metal_plates/shell.nix --run \
-  "python hardware_mods/metal_plates/inspect_stl.py \
-     docs/stl_files/side_plates/right/RIGHT_PLATE.stl"
-```
-
-## Rectify a photo + measure distances
-
-```sh
+# 1. Flatten the photo + trace the outline (stages 2 + 5).
 nix-shell hardware_mods/metal_plates/shell.nix --run \
   "python hardware_mods/metal_plates/rectify.py \
-     'hardware_mods/metal_plates/examples/side_movement/P20_left_side_plate_p1of3/Screenshot From 2026-06-27 00-22-10.png' \
-     --pts 103,1 178,1 178,21 103,21"
+     --example <EX> --stl docs/stl_files/side_plates/left/LEFT_PLATE.stl"
+
+# 2. Build STEP / STL / plan PNG / plastic overlay (stages 6–8).
+nix-shell hardware_mods/metal_plates/shell.nix --run \
+  "python hardware_mods/metal_plates/build_model.py --example <EX>"
+
+# 3. (Optional) Interactive H/V + snap-to-plastic editor.
+nix-shell hardware_mods/metal_plates/shell.nix --run \
+  "python hardware_mods/metal_plates/align_outline.py --example <EX>"
 ```
 
-Click 4 known points in the photo (in the same order as `--pts`), then
-click any two points in the rectified window to read the real-world
-distance in mm. Pass `--bounds X_MIN X_MAX Z_MIN Z_MAX` to restrict the
-output canvas to a specific region; `--max-px` caps the canvas size to
-guard against wild perspectives.
+Run any script with `--help` to see flags and interactive controls.
