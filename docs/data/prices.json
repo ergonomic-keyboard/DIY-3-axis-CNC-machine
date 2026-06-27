@@ -1,6 +1,6 @@
 {
   "$schema_version": 2,
-  "last_updated_at": "2026-06-26T22:36:09Z",
+  "last_updated_at": "2026-06-26T23:38:43Z",
   "notes": "One entry per (item_code, shop) pair. The newest observation in `observations` is what the UI displays; history is appended, never overwritten. Each observation carries a `technique` (jsonld | opengraph | affiliate-api | manual) per SL-9.e. Refresh via tools/refresh_prices.py or the refresh-prices GitHub Action. Only add entries whose `url` points at a concrete product page — the refresh tool skips listing / search / category URLs by design (see SL-9.b).",
   "entries": [
     {
@@ -468,6 +468,14 @@
           "in_stock": true,
           "eta_days": null,
           "technique": "manual"
+        },
+        {
+          "ts": "2026-06-26T23:34:52.242Z",
+          "price": 14.28,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": null,
+          "technique": "manual"
         }
       ]
     },
@@ -880,8 +888,8 @@
     {
       "item_code": "E23",
       "shop": "conrad_nl",
-      "url": "https://www.conrad.nl/p/conrad-components-731306-kabelschoen-assortiment-050-mm-250-mm-blauw-geel-rood-1000-stuks-731306",
-      "ean": null,
+      "url": "https://www.conrad.com/en/p/cimco-180020-ring-terminal-cross-section-max-1-mm-hole-o-3-2-mm-partially-insulated-red-1-pc-s-736294.html",
+      "ean": "2050001250506",
       "observations": [
         {
           "ts": "2026-06-26T20:54:15Z",
@@ -892,14 +900,22 @@
           "technique": "manual",
           "partial": true,
           "note": "1000-piece kabelschoen-assortiment (M3+M4+spade)"
+        },
+        {
+          "ts": "2026-06-26T23:31:26.391Z",
+          "price": 0.19,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual"
         }
       ]
     },
     {
       "item_code": "E24",
       "shop": "conrad_nl",
-      "url": "https://www.conrad.nl/p/conrad-components-731306-kabelschoen-assortiment-050-mm-250-mm-blauw-geel-rood-1000-stuks-731306",
-      "ean": null,
+      "url": "https://www.conrad.com/en/p/te-connectivity-34148-ring-terminal-cross-section-max-1-60-mm-hole-o-4-3-mm-partially-insulated-red-1-pc-s-749903.html",
+      "ean": "2050000275166",
       "observations": [
         {
           "ts": "2026-06-26T20:54:15Z",
@@ -910,6 +926,14 @@
           "technique": "manual",
           "partial": true,
           "note": "Same assortment as E23 — M4 included"
+        },
+        {
+          "ts": "2026-06-26T23:33:49.548Z",
+          "price": 0.19,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 3,
+          "technique": "manual"
         }
       ]
     },
@@ -1990,6 +2014,38 @@
           "technique": "manual",
           "partial": true,
           "note": "CNC dust-shoe brush — fits Makita RT0700"
+        }
+      ]
+    },
+    {
+      "item_code": "E23-user-ca36",
+      "shop": "user-conrad-e23-user-ca36",
+      "url": "https://www.conrad.com/en/p/cimco-180030-ring-terminal-cross-section-max-2-50-mm-hole-o-3-2-mm-partially-insulated-blue-1-pc-s-736375.html",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T23:32:34Z",
+          "price": 0.19,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 5,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E22-user-6826",
+      "shop": "user-conrad-e22-user-6826",
+      "url": "https://www.conrad.nl/nl/p/tru-components-bd-0802-led-signaallamp-rood-12-v-dc-1566225.html",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-26T23:38:43Z",
+          "price": 5.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 6,
+          "technique": "manual"
         }
       ]
     }

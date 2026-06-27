@@ -779,14 +779,27 @@
       "category": "electronics",
       "name": "Red LED",
       "qty": 1,
-      "image": "images/parts/electronics/red_led.jpg"
+      "image": "images/parts/electronics/red_led.jpg",
+      "alternatives": [
+        {
+          "code": "E22-user-6826",
+          "name": "12v metal red led"
+        }
+      ]
     },
     {
       "code": "E23",
       "category": "electronics",
       "name": "Ring terminal (M3)",
       "qty": 4,
-      "image": "images/parts/electronics/ring_terminal_M3.jpg"
+      "image": "images/parts/electronics/ring_terminal_M3.jpg",
+      "alternatives": [
+        {
+          "code": "E23-user-ca36",
+          "name": "Ring terminal Cimco Cross section (max.)=2.50 mm²",
+          "ean": "2050001250568"
+        }
+      ]
     },
     {
       "code": "E24",

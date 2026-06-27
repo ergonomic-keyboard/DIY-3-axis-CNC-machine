@@ -238,6 +238,30 @@
         "free_above": 30.0,
         "default_eta_days": 3
       }
+    },
+    {
+      "id": "user-conrad-e23-user-ca36",
+      "name": "Conrad",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.conrad.com/en/p/cimco-180030-ring-terminal-cross-section-max-2-50-mm-hole-o-3-2-mm-partially-insulated-blue-1-pc-s-736375.html",
+      "shipping": {
+        "standard_cost": 6.95,
+        "default_eta_days": 5
+      },
+      "added_by_user": true
+    },
+    {
+      "id": "user-conrad-e22-user-6826",
+      "name": "conrad",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.conrad.nl/nl/p/tru-components-bd-0802-led-signaallamp-rood-12-v-dc-1566225.html",
+      "shipping": {
+        "standard_cost": 6.0,
+        "default_eta_days": 6
+      },
+      "added_by_user": true
     }
   ]
 }
