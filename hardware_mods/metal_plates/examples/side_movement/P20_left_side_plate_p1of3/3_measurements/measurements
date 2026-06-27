@@ -1,0 +1,33 @@
+ix-shell hardware_mods/metal_plates/shell.nix --run "python hardware_mods/metal_plates/rectify.py \
+  'hardware_mods/metal_plates/examples/side_movement/P20_left_side_plate_p1of3/Screenshot From 2026-06-27 00-22-10.png' \
+  --pts 103,1 178,1 178,21 103,21"
+Wrote hardware_mods/metal_plates/examples/side_movement/P20_left_side_plate_p1of3/Screenshot From 2026-06-27 00-22-10_rect.png  (3959x2366 px, 4.0 px/mm)
+Wrote hardware_mods/metal_plates/examples/side_movement/P20_left_side_plate_p1of3/Screenshot From 2026-06-27 00-22-10_rect.json
+
+Measure mode — close window to exit.
+qt.qpa.wayland.textinput: virtual void QtWaylandClient::QWaylandTextInputv3::zwp_text_input_v3_leave(wl_surface*) Got leave event for surface 0x0 with focusing surface 0x5d7b356fca90
+  distance: 37.673 mm  (150.7 px)
+  distance: 55.824 mm  (223.3 px)
+  distance: 68.232 mm  (272.9 px)
+  distance: 109.040 mm  (436.2 px)
+  distance: 12.910 mm  (51.6 px)
+  distance: 13.925 mm  (55.7 px)
+  distance: 189.854 mm  (759.4 px)
+  distance: 79.937 mm  (319.7 px)
+  distance: 74.502 mm  (298.0 px)
+  distance: 75.943 mm  (303.8 px)
+  distance: 36.098 mm  (144.4 px)
+  distance: 44.092 mm  (176.4 px)
+  distance: 22.594 mm  (90.4 px)
+  distance: 46.639 mm  (186.6 px)
+  distance: 30.789 mm  (123.2 px)
+  distance: 8.261 mm  (33.0 px)
+  distance: 11.514 mm  (46.1 px)
+  distance: 29.587 mm  (118.3 px)
+  distance: 79.938 mm  (319.8 px)
+  distance: 56.187 mm  (224.7 px)
+  distance: 42.097 mm  (168.4 px)
+  distance: 39.386 mm  (157.5 px)
+  distance: 29.424 mm  (117.7 px)
+  distance: 12.747 mm  (51.0 px)
+  distance: 27.524 mm  (110.1 px)

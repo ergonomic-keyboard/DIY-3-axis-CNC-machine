@@ -61,11 +61,51 @@ def parse_points(strs: list[str]) -> np.ndarray:
     return np.asarray(pts, dtype=np.float64)
 
 
+def _full_screen_figure(img: np.ndarray, window_title: str, overlay: str):
+    """Create a maximised, chromeless figure showing img.
+
+    Axes fill the entire window; the image keeps its aspect ratio
+    (so any unused screen area is letterboxed). Click → data coords
+    are still in source-image pixels, so measurements are unaffected.
+    """
+    fig, ax = plt.subplots()
+    try:
+        fig.canvas.manager.set_window_title(window_title)
+    except Exception:
+        pass
+    ax.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), interpolation="bilinear")
+    ax.set_axis_off()
+    fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    fig.patch.set_facecolor("black")  # letterbox bands are black
+    # Maximise on whichever GUI backend matplotlib picked
+    mgr = fig.canvas.manager
+    for fn in (
+        lambda: mgr.window.showMaximized(),         # Qt
+        lambda: mgr.window.state("zoomed"),         # TkAgg (Windows-style)
+        lambda: mgr.full_screen_toggle(),           # generic
+    ):
+        try:
+            fn()
+            break
+        except Exception:
+            continue
+    # Lightweight on-image instruction overlay (top-centre)
+    ax.text(
+        0.5, 0.99, overlay,
+        transform=ax.transAxes, ha="center", va="top",
+        color="white", fontsize=11,
+        bbox=dict(boxstyle="round,pad=0.4", fc="black", ec="white", alpha=0.7),
+    )
+    return fig, ax
+
+
 def pick_points(img: np.ndarray, n: int, label: str) -> np.ndarray:
-    """Show img in matplotlib and collect n left-clicks. 'u' undoes."""
-    fig, ax = plt.subplots(figsize=(12, 8))
-    ax.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    ax.set_title(f"{label}: click {n} points  (u=undo, q=quit)")
+    """Show img full-screen and collect n left-clicks. 'u' undoes."""
+    fig, ax = _full_screen_figure(
+        img,
+        window_title=f"{label} — click {n} points",
+        overlay=f"{label}: click {n} points  (u=undo, q=quit)",
+    )
     picked: list[tuple[float, float]] = []
     artists: list = []
 
@@ -88,8 +128,6 @@ def pick_points(img: np.ndarray, n: int, label: str) -> np.ndarray:
             return
         picked.append((e.xdata, e.ydata))
         redraw()
-        if len(picked) == n:
-            ax.set_title(f"{label}: done — close window to continue")
 
     def on_key(e):
         if e.key == "u" and picked:
@@ -107,14 +145,24 @@ def pick_points(img: np.ndarray, n: int, label: str) -> np.ndarray:
 
 
 def measure_loop(img_rect: np.ndarray, mm_per_px: float) -> None:
-    fig, ax = plt.subplots(figsize=(12, 8))
-    ax.imshow(cv2.cvtColor(img_rect, cv2.COLOR_BGR2RGB))
-    ax.set_title("Click two points to measure (right-click=reset, q=quit)")
+    fig, ax = _full_screen_figure(
+        img_rect,
+        window_title="Measure",
+        overlay="Left-click two points to measure  (right-click=reset, q=quit)",
+    )
     state = {"pts": []}
+    overlay_text = None  # remember the instruction text artist so we never delete it
+
+    # The first text on ax is our overlay; everything after is measurement text.
+    overlay_text = ax.texts[0]
 
     def render():
-        for a in list(ax.lines) + list(ax.texts):
+        # Wipe measurement artists (keep the overlay text)
+        for a in list(ax.lines):
             a.remove()
+        for t in list(ax.texts):
+            if t is not overlay_text:
+                t.remove()
         for x, y in state["pts"]:
             ax.plot([x], [y], "o", color="lime", markersize=8)
         if len(state["pts"]) == 2:
@@ -133,7 +181,7 @@ def measure_loop(img_rect: np.ndarray, mm_per_px: float) -> None:
     def on_click(e):
         if e.inaxes is not ax:
             return
-        if e.button == 3:                # right click resets
+        if e.button == 3:
             state["pts"].clear()
         elif e.button == 1:
             if len(state["pts"]) == 2:

@@ -1,11 +1,17 @@
-"""Extract circular through-holes from LEFT_PLATE.stl.
+"""Extract circular through-holes from a flat-plate STL.
 
-The plate is mostly flat with Y as its thickness, but the motor-mount tab
-in the plastic version is a perpendicular fin: that cylinder's axis runs
-along X (not Y). So we scan for hole walls aligned with each of the three
-principal axes, project each cylinder back onto the plate (X, Z) plane,
-and keep all of them as candidate hole locations for the metal plate.
+The plate's main face is typically perpendicular to Y, but some plates
+have perpendicular fins whose hole axes run along X or Z. We scan for
+hole walls aligned with each of the three principal axes, project each
+cylinder back onto the plate (X, Z) plane, and write every candidate to
+holes.json so the per-part build123d script can pick which ones it wants.
+
+Usage:
+  python extract_holes.py <path/to/plate.stl> [--out path/to/holes.json]
+
+If --out is omitted, holes.json is written next to the input STL.
 """
+import argparse
 from collections import Counter, defaultdict
 from pathlib import Path
 import json
@@ -13,8 +19,6 @@ import json
 import numpy as np
 from sklearn.neighbors import KDTree
 from stl import mesh
-
-STL = Path("/home/a8/git/personal/DIY-3-axis-CNC-machine/docs/stl_files/side_plates/left/LEFT_PLATE.stl")
 
 
 def fit_circle_2d(p, q):
@@ -65,7 +69,15 @@ def peel_circles(points, *, rms_tol=0.05, r_min=0.8, r_max=40.0, min_pts=6):
 
 
 def main():
-    m = mesh.Mesh.from_file(str(STL))
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("stl", type=Path, help="input STL")
+    ap.add_argument("--out", type=Path, default=None,
+                    help="output JSON (default: holes.json next to STL)")
+    args = ap.parse_args()
+
+    out_path = args.out or args.stl.with_name("holes.json")
+
+    m = mesh.Mesh.from_file(str(args.stl))
     tris = m.vectors
     grid = 1000
     keys = np.round(tris * grid).astype(np.int64)
@@ -193,9 +205,8 @@ def main():
         plate_z_max=float(tris[:, :, 2].max()),
         holes=serial,
     )
-    out = Path(__file__).with_name("holes.json")
-    out.write_text(json.dumps(plate, indent=2))
-    print(f"\nWrote {out}")
+    out_path.write_text(json.dumps(plate, indent=2))
+    print(f"\nWrote {out_path}")
 
 
 if __name__ == "__main__":

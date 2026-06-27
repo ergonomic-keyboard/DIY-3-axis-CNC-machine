@@ -1,13 +1,20 @@
-"""Inspect LEFT_PLATE.stl: bbox, plate orientation, and Y-face histogram."""
+"""Inspect any STL: bbox, plate orientation, and per-axis face histograms.
+
+Usage:
+  python inspect_stl.py <path/to/file.stl>
+"""
+import argparse
 from collections import Counter
 from pathlib import Path
 
 import numpy as np
 from stl import mesh
 
-STL = Path("/home/a8/git/personal/DIY-3-axis-CNC-machine/docs/stl_files/side_plates/left/LEFT_PLATE.stl")
+ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+ap.add_argument("stl", type=Path, help="path to STL file")
+args = ap.parse_args()
 
-m = mesh.Mesh.from_file(str(STL))
+m = mesh.Mesh.from_file(str(args.stl))
 print(f"Triangles: {len(m.vectors)}")
 
 pts = m.vectors.reshape(-1, 3)
