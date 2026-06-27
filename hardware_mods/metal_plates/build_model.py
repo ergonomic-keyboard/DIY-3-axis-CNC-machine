@@ -100,7 +100,28 @@ def load_stage_inputs(example: Path) -> dict:
         raise SystemExit(
             f"missing {holes_cache} — re-run rectify.py to populate the hole cache."
         )
-    poly_json = _single_file(stage4, "*_polygon.json", "polygon trace")
+
+    # Prefer an edited polygon (from align_outline.py) over the raw trace.
+    edited = sorted(stage4.glob("*_polygon_edited.json"))
+    raw = [p for p in sorted(stage4.glob("*_polygon.json"))
+           if not p.name.endswith("_edited.json")]
+    if edited:
+        if len(edited) > 1:
+            raise SystemExit(
+                f"multiple edited polygons in {stage4}; remove the stale ones."
+            )
+        poly_json = edited[0]
+        print(f"using edited polygon: {poly_json.name}")
+    elif raw:
+        if len(raw) > 1:
+            raise SystemExit(
+                f"multiple polygon traces in {stage4}; remove the stale ones."
+            )
+        poly_json = raw[0]
+    else:
+        raise SystemExit(
+            f"no polygon trace in {stage4}. Run trace_polygon.py first."
+        )
 
     rect = json.loads(rect_json.read_text())
     holes = json.loads(holes_cache.read_text())
@@ -376,9 +397,13 @@ def main() -> None:
     holes_data = inputs["holes"]
     poly = inputs["poly"]
 
-    # 1. Lift polygon pixels → real-world (X, Z) mm.
-    to_mm = px_to_mm(rect)
-    outline_mm = [to_mm(x, y) for x, y in poly["vertices_px"]]
+    # 1. Lift polygon pixels → real-world (X, Z) mm (or use the edited mm
+    #    coords directly if align_outline.py was run).
+    if "vertices_xz_mm" in poly:
+        outline_mm = [(float(x), float(z)) for x, z in poly["vertices_xz_mm"]]
+    else:
+        to_mm = px_to_mm(rect)
+        outline_mm = [to_mm(x, y) for x, y in poly["vertices_px"]]
     xs = [p[0] for p in outline_mm]; zs = [p[1] for p in outline_mm]
     bbox_w = max(xs) - min(xs); bbox_h = max(zs) - min(zs)
     print(f"outline   : {len(outline_mm)} vertices  ({bbox_w:.1f} W × {bbox_h:.1f} H mm)")
@@ -395,8 +420,9 @@ def main() -> None:
     # 3. Export STEP + STL.
     stage5 = example / "5_models_and_renders"
     stage5.mkdir(exist_ok=True)
-    # Name derives from the polygon JSON (drop trailing _polygon).
-    name = inputs["poly_json"].stem.removesuffix("_polygon")
+    # Name derives from the polygon JSON (drop trailing _polygon[_edited]).
+    name = inputs["poly_json"].stem
+    name = name.removesuffix("_edited").removesuffix("_polygon")
     step_out = stage5 / f"{name}_metal.step"
     stl_out = stage5 / f"{name}_metal.stl"
     export_step(part.part, str(step_out))
