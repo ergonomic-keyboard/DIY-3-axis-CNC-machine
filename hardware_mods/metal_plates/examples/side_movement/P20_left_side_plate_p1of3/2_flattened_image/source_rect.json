@@ -1,0 +1,74 @@
+{
+  "source_photo": "hardware_mods/metal_plates/examples/side_movement/P20_left_side_plate_p1of3/0_raw_screenshots/source.png",
+  "stl": "/home/a8/git/personal/DIY-3-axis-CNC-machine/docs/stl_files/side_plates/left/LEFT_PLATE.stl",
+  "chosen_y_hole_indices": [
+    0,
+    20,
+    18,
+    14
+  ],
+  "chosen_y_hole_coords_mm": [
+    [
+      178.0,
+      1.0
+    ],
+    [
+      106.75,
+      91.75
+    ],
+    [
+      103.0,
+      1.0
+    ],
+    [
+      137.75,
+      91.75
+    ]
+  ],
+  "image_points_px": [
+    [
+      1037.5680993887127,
+      678.6161755358004
+    ],
+    [
+      859.5494750995936,
+      374.0759918745128
+    ],
+    [
+      862.6417253011126,
+      638.7886124227465
+    ],
+    [
+      931.6030346783947,
+      380.7612406407351
+    ]
+  ],
+  "homography": [
+    [
+      6.222153094462665,
+      -1.257068825291897,
+      1384.8863643324885
+    ],
+    [
+      0.375788695825445,
+      1.9347711635063232,
+      40.0
+    ],
+    [
+      0.000859388460949388,
+      -0.0002950918283046368,
+      1.0
+    ]
+  ],
+  "scale_px_per_mm": 4.0,
+  "canvas_real_bounds_mm": {
+    "x_min": -854.8195950213997,
+    "x_max": 439.1902915097243,
+    "z_min": -532.8239363512112,
+    "z_max": 258.6050510713675
+  },
+  "output_size_px": [
+    5176,
+    3166
+  ]
+}
