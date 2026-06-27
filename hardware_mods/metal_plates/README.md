@@ -31,6 +31,14 @@ and for each component,
 
 8. Ideally you show the transparent overlay of the plastic part mapped on the exactly the same position based on the hole positions so I can easily verify the parts align well/are compatible.
 
+## Example flow
+Pick an input image that will be used to generate the flattened image.
+```sh
+nix-shell hardware_mods/metal_plates/shell.nix --run   "python hardware_mods/metal_plates/rectify.py \
+     --example hardware_mods/metal_plates/examples/side_movement/P20_left_side_plate_p1of3 \
+     --stl docs/stl_files/side_plates/left/LEFT_PLATE.stl --photo hardware_mods/metal_plates/examples/side_movement/P20_left_side_plate_p1of3/0_raw_screenshots/source.png"
+```
+
 ## Layout
 
 ```

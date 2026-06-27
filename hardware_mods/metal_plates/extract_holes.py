@@ -68,16 +68,13 @@ def peel_circles(points, *, rms_tol=0.05, r_min=0.8, r_max=40.0, min_pts=6):
     return out
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("stl", type=Path, help="input STL")
-    ap.add_argument("--out", type=Path, default=None,
-                    help="output JSON (default: holes.json next to STL)")
-    args = ap.parse_args()
+def extract_holes(stl_path: Path, *, verbose: bool = True) -> dict:
+    """Extract holes from an STL; return the same dict that the CLI writes.
 
-    out_path = args.out or args.stl.with_name("holes.json")
-
-    m = mesh.Mesh.from_file(str(args.stl))
+    Verbose mode prints the per-axis seam histograms and the final hole table
+    (same as the CLI). Pass verbose=False when called from another script.
+    """
+    m = mesh.Mesh.from_file(str(stl_path))
     tris = m.vectors
     grid = 1000
     keys = np.round(tris * grid).astype(np.int64)
@@ -115,10 +112,12 @@ def main():
         pts = arr[:, :2]
         lens = arr[:, 2]
         axis_mid = arr[:, 3]
-        print(f"\n=== axis {axis_name[axis]} : {len(seams)} seams ===")
+        if verbose:
+            print(f"\n=== axis {axis_name[axis]} : {len(seams)} seams ===")
         lens_round = np.round(lens).astype(int)
         hist = Counter(lens_round.tolist())
-        print("  length histogram:", sorted(hist.items()))
+        if verbose:
+            print("  length histogram:", sorted(hist.items()))
 
         for L, count in sorted(hist.items()):
             if count < 6 or L < 2:
@@ -154,13 +153,14 @@ def main():
             final.append(h)
 
     # Pretty print
-    print(f"\n=== Detected holes: {len(final)} ===")
-    print(f"{'axis':>4} {'cp':>9} {'cq':>9} {'d':>7} {'r':>7} {'thk':>5} {'start':>7} {'end':>7} {'rms':>7} {'n':>4}")
-    for h in sorted(final, key=lambda x: (x["axis"], round(x["cq"], 1), round(x["cp"], 1))):
-        print(
-            f"{h['axis']:>4} {h['cp']:>9.3f} {h['cq']:>9.3f} {2*h['r']:>7.3f} {h['r']:>7.3f} "
-            f"{h['thickness']:>5d} {h['start']:>7.2f} {h['end']:>7.2f} {h['rms']:>7.4f} {h['n']:>4d}"
-        )
+    if verbose:
+        print(f"\n=== Detected holes: {len(final)} ===")
+        print(f"{'axis':>4} {'cp':>9} {'cq':>9} {'d':>7} {'r':>7} {'thk':>5} {'start':>7} {'end':>7} {'rms':>7} {'n':>4}")
+        for h in sorted(final, key=lambda x: (x["axis"], round(x["cq"], 1), round(x["cp"], 1))):
+            print(
+                f"{h['axis']:>4} {h['cp']:>9.3f} {h['cq']:>9.3f} {2*h['r']:>7.3f} {h['r']:>7.3f} "
+                f"{h['thickness']:>5d} {h['start']:>7.2f} {h['end']:>7.2f} {h['rms']:>7.4f} {h['n']:>4d}"
+            )
 
     # Serialize. For Y-axis holes (the plate's natural thickness direction),
     # (cp, cq) maps to (cx, cz) directly. For X-axis (the perpendicular fin),
@@ -205,6 +205,18 @@ def main():
         plate_z_max=float(tris[:, :, 2].max()),
         holes=serial,
     )
+    return plate
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("stl", type=Path, help="input STL")
+    ap.add_argument("--out", type=Path, default=None,
+                    help="output JSON (default: holes.json next to STL)")
+    args = ap.parse_args()
+
+    out_path = args.out or args.stl.with_name("holes.json")
+    plate = extract_holes(args.stl, verbose=True)
     out_path.write_text(json.dumps(plate, indent=2))
     print(f"\nWrote {out_path}")
 
