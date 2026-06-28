@@ -31,6 +31,8 @@ Controls (also shown as a persistent banner):
   F                       cycle to the next pair of candidate plastic lines
   M                       manual snap mode — click any plastic boundary
                             segment to snap the selected edge onto it
+                            (in vertex mode, M snaps the selected vertex
+                            to the nearest STL point instead).
   G                       enter group-edit mode for the selected edge's
                             group (creates a new group if it had none).
                             Members are highlighted in magenta. Click any
@@ -39,7 +41,16 @@ Controls (also shown as a persistent banner):
                             edge's position (longest decides H or V), and
                             from then on nudging any member moves them all
                             together. Esc cancels without committing.
-  ← → ↑ ↓                 nudge selected edge 0.5 mm perpendicular
+  P                       toggle vertex mode (default is edge mode). In
+                            vertex mode, clicks select a single polygon
+                            vertex (drawn with a red ring), arrow keys
+                            move it in true X/Z, and `M` snaps it to the
+                            nearest STL point — either an endpoint of a
+                            plastic boundary segment or a hole centre.
+                            Moving or snapping a vertex clears the H/V
+                            constraint on its two adjacent edges.
+  ← → ↑ ↓                 nudge selected edge 0.5 mm perpendicular,
+                            or selected vertex 0.5 mm in X/Z (vertex mode)
   Shift + ← → ↑ ↓         nudge by 0.1 mm (fine)
   U                       undo last edit (one step)
   R                       reset to the raw trace (clears all edits)
@@ -282,6 +293,21 @@ def nearest_edge_to_point(
     return best_i
 
 
+def nearest_vertex_to_point(
+    px: float, pz: float,
+    verts: list[tuple[float, float]],
+) -> int:
+    """Return the polygon vertex index closest to (px, pz) in mm."""
+    best_d = float("inf")
+    best_i = 0
+    for i, (vx, vz) in enumerate(verts):
+        d = float(np.hypot(px - vx, pz - vz))
+        if d < best_d:
+            best_d = d
+            best_i = i
+    return best_i
+
+
 def edge_perp(verts: list[tuple[float, float]], i: int) -> tuple[float, float]:
     """Unit vector perpendicular to edge i (pointing 'outward' isn't enforced)."""
     n = len(verts)
@@ -419,11 +445,28 @@ def run(example: Path) -> None:
     else:
         print(f"note: STL not found at {stl_path}; overlay + snap disabled.")
 
+    # Snappable STL points for vertex mode: dedup'd plastic-segment endpoints
+    # plus hole centres. Built once at startup.
+    stl_points: list[tuple[float, float]] = []
+    _seen_pts: set[tuple[int, int]] = set()
+    _grid = 100  # 0.01 mm quantisation, matches plastic_boundary_segments
+    for (a, b) in plastic_segments:
+        for p in (a, b):
+            k = (int(round(p[0] * _grid)), int(round(p[1] * _grid)))
+            if k not in _seen_pts:
+                _seen_pts.add(k)
+                stl_points.append((float(p[0]), float(p[1])))
+    for h in y_holes:
+        stl_points.append((float(h["cx"]), float(h["cz"])))
+
     selected: list[int] = [0]
+    selected_vertex: list[int] = [0]
+    vertex_mode: list[bool] = [False]
     saved_at_least_once = [False]
     dirty = [False]  # have edits been made since last save / since load?
     cand_offset: list[int] = [0]  # which pair of snap candidates is shown
     manual_pick = [False]  # in manual-snap mode, the next left-click picks a plastic segment
+    manual_pick_vertex = [False]  # vertex-mode manual-snap: next click picks an STL point
     editing_group: list[int] = [0]  # 0 = not in group-edit mode; otherwise the gid being edited
     history: list[tuple[list[tuple[float, float]], list[str], list[int]]] = []  # 1-step undo
     view_initialised = [False]  # preserve pan/zoom across repaints once the user has set it
@@ -493,6 +536,12 @@ def run(example: Path) -> None:
             for (px1, pz1), (px2, pz2) in plastic_segments:
                 ax.plot([px1, px2], [pz1, pz2], color="cyan", lw=2.2,
                         alpha=0.95, zorder=5)
+        # Vertex-mode manual snap — light up every snappable STL point.
+        if manual_pick_vertex[0] and stl_points:
+            sx = [p[0] for p in stl_points]
+            sz = [p[1] for p in stl_points]
+            ax.plot(sx, sz, "o", color="cyan", ms=8, mec="black", mew=1.0,
+                    zorder=11)
         # Hole circles
         for h in y_holes:
             ax.add_patch(plt.Circle(
@@ -542,9 +591,24 @@ def run(example: Path) -> None:
             bbox=dict(boxstyle="round,pad=0.3", fc="yellow", ec="black"),
             zorder=8,
         )
+        # Selected-vertex marker + label (only in vertex mode).
+        if vertex_mode[0]:
+            vi = selected_vertex[0]
+            vx_s, vz_s = verts[vi]
+            ax.plot([vx_s], [vz_s], "o", color="yellow",
+                    ms=12, mec="red", mew=2.0, zorder=11)
+            ax.annotate(
+                f"V{vi}", (vx_s, vz_s),
+                color="black", fontsize=10, fontweight="bold",
+                ha="center", va="center",
+                xytext=(0, 16), textcoords="offset points",
+                bbox=dict(boxstyle="round,pad=0.25", fc="yellow",
+                          ec="red", lw=1.2),
+                zorder=12,
+            )
         # Snap candidates for the selected edge (top 2 within current window).
-        # Skipped in manual-pick mode to keep the canvas readable.
-        if not manual_pick[0]:
+        # Skipped in manual-pick mode and in vertex mode to keep things tidy.
+        if not manual_pick[0] and not vertex_mode[0]:
             candidates = snap_candidates((verts[i], verts[(i + 1) % n]), plastic_segments)
             visible = candidates[cand_offset[0] : cand_offset[0] + 2]
             cand_colors = ["lime", "darkorange"]
@@ -587,21 +651,41 @@ def run(example: Path) -> None:
                 f"MANUAL SNAP — click a cyan plastic segment to snap E{i} onto it  "
                 "|  Esc = cancel"
             )
+        elif manual_pick_vertex[0]:
+            banner.set_text(
+                f"VERTEX SNAP — click to snap V{selected_vertex[0]} to the "
+                "nearest cyan STL point  |  Esc = cancel"
+            )
         elif editing_group[0] != 0:
             banner.set_text(
                 f"GROUP EDIT g{editing_group[0]} — click edges to toggle "
                 "membership  |  G = commit (snap to longest)  |  Esc = cancel"
             )
+        elif vertex_mode[0]:
+            banner.set_text(
+                f"VERTEX MODE — click a vertex  |  ←→↑↓ move V{selected_vertex[0]} "
+                "in X/Z (Shift=fine)  |  M snap to STL point  |  "
+                "P back to edge mode  |  U undo  S save  D save+exit"
+            )
         else:
             banner.set_text(
-                "click edge  |  H/V/N constraint  |  1/2 snap  |  F next cands  |  "
-                "M manual snap  |  G group-edit  |  ←→↑↓ nudge (Shift=fine)  |  "
+                "EDGE MODE — click edge  |  H/V/N constraint  |  1/2 snap  |  "
+                "F next cands  |  M manual snap  |  G group-edit  |  "
+                "P vertex mode  |  ←→↑↓ nudge (Shift=fine)  |  "
                 "U undo  R reset  S save  D save+exit"
             )
-        status.set_text(
-            f"E{i}  {constraints[i]:>10}  g{groups[i]}   "
-            f"{'•dirty' if dirty[0] else 'clean'}"
-        )
+        if vertex_mode[0]:
+            vi = selected_vertex[0]
+            vx_s, vz_s = verts[vi]
+            status.set_text(
+                f"V{vi}  X={vx_s:.3f}  Z={vz_s:.3f}   "
+                f"{'•dirty' if dirty[0] else 'clean'}"
+            )
+        else:
+            status.set_text(
+                f"E{i}  {constraints[i]:>10}  g{groups[i]}   "
+                f"{'•dirty' if dirty[0] else 'clean'}"
+            )
         fig.canvas.draw_idle()
 
     def shift_selected_edge(dx: float, dz: float):
@@ -627,6 +711,52 @@ def run(example: Path) -> None:
                 verts[ei] = (verts[ei][0] + mag * px, verts[ei][1] + mag * pz)
                 verts[j] = (verts[j][0] + mag * px, verts[j][1] + mag * pz)
         dirty[0] = True
+
+    def _clear_adjacent_edge_constraints(vi: int) -> None:
+        """A vertex moves freely in vertex mode — any H/V constraint on the
+        two edges touching it would partially undo that move on save (via
+        ``apply_all_constraints``), so drop them."""
+        prev_edge = (vi - 1) % n
+        this_edge = vi
+        cleared = []
+        for ei in (prev_edge, this_edge):
+            if constraints[ei] != "free":
+                constraints[ei] = "free"
+                cleared.append(ei)
+        if cleared:
+            print(f"cleared constraint on E{cleared} (vertex moved).")
+
+    def shift_selected_vertex(dx: float, dz: float):
+        snapshot()
+        vi = selected_vertex[0]
+        x, z = verts[vi]
+        verts[vi] = (x + dx, z + dz)
+        _clear_adjacent_edge_constraints(vi)
+        dirty[0] = True
+
+    def nearest_stl_point(px: float, pz: float):
+        if not stl_points:
+            return None
+        best = None
+        best_d = float("inf")
+        for p in stl_points:
+            d = float(np.hypot(px - p[0], pz - p[1]))
+            if d < best_d:
+                best_d = d
+                best = p
+        return best
+
+    def snap_vertex_to_stl_point(px: float, pz: float) -> None:
+        target = nearest_stl_point(px, pz)
+        if target is None:
+            print("no STL snap points available.")
+            return
+        vi = selected_vertex[0]
+        snapshot()
+        verts[vi] = target
+        _clear_adjacent_edge_constraints(vi)
+        dirty[0] = True
+        print(f"snapped V{vi} to ({target[0]:.3f}, {target[1]:.3f}).")
 
     def set_constraint(c: str):
         snapshot()
@@ -827,11 +957,20 @@ def run(example: Path) -> None:
             manual_pick[0] = False
             repaint()
             return
+        if manual_pick_vertex[0]:
+            snap_vertex_to_stl_point(e.xdata, e.ydata)
+            manual_pick_vertex[0] = False
+            repaint()
+            return
         if editing_group[0] != 0:
             # In group-edit mode, clicks toggle group membership on the
             # nearest edge instead of re-selecting.
             target = nearest_edge_to_point(e.xdata, e.ydata, verts)
             toggle_group_membership(target)
+            repaint()
+            return
+        if vertex_mode[0]:
+            selected_vertex[0] = nearest_vertex_to_point(e.xdata, e.ydata, verts)
             repaint()
             return
         new_sel = nearest_edge_to_point(e.xdata, e.ydata, verts)
@@ -850,6 +989,11 @@ def run(example: Path) -> None:
                 print("manual snap cancelled.")
                 repaint()
                 return
+            if manual_pick_vertex[0]:
+                manual_pick_vertex[0] = False
+                print("vertex snap cancelled.")
+                repaint()
+                return
             if editing_group[0] != 0:
                 editing_group[0] = 0
                 print("group edit cancelled (members not committed).")
@@ -858,22 +1002,57 @@ def run(example: Path) -> None:
             return
         k = e.key.lower()
         step = 0.1 if "shift+" in e.key else 0.5
-        if k in ("h", "shift+h"):
-            set_constraint("horizontal"); repaint()
+
+        def _edge_only(name: str) -> bool:
+            if vertex_mode[0]:
+                print(f"{name} is edge-mode only — press P to switch back.")
+                return True
+            return False
+
+        if k in ("p", "shift+p"):
+            vertex_mode[0] = not vertex_mode[0]
+            # Cancel any pending snap modes when switching.
+            manual_pick[0] = False
+            manual_pick_vertex[0] = False
+            if vertex_mode[0]:
+                # Seed selected_vertex with one endpoint of the selected edge
+                # so the user has something visible to nudge immediately.
+                selected_vertex[0] = selected[0]
+                print(f"vertex mode — V{selected_vertex[0]} selected.")
+            else:
+                print("edge mode.")
+            repaint()
+        elif k in ("h", "shift+h"):
+            if not _edge_only("H"):
+                set_constraint("horizontal"); repaint()
         elif k in ("v", "shift+v"):
-            set_constraint("vertical"); repaint()
+            if not _edge_only("V"):
+                set_constraint("vertical"); repaint()
         elif k in ("n", "shift+n"):
-            set_constraint("free"); repaint()
+            if not _edge_only("N"):
+                set_constraint("free"); repaint()
         elif k in ("g", "shift+g"):
-            toggle_group_edit(); repaint()
+            if not _edge_only("G"):
+                toggle_group_edit(); repaint()
         elif k in ("1", "shift+1"):
-            snap_to_candidate(1); repaint()
+            if not _edge_only("1"):
+                snap_to_candidate(1); repaint()
         elif k in ("2", "shift+2"):
-            snap_to_candidate(2); repaint()
+            if not _edge_only("2"):
+                snap_to_candidate(2); repaint()
         elif k in ("f", "shift+f"):
-            force_next_candidates(); repaint()
+            if not _edge_only("F"):
+                force_next_candidates(); repaint()
         elif k in ("m", "shift+m"):
-            if not plastic_segments:
+            if vertex_mode[0]:
+                if not stl_points:
+                    print("no STL snap points available — STL not loaded?")
+                else:
+                    manual_pick_vertex[0] = True
+                    print(f"vertex snap mode — click to snap V{selected_vertex[0]} "
+                          "to the nearest plastic endpoint or hole centre")
+                    repaint()
+            elif not plastic_segments:
                 print("no plastic segments available — STL not loaded?")
             else:
                 manual_pick[0] = True
@@ -882,13 +1061,21 @@ def run(example: Path) -> None:
         elif k in ("u", "shift+u"):
             undo(); repaint()
         elif e.key in ("left", "shift+left"):
-            shift_selected_edge(-step, 0); repaint()
+            if vertex_mode[0]: shift_selected_vertex(-step, 0)
+            else: shift_selected_edge(-step, 0)
+            repaint()
         elif e.key in ("right", "shift+right"):
-            shift_selected_edge(+step, 0); repaint()
+            if vertex_mode[0]: shift_selected_vertex(+step, 0)
+            else: shift_selected_edge(+step, 0)
+            repaint()
         elif e.key in ("up", "shift+up"):
-            shift_selected_edge(0, +step); repaint()
+            if vertex_mode[0]: shift_selected_vertex(0, +step)
+            else: shift_selected_edge(0, +step)
+            repaint()
         elif e.key in ("down", "shift+down"):
-            shift_selected_edge(0, -step); repaint()
+            if vertex_mode[0]: shift_selected_vertex(0, -step)
+            else: shift_selected_edge(0, -step)
+            repaint()
         elif k in ("r", "shift+r"):
             reset(); repaint()
         elif k in ("s", "shift+s"):
