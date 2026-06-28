@@ -53,3 +53,12 @@ nix-shell hardware_mods/metal_plates/shell.nix --run \
 ```
 
 Run any script with `--help` to see flags and interactive controls.
+
+```sh
+EX=hardware_mods/metal_plates/examples/mid_vertical_movement/engine_holder_vertical_p1of2
+PHOTO="$EX/0_raw_screenshots/starting_point.png"
+STL=docs/stl_files/router/CARRIAGE.stl
+nix-shell hardware_mods/metal_plates/shell.nix --run \
+  "python -u hardware_mods/metal_plates/rectify.py --example $EX --stl $STL --photo \"$PHOTO\""
+
+```

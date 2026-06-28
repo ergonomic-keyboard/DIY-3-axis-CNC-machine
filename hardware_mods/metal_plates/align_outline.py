@@ -426,6 +426,7 @@ def run(example: Path) -> None:
     manual_pick = [False]  # in manual-snap mode, the next left-click picks a plastic segment
     editing_group: list[int] = [0]  # 0 = not in group-edit mode; otherwise the gid being edited
     history: list[tuple[list[tuple[float, float]], list[str], list[int]]] = []  # 1-step undo
+    view_initialised = [False]  # preserve pan/zoom across repaints once the user has set it
 
     def snapshot():
         # Single-step undo: keep at most one snapshot.
@@ -443,13 +444,15 @@ def run(example: Path) -> None:
 
     def next_free_group() -> int:
         used = set(groups)
-        for k in range(1, 10):
-            if k not in used:
-                return k
-        # All taken — reuse the highest. Rare; user would need 9 groups.
-        return 9
+        k = 1
+        while k in used:
+            k += 1
+        return k
 
     fig, ax = plt.subplots(figsize=(10, 12))
+    # Pull the axes to the figure edges — leave just enough room for the
+    # banner above and the X/Y tick labels.
+    fig.subplots_adjust(left=0.05, right=0.995, top=0.96, bottom=0.045)
     try:
         fig.canvas.manager.set_window_title("Align outline — H/V constraints + nudging")
     except Exception:
@@ -473,6 +476,10 @@ def run(example: Path) -> None:
     )
 
     def repaint():
+        # Preserve the user's pan/zoom across repaints — ax.clear() resets
+        # the limits, so capture them first and re-apply at the end.
+        prev_xlim = ax.get_xlim() if view_initialised[0] else None
+        prev_ylim = ax.get_ylim() if view_initialised[0] else None
         ax.clear()
         # Plastic silhouette
         if stl_proj is not None:
@@ -554,13 +561,20 @@ def run(example: Path) -> None:
                               fc=cand_colors[k - 1], ec="black"),
                     zorder=10,
                 )
-        # Limits
-        xs = vx + ([stl_proj[:, :, 0].min(), stl_proj[:, :, 0].max()]
-                   if stl_proj is not None else [])
-        zs = vz + ([stl_proj[:, :, 1].min(), stl_proj[:, :, 1].max()]
-                   if stl_proj is not None else [])
-        ax.set_xlim(min(xs) - 8, max(xs) + 8)
-        ax.set_ylim(min(zs) - 8, max(zs) + 8)
+        # Limits — restore the prior zoom if the user has interacted; only
+        # auto-fit on the very first paint. Use the matplotlib toolbar's
+        # home button to refit on demand.
+        if prev_xlim is not None:
+            ax.set_xlim(prev_xlim)
+            ax.set_ylim(prev_ylim)
+        else:
+            xs = vx + ([stl_proj[:, :, 0].min(), stl_proj[:, :, 0].max()]
+                       if stl_proj is not None else [])
+            zs = vz + ([stl_proj[:, :, 1].min(), stl_proj[:, :, 1].max()]
+                       if stl_proj is not None else [])
+            ax.set_xlim(min(xs) - 8, max(xs) + 8)
+            ax.set_ylim(min(zs) - 8, max(zs) + 8)
+            view_initialised[0] = True
         ax.set_aspect("equal")
         ax.set_xlabel("X (mm)")
         ax.set_ylabel("Z (mm)")
@@ -684,15 +698,18 @@ def run(example: Path) -> None:
         """G key handler — enter/commit group-edit mode."""
         i = selected[0]
         if editing_group[0] == 0:
-            # Entering edit mode.
+            # Entering edit mode — ALWAYS start a fresh group seeded with the
+            # selected edge. If that edge was in a previous committed group,
+            # detach it. Re-opening an old group via the still-selected edge
+            # was confusing: pressing G after a commit would silently land
+            # you back in the old group and any new clicks would extend it.
             snapshot()
-            gid = groups[i]
-            if gid == 0:
-                gid = next_free_group()
-                groups[i] = gid
+            if groups[i] != 0:
+                groups[i] = 0
+            gid = next_free_group()
+            groups[i] = gid
             editing_group[0] = gid
-            members = [k for k, g in enumerate(groups) if g == gid]
-            print(f"group edit g{gid}: members {members}")
+            print(f"group edit g{gid}: members [{i}]")
         else:
             # Committing — snap members to the longest edge's position.
             gid = editing_group[0]

@@ -88,6 +88,72 @@ STAGE_DIRS = [
 
 
 # =============================================================================
+# STL face-axis normalisation
+# =============================================================================
+# The downstream pipeline assumes the plate's face is perpendicular to Y
+# (so the calibration / mounting holes are "Y-axis" holes). Some parts
+# (e.g. Z motor mounts) sit in the STL with the face perpendicular to X or
+# Z instead. To keep the pipeline axis-agnostic we just pre-rotate the STL
+# once so the original face-axis becomes Y, write the rotated STL to
+# stage 2, and run extract_holes on that. Everything downstream then sees
+# the standard "Y is the face axis" world.
+def _permute_triangles(tris: np.ndarray, face_axis: str) -> np.ndarray:
+    """Permute (X, Y, Z) per-vertex so ``face_axis`` becomes new Y.
+
+    Returns a copy with the same shape (N, 3, 3). The non-face axes are
+    preserved in their plate-frame roles: the screenshot's horizontal
+    becomes new X, the screenshot's vertical becomes new Z.
+    """
+    if face_axis == "Y":
+        return tris.copy()
+    out = np.empty_like(tris)
+    if face_axis == "Z":
+        # screenshot horizontal X, vertical was old Y.
+        out[..., 0] = tris[..., 0]
+        out[..., 1] = tris[..., 2]
+        out[..., 2] = tris[..., 1]
+    elif face_axis == "X":
+        # screenshot horizontal was old Y, vertical was old Z.
+        out[..., 0] = tris[..., 1]
+        out[..., 1] = tris[..., 0]
+        out[..., 2] = tris[..., 2]
+    else:
+        raise ValueError(f"face_axis must be X/Y/Z; got {face_axis}")
+    return out
+
+
+def write_rotated_stl(src: Path, face_axis: str, dst: Path) -> Path:
+    """Write a copy of ``src`` with the face axis moved to Y. Returns ``dst``.
+
+    No-op (just returns src) when face_axis is already Y.
+    """
+    if face_axis == "Y":
+        return src
+    m = mesh.Mesh.from_file(str(src))
+    new_tris = _permute_triangles(m.vectors, face_axis)
+    out = mesh.Mesh(np.zeros(len(new_tris), dtype=mesh.Mesh.dtype))
+    out.vectors[:] = new_tris
+    # Permutation can flip winding/normals; recompute and let the writer set
+    # them, otherwise OCCT-based loaders may produce inverted faces.
+    out.update_normals()
+    out.save(str(dst))
+    return dst
+
+
+def detect_face_axis(plate: dict) -> str:
+    """Auto-pick the face axis: the one with the most small-radius holes.
+
+    Falls back to the axis with the most holes overall on a tie.
+    """
+    small = [h for h in plate["holes"] if h["r"] <= 6.0]
+    pool = small if small else plate["holes"]
+    counts = {"X": 0, "Y": 0, "Z": 0}
+    for h in pool:
+        counts[h["axis"]] = counts.get(h["axis"], 0) + 1
+    return max(counts, key=lambda k: counts[k])
+
+
+# =============================================================================
 # Stage-folder enforcement
 # =============================================================================
 def ensure_stage_layout(example: Path) -> None:
@@ -380,6 +446,10 @@ def collect_calibration_clicks(
     ref_img = plt.imread(str(reference_png))
     photo_rgb = cv2.cvtColor(photo, cv2.COLOR_BGR2RGB)
 
+    # Kill any leftover figures so plt.show() below opens only the new window.
+    # Without this, Qt/Wayland can re-display the previous (hole-picker)
+    # window alongside this one.
+    plt.close("all")
     fig, (ax_ref, ax_photo) = plt.subplots(1, 2, figsize=(16, 9))
     try:
         fig.canvas.manager.set_window_title(
@@ -638,12 +708,17 @@ def main() -> None:
                     help="comma-separated Y-hole indices to skip when picking "
                          "the 4 calibration holes (use if the script's pick "
                          "includes holes that don't exist on the metal plate)")
+    ap.add_argument("--face-axis", choices=["auto", "X", "Y", "Z"], default="auto",
+                    help="which original STL axis is perpendicular to the plate "
+                         "face (default: auto = the axis with the most small "
+                         "holes). The STL is silently rotated so this axis "
+                         "becomes Y for the rest of the pipeline.")
     ap.add_argument("--scale", type=float, default=4.0,
                     help="output pixels per mm (default 4 → 0.25 mm/px)")
     ap.add_argument("--pad", type=float, default=10.0,
                     help="mm of padding around the rectified image")
-    ap.add_argument("--max-px", type=int, default=40_000_000,
-                    help="hard cap on canvas pixel count (default 40 Mpx)")
+    ap.add_argument("--max-px", type=int, default=200_000_000,
+                    help="hard cap on canvas pixel count (default 200 Mpx)")
     args = ap.parse_args()
 
     example: Path = args.example.resolve()
@@ -660,15 +735,42 @@ def main() -> None:
     stage2 = example / "2_flattened_image"
 
     # 1. Extract holes from the plastic STL (cache the JSON in stage 2).
+    #    If the plate's face is perpendicular to X or Z rather than Y, rotate
+    #    a copy so the rest of the pipeline can keep its "Y is face axis"
+    #    assumption.
     holes_cache = stage2 / "holes_from_stl.json"
     print(f"\nExtracting holes from STL → {holes_cache.name}")
-    plate = extract_holes(stl_path, verbose=False)
+    initial_plate = extract_holes(stl_path, verbose=False)
+    if args.face_axis == "auto":
+        face_axis = detect_face_axis(initial_plate)
+        print(f"auto-detected face axis: {face_axis} "
+              f"(holes per axis: "
+              f"X={sum(1 for h in initial_plate['holes'] if h['axis']=='X')}, "
+              f"Y={sum(1 for h in initial_plate['holes'] if h['axis']=='Y')}, "
+              f"Z={sum(1 for h in initial_plate['holes'] if h['axis']=='Z')})")
+    else:
+        face_axis = args.face_axis
+        print(f"face axis (user): {face_axis}")
+
+    if face_axis == "Y":
+        plate = initial_plate
+        effective_stl = stl_path
+    else:
+        effective_stl = stage2 / "stl_face_y.stl"
+        write_rotated_stl(stl_path, face_axis, effective_stl)
+        print(f"wrote rotated STL → {effective_stl.name} "
+              f"(original face-axis {face_axis} → Y)")
+        plate = extract_holes(effective_stl, verbose=False)
+
+    plate["face_axis_original"] = face_axis
+    plate["effective_stl"] = str(effective_stl)
+    plate["source_stl"] = str(stl_path)
     holes_cache.write_text(json.dumps(plate, indent=2))
     y_holes = [h for h in plate["holes"] if h["axis"] == "Y"]
     if len(y_holes) < 4:
         raise SystemExit(
-            f"plastic STL only has {len(y_holes)} Y-axis hole(s); need ≥ 4 "
-            "for calibration."
+            f"after axis normalisation, only {len(y_holes)} Y-axis hole(s) "
+            f"present; need ≥ 4 for calibration. Try a different --face-axis."
         )
 
     # 2. Pick 4 widest-spread Y-axis holes (honouring --exclude). If a
@@ -735,11 +837,18 @@ def main() -> None:
     #    the photo. Click any hole on the reference to toggle.
     print("Interactive hole picker — toggle any hole, press D when 4/4.")
     initial_chosen = list(chosen)
-    chosen = interactive_hole_selection(stl_path, y_holes, chosen)
-    if chosen != initial_chosen:
-        # User edited the selection — previous photo clicks no longer
-        # correspond to the new click order, so discard them.
-        cached_clicks = None
+    chosen = interactive_hole_selection(effective_stl, y_holes, chosen)
+    if chosen != initial_chosen and cached_clicks is not None:
+        if sorted(chosen) == sorted(initial_chosen):
+            # Same 4 holes, just re-ordered — re-permute cached clicks so the
+            # user sees the existing click positions and can nudge them.
+            old_index = {h: i for i, h in enumerate(initial_chosen)}
+            cached_clicks = [cached_clicks[old_index[h]] for h in chosen]
+            print("re-permuted cached photo clicks to match new hole order.")
+        else:
+            # Different set of holes — previous photo clicks no longer
+            # correspond, discard them.
+            cached_clicks = None
     print(f"\nFinal calibration holes (in click order): {chosen}")
     for k, idx in enumerate(chosen, start=1):
         h = y_holes[idx]
@@ -747,7 +856,7 @@ def main() -> None:
 
     # 4. Re-render the reference image to disk with the (possibly edited) pick.
     ref_png = stage2 / "plate_reference.png"
-    render_calibration_reference(stl_path, y_holes, chosen, ref_png)
+    render_calibration_reference(effective_stl, y_holes, chosen, ref_png)
     print(f"\nWrote {ref_png}")
 
     # 4. Load the photo and collect 4 clicks side-by-side with the reference.
@@ -775,15 +884,36 @@ def main() -> None:
     if H_ideal is None:
         raise SystemExit("homography failed — chosen holes may be collinear")
 
-    # 6. Size the rectified canvas to enclose the warped source image.
-    src_h_img, src_w_img = img.shape[:2]
-    src_corners = np.array(
-        [[0, 0], [src_w_img, 0], [src_w_img, src_h_img], [0, src_h_img]],
-        dtype=np.float64,
-    ).reshape(-1, 1, 2)
-    warped = cv2.perspectiveTransform(src_corners, H_ideal).reshape(-1, 2)
-    x0, y0 = warped.min(axis=0)
-    x1, y1 = warped.max(axis=0)
+    # Persist the picks before the canvas check below, so an abort from a
+    # too-large warp doesn't force the user to re-click on the next run.
+    out_png = stage2 / (photo_path.stem + "_rect.png")
+    meta_path = out_png.with_suffix(".json")
+    meta_path.write_text(json.dumps(dict(
+        source_photo=str(photo_path),
+        stl=str(effective_stl),
+        source_stl=str(stl_path),
+        face_axis_original=face_axis,
+        chosen_y_hole_indices=chosen,
+        chosen_y_hole_coords_mm=real_pts.tolist(),
+        image_points_px=img_pts.tolist(),
+        scale_px_per_mm=args.scale,
+    ), indent=2))
+
+    # 6. Size the rectified canvas to enclose the plate's known bounding box
+    #    (from the STL), not the warped full photo. This decouples the canvas
+    #    size from how tightly clustered the user's clicks happen to be — the
+    #    output is always plate-sized, never blown up by perspective extremes
+    #    in the photo's background.
+    plate_x_min_mm = float(plate["plate_x_min"])
+    plate_x_max_mm = float(plate["plate_x_max"])
+    plate_z_min_mm = float(plate["plate_z_min"])
+    plate_z_max_mm = float(plate["plate_z_max"])
+    # ideal_dst is built with X*scale on the X axis and -Z*scale on the Y axis,
+    # so the canvas footprint in ideal-dst pixels is:
+    x0 = plate_x_min_mm * args.scale
+    x1 = plate_x_max_mm * args.scale
+    y0 = -plate_z_max_mm * args.scale
+    y1 = -plate_z_min_mm * args.scale
     pad_px = args.pad * args.scale
     W = int(round((x1 - x0) + 2 * pad_px))
     H = int(round((y1 - y0) + 2 * pad_px))
@@ -811,7 +941,9 @@ def main() -> None:
     cv2.imwrite(str(out_png), rectified)
     meta = dict(
         source_photo=str(photo_path),
-        stl=str(stl_path),
+        stl=str(effective_stl),
+        source_stl=str(stl_path),
+        face_axis_original=face_axis,
         chosen_y_hole_indices=chosen,
         chosen_y_hole_coords_mm=real_pts.tolist(),
         image_points_px=img_pts.tolist(),

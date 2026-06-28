@@ -1,0 +1,76 @@
+{
+  "source_photo": "hardware_mods/metal_plates/examples/mid_vertical_movement/engine_holder_vertical_p1of2/0_raw_screenshots/starting_point.png",
+  "stl": "/home/a8/git/personal/DIY-3-axis-CNC-machine/hardware_mods/metal_plates/examples/mid_vertical_movement/engine_holder_vertical_p1of2/2_flattened_image/stl_face_y.stl",
+  "source_stl": "/home/a8/git/personal/DIY-3-axis-CNC-machine/docs/stl_files/router/CARRIAGE.stl",
+  "face_axis_original": "X",
+  "chosen_y_hole_indices": [
+    35,
+    38,
+    43,
+    44
+  ],
+  "chosen_y_hole_coords_mm": [
+    [
+      447.19,
+      6.5
+    ],
+    [
+      362.19,
+      6.5
+    ],
+    [
+      367.19,
+      204.5
+    ],
+    [
+      442.19,
+      204.5
+    ]
+  ],
+  "image_points_px": [
+    [
+      1381.4079583557473,
+      898.4378768526839
+    ],
+    [
+      1137.749386625851,
+      847.9009388456542
+    ],
+    [
+      1145.381557637341,
+      339.72444593079604
+    ],
+    [
+      1405.8171676814704,
+      347.3544055265308
+    ]
+  ],
+  "homography": [
+    [
+      1.8488966129895854,
+      -0.06632031656886415,
+      -1952.1723010053606
+    ],
+    [
+      -0.013238448452098485,
+      1.8161361160592357,
+      -487.4318303283035
+    ],
+    [
+      0.0005132297299004694,
+      -0.0004649562519134228,
+      1.0
+    ]
+  ],
+  "scale_px_per_mm": 4.0,
+  "canvas_real_bounds_mm": {
+    "x_min": 342.1899108886719,
+    "x_max": 515.610107421875,
+    "z_min": -34.5,
+    "z_max": 224.5
+  },
+  "output_size_px": [
+    694,
+    1036
+  ]
+}
