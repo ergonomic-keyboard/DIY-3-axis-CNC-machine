@@ -262,6 +262,42 @@
         "default_eta_days": 6
       },
       "added_by_user": true
+    },
+    {
+      "id": "user-stepperonline",
+      "name": "stepperonline",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.stepperonline.nl/nema-17-bipolair-59ncm-83-55oz-in-2a-42x48mm-4-draden-met-1m-kabel-aansluiting-17hs19-2004s1",
+      "shipping": {
+        "standard_cost": 6.0,
+        "default_eta_days": 7
+      },
+      "added_by_user": true
+    },
+    {
+      "id": "user-stepperonline-e18-user-8988",
+      "name": "stepperonline",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.omc-stepperonline.com/nema-17-stepper-motor-bipolar-l-39mm-w-gear-ratio-19-1-planetary-gearbox-17hs15-0404s-pg19",
+      "shipping": {
+        "standard_cost": 6.0,
+        "default_eta_days": 6
+      },
+      "added_by_user": true
+    },
+    {
+      "id": "user-oystepper",
+      "name": "oystepper",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.oyostepper.de/goods-612-Nema-17-Getriebeschrittmotor-mit-19-1-Planetengetriebe-0094-Grad-04A-12V-Bipolar-Getriebe-Schrittmotor.html",
+      "shipping": {
+        "standard_cost": 19.0,
+        "default_eta_days": 25
+      },
+      "added_by_user": true
     }
   ]
 }

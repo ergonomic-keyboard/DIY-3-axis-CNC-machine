@@ -1,0 +1,24 @@
+# IDLER_BLOCK.stl
+
+bbox  6.750 × 3.250 mm   X[-5.204, 1.546]   Z[0.009, 3.259]
+
+VERTICES
+   id      X (mm)      Z (mm)
+  V0       -5.204       3.259
+  V1       -5.204       0.009
+  V2        1.546       0.009
+  V3        1.546       3.259
+
+EDGES
+         id  length (mm)  angle (deg)
+  V0 →V1         3.250    axis-aligned
+  V1 →V2         6.750    axis-aligned
+  V2 →V3         3.250    axis-aligned
+  V3 →V0         6.750    axis-aligned
+
+HOLES
+   id      X (mm)      Z (mm)    Ø (mm)
+  H0      -11.799       2.990     2.021
+  H1       -6.579       0.831    13.300
+  H2        8.196       2.999     2.001
+  H3       -1.804      -0.135    22.179

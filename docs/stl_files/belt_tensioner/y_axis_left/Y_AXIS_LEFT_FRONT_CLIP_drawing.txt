@@ -1,0 +1,23 @@
+# Y_AXIS_LEFT_FRONT_CLIP.stl
+
+bbox  57.000 × 20.950 mm   X[448.200, 505.200]   Z[26.150, 47.100]
+
+VERTICES
+   id      X (mm)      Z (mm)
+  V0      448.200      47.100
+  V1      448.200      26.150
+  V2      505.200      26.150
+  V3      505.200      47.100
+
+EDGES
+         id  length (mm)  angle (deg)
+  V0 →V1        20.950    axis-aligned
+  V1 →V2        57.000    axis-aligned
+  V2 →V3        20.950    axis-aligned
+  V3 →V0        57.000    axis-aligned
+
+HOLES
+   id      X (mm)      Z (mm)    Ø (mm)
+  H0      452.200      29.727     3.000
+  H1      462.200      29.727     3.000
+  H2      457.200      29.727     3.000

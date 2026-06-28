@@ -1,0 +1,28 @@
+# X_AXIS_ENDSTOP_LIMIT_SWITCH_THICK.stl
+
+bbox  37.000 × 30.000 mm   X[42.922, 79.922]   Z[-1.134, 28.866]
+
+VERTICES
+   id      X (mm)      Z (mm)
+  V0       42.922      28.866
+  V1       42.922      -1.134
+  V2       79.922      -1.134
+  V3       79.922      28.866
+
+EDGES
+         id  length (mm)  angle (deg)
+  V0 →V1        30.000    axis-aligned
+  V1 →V2        37.000    axis-aligned
+  V2 →V3        30.000    axis-aligned
+  V3 →V0        37.000    axis-aligned
+
+HOLES
+   id      X (mm)      Z (mm)    Ø (mm)
+  H0       54.422       6.866    12.000
+  H1       54.422      20.866    12.000
+  H2       66.772       9.116     2.700
+  H3       66.772      18.616     2.700
+  H4       74.072       9.116     2.700
+  H5       74.072      18.616     2.700
+  H6       54.422      20.866     5.500
+  H7       54.422       6.866     5.500

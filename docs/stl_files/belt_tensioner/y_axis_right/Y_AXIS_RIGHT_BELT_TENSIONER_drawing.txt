@@ -1,0 +1,38 @@
+# Y_AXIS_RIGHT_BELT_TENSIONER.stl
+
+bbox  45.000 × 41.000 mm   X[402.200, 447.200]   Z[-99.100, -58.100]
+
+VERTICES
+   id      X (mm)      Z (mm)
+  V0      417.200     -58.100
+  V1      417.200     -82.050
+  V2      407.200     -82.100
+  V3      402.200     -87.100
+  V4      402.200     -94.100
+  V5      407.200     -99.100
+  V6      442.200     -99.100
+  V7      447.200     -94.100
+  V8      447.200     -87.100
+  V9      442.200     -82.100
+  V10     432.200     -82.050
+  V11     432.200     -58.100
+
+EDGES
+         id  length (mm)  angle (deg)
+  V0 →V1        23.950    axis-aligned
+  V1 →V2        10.000    axis-aligned
+  V2 →V3         7.071     -135.000
+  V3 →V4         7.000    axis-aligned
+  V4 →V5         7.071      -45.000
+  V5 →V6        35.000    axis-aligned
+  V6 →V7         7.071      +45.000
+  V7 →V8         7.000    axis-aligned
+  V8 →V9         7.071     +135.000
+  V9 →V10       10.000    axis-aligned
+  V10→V11       23.950    axis-aligned
+  V11→V0        15.000    axis-aligned
+
+HOLES
+   id      X (mm)      Z (mm)    Ø (mm)
+  H0      439.700     -90.600     5.500
+  H1      409.700     -90.600     5.500

@@ -1,0 +1,27 @@
+# Y_AXIS_LEFT_BACK_CLIP.stl
+
+bbox  26.950 × 41.100 mm   X[-270.800, -243.850]   Z[-4.000, 37.100]
+
+VERTICES
+   id      X (mm)      Z (mm)
+  V0     -262.800      37.100
+  V1     -270.800      29.150
+  V2     -270.800      -4.000
+  V3     -243.850      -4.000
+  V4     -243.850      37.100
+
+EDGES
+         id  length (mm)  angle (deg)
+  V0 →V1        11.278     -135.180
+  V1 →V2        33.150    axis-aligned
+  V2 →V3        26.950    axis-aligned
+  V3 →V4        41.100    axis-aligned
+  V4 →V0        18.950    axis-aligned
+
+HOLES
+   id      X (mm)      Z (mm)    Ø (mm)
+  H0     -257.800      29.727     3.000
+  H1     -247.800      29.727     3.000
+  H2     -252.800      29.727     3.000
+  H3     -254.800       3.500     5.500
+  H4     -254.800      18.500     5.500

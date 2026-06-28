@@ -1,0 +1,24 @@
+# Y_CHAIN_BOTTOM_BRACKET_SUPPORT_1.stl
+
+bbox  40.000 × 30.000 mm   X[351.000, 391.000]   Z[-90.000, -60.000]
+
+VERTICES
+   id      X (mm)      Z (mm)
+  V0      351.000     -60.000
+  V1      351.000     -90.000
+  V2      391.000     -90.000
+  V3      391.000     -60.000
+
+EDGES
+         id  length (mm)  angle (deg)
+  V0 →V1        30.000    axis-aligned
+  V1 →V2        40.000    axis-aligned
+  V2 →V3        30.000    axis-aligned
+  V3 →V0        40.000    axis-aligned
+
+HOLES
+   id      X (mm)      Z (mm)    Ø (mm)
+  H0      360.000     -80.000     5.500
+  H1      382.000     -80.000     5.500
+  H2      382.000     -80.001    14.002
+  H3      360.000     -80.001    14.002

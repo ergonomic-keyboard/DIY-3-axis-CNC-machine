@@ -1,6 +1,6 @@
 {
   "$schema_version": 2,
-  "last_updated_at": "2026-06-26T23:38:43Z",
+  "last_updated_at": "2026-06-28T23:22:40Z",
   "notes": "One entry per (item_code, shop) pair. The newest observation in `observations` is what the UI displays; history is appended, never overwritten. Each observation carries a `technique` (jsonld | opengraph | affiliate-api | manual) per SL-9.e. Refresh via tools/refresh_prices.py or the refresh-prices GitHub Action. Only add entries whose `url` points at a concrete product page — the refresh tool skips listing / search / category URLs by design (see SL-9.b).",
   "entries": [
     {
@@ -2045,6 +2045,54 @@
           "currency": "EUR",
           "in_stock": true,
           "eta_days": 6,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E11-user-77b0",
+      "shop": "user-stepperonline",
+      "url": "https://www.stepperonline.nl/nema-17-bipolair-59ncm-83-55oz-in-2a-42x48mm-4-draden-met-1m-kabel-aansluiting-17hs19-2004s1",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-28T22:59:23Z",
+          "price": 8.75,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 7,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E18-user-8988",
+      "shop": "user-stepperonline-e18-user-8988",
+      "url": "https://www.omc-stepperonline.com/nema-17-stepper-motor-bipolar-l-39mm-w-gear-ratio-19-1-planetary-gearbox-17hs15-0404s-pg19",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-28T23:12:15Z",
+          "price": 25.08,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 6,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E18-user-8988",
+      "shop": "user-oystepper",
+      "url": "https://www.oyostepper.de/goods-612-Nema-17-Getriebeschrittmotor-mit-19-1-Planetengetriebe-0094-Grad-04A-12V-Bipolar-Getriebe-Schrittmotor.html",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-28T23:22:40.478Z",
+          "price": 29.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 25,
           "technique": "manual"
         }
       ]

@@ -1,0 +1,27 @@
+# BRACKET.stl
+
+bbox  40.000 × 50.000 mm   X[-40.000, 0.000]   Z[-20.000, 30.000]
+
+VERTICES
+   id      X (mm)      Z (mm)
+  V0      -35.000      30.000
+  V1      -40.000      19.050
+  V2      -40.000      -9.050
+  V3      -35.000     -20.000
+  V4        0.000     -20.000
+  V5        0.000      30.000
+
+EDGES
+         id  length (mm)  angle (deg)
+  V0 →V1        12.038     -114.542
+  V1 →V2        28.100    axis-aligned
+  V2 →V3        12.038      -65.458
+  V3 →V4        35.000    axis-aligned
+  V4 →V5        50.000    axis-aligned
+  V5 →V0        35.000    axis-aligned
+
+HOLES
+   id      X (mm)      Z (mm)    Ø (mm)
+  H0      -27.499      -7.500     3.999
+  H1      -27.499      17.500     3.999
+  H2      -23.764       4.826    27.959

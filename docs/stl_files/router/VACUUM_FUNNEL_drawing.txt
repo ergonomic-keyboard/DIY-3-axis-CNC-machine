@@ -1,0 +1,25 @@
+# VACUUM_FUNNEL.stl
+
+bbox  52.700 × 20.000 mm   X[378.310, 431.010]   Z[-16.815, 3.185]
+
+VERTICES
+   id      X (mm)      Z (mm)
+  V0      378.310       3.185
+  V1      378.310     -16.815
+  V2      431.010     -16.815
+  V3      431.010       3.185
+
+EDGES
+         id  length (mm)  angle (deg)
+  V0 →V1        20.000    axis-aligned
+  V1 →V2        52.700    axis-aligned
+  V2 →V3        20.000    axis-aligned
+  V3 →V0        52.700    axis-aligned
+
+HOLES
+   id      X (mm)      Z (mm)    Ø (mm)
+  H0      390.766      44.778    67.044
+  H1      404.592      18.594    75.390
+  H2      360.266      43.685    50.919
+  H3      358.365      -4.565     5.506
+  H4      450.766      -4.565     5.506

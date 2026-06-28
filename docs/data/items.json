@@ -690,7 +690,14 @@
       "category": "electronics",
       "name": "Bipolar stepper motor (NEMA 17, no gear, 5mm shaft)",
       "qty": 1,
-      "image": "images/parts/electronics/NEMA17_no_gears.jpg"
+      "image": "images/parts/electronics/NEMA17_no_gears.jpg",
+      "alternatives": [
+        {
+          "code": "E11-user-77b0",
+          "name": "17HS19-2004S1",
+          "ean": "17HS19-2004S1"
+        }
+      ]
     },
     {
       "code": "E12",
@@ -745,7 +752,14 @@
       "category": "electronics",
       "name": "Geared (19:1) bipolar stepper motor (NEMA 17, 8mm shaft)",
       "qty": 3,
-      "image": "images/parts/electronics/NEMA17_geared.jpg"
+      "image": "images/parts/electronics/NEMA17_geared.jpg",
+      "alternatives": [
+        {
+          "code": "E18-user-8988",
+          "name": "17HS15-0404S-PG19",
+          "ean": "17HS15-0404S-PG19"
+        }
+      ]
     },
     {
       "code": "E19",

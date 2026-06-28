@@ -1,0 +1,22 @@
+# RIGHT_PLATE_BACK_CLIP.stl
+
+bbox  20.000 × 24.750 mm   X[793.000, 813.000]   Z[65.764, 90.514]
+
+VERTICES
+   id      X (mm)      Z (mm)
+  V0      793.000      90.514
+  V1      793.000      65.764
+  V2      813.000      65.764
+  V3      813.000      82.214
+  V4      808.050      90.464
+
+EDGES
+         id  length (mm)  angle (deg)
+  V0 →V1        24.750    axis-aligned
+  V1 →V2        20.000    axis-aligned
+  V2 →V3        16.450    axis-aligned
+  V3 →V4         9.621     +120.964
+  V4 →V0        15.050    axis-aligned
+
+HOLES
+   id      X (mm)      Z (mm)    Ø (mm)

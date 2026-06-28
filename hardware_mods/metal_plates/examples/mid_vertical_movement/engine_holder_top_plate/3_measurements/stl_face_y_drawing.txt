@@ -1,0 +1,36 @@
+# engine_holder_top_plate — stl_face_y.stl
+
+bbox  129.000 × 85.000 mm   X[67.289, 196.289]   Z[321.131, 406.131]
+
+VERTICES
+   id      X (mm)      Z (mm)
+  V0      196.289     406.131
+  V1      173.889     406.131
+  V2      173.839     391.131
+  V3       67.289     391.131
+  V4       67.289     336.131
+  V5      173.839     336.131
+  V6      173.889     321.131
+  V7      196.289     321.131
+
+EDGES
+         id  length (mm)  angle (deg)
+  V0 →V1        22.400    axis-aligned
+  V1 →V2        15.000    axis-aligned
+  V2 →V3       106.550    axis-aligned
+  V3 →V4        55.000    axis-aligned
+  V4 →V5       106.550    axis-aligned
+  V5 →V6        15.000    axis-aligned
+  V6 →V7        22.400    axis-aligned
+  V7 →V0        85.000    axis-aligned
+
+HOLES
+   id      X (mm)      Z (mm)    Ø (mm)
+  H0      136.789     363.631    24.000
+  H1       97.789     363.631    24.000
+  H2       97.789     363.631    17.000
+  H3      136.789     363.631    17.000
+  H4       82.289     348.131     3.500
+  H5       82.289     379.131     3.500
+  H6      152.289     348.131     3.500
+  H7      152.289     379.131     3.500
