@@ -208,6 +208,67 @@ def build_part(
 # =============================================================================
 # Plan-view PNG render (matplotlib, not build123d — fast and reliable)
 # =============================================================================
+def _detect_slot_nut_centres(
+    outline_xz_mm: list[tuple[float, float]],
+    *,
+    ac: float = 9.24,            # M5 nut across-corners
+    ledge_len_range: tuple[float, float] = (1.0, 3.0),
+) -> list[tuple[float, float]]:
+    """Find M5 keyhole slots and return the nut centre (cx, cz) for each.
+
+    A slot's two short horizontal ledge edges (one per side) share a Z value;
+    the slot centre X is the midpoint between them. Whether the slot opens up
+    or down is decided by which plate edge the ledge is closer to.
+    """
+    zs = [p[1] for p in outline_xz_mm]
+    plate_top_z, plate_bottom_z = max(zs), min(zs)
+    plate_mid_z = (plate_top_z + plate_bottom_z) / 2
+    n = len(outline_xz_mm)
+    ledges_by_z: dict[float, list[tuple[float, float]]] = {}
+    for i in range(n):
+        a = outline_xz_mm[i]
+        b = outline_xz_mm[(i + 1) % n]
+        if abs(b[1] - a[1]) > 1e-4:
+            continue
+        L = abs(b[0] - a[0])
+        if not (ledge_len_range[0] < L < ledge_len_range[1]):
+            continue
+        key = round(a[1], 3)
+        ledges_by_z.setdefault(key, []).append((a, b))
+    centres: list[tuple[float, float]] = []
+    for z, pairs in ledges_by_z.items():
+        # Multiple slots can share a Z (e.g. TL and TR both at ledge Z=204.79).
+        # Sort the ledges along X and pair consecutive ones — each pair forms
+        # one slot.
+        sorted_pairs = sorted(pairs, key=lambda ab: (ab[0][0] + ab[1][0]) / 2)
+        if len(sorted_pairs) % 2 != 0:
+            continue
+        cz = z - ac / 2 if z > plate_mid_z else z + ac / 2
+        for k in range(0, len(sorted_pairs), 2):
+            xm1 = (sorted_pairs[k][0][0] + sorted_pairs[k][1][0]) / 2
+            xm2 = (sorted_pairs[k + 1][0][0] + sorted_pairs[k + 1][1][0]) / 2
+            centres.append(((xm1 + xm2) / 2, cz))
+    return centres
+
+
+def _draw_m5_nuts(ax, centres: list[tuple[float, float]], *,
+                  af: float = 8.0, ac: float = 9.24,
+                  edgecolor: str = "red", lw: float = 1.4,
+                  zorder: int = 10) -> None:
+    """Draw an M5 hex nut outline (captive orientation: flats vertical) at
+    each (cx, cz). AF horizontal, AC vertical."""
+    h, w, q = ac / 2, af / 2, ac / 4
+    for cx, cz in centres:
+        corners = [
+            (cx, cz + h), (cx + w, cz + q), (cx + w, cz - q),
+            (cx, cz - h), (cx - w, cz - q), (cx - w, cz + q),
+        ]
+        xs = [c[0] for c in corners] + [corners[0][0]]
+        zs = [c[1] for c in corners] + [corners[0][1]]
+        ax.plot(xs, zs, color=edgecolor, lw=lw, zorder=zorder)
+        ax.plot([cx], [cz], "+", color=edgecolor, ms=6, zorder=zorder)
+
+
 def render_overlay(
     outline_xz_mm: list[tuple[float, float]],
     hole_records: list[dict],
@@ -257,6 +318,9 @@ def render_overlay(
             edgecolor="red", lw=1.5, linestyle="--", zorder=4,
         ))
 
+    # --- M5 nut outlines inside each keyhole slot, resting on the ledge ---
+    _draw_m5_nuts(ax, _detect_slot_nut_centres(outline_xz_mm))
+
     # --- Limits: enclose both layers ---
     all_x = list(xs) + [tris[:, :, 0].min(), tris[:, :, 0].max()]
     all_z = list(zs) + [tris[:, :, 2].min(), tris[:, :, 2].max()]
@@ -292,6 +356,8 @@ def render_plan(
             plt.Circle((h["cx"], h["cz"]), h["r"], fill=True,
                        facecolor="white", edgecolor="black", lw=0.8)
         )
+    # M5 nut outlines inside each keyhole slot, resting on the ledge.
+    _draw_m5_nuts(ax, _detect_slot_nut_centres(outline_xz_mm))
     bbx0, bbx1 = min(xs), max(xs)
     bbz0, bbz1 = min(zs), max(zs)
     ax.set_xlim(bbx0 - 10, bbx1 + 10)
