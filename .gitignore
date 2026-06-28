@@ -10,3 +10,6 @@ site/
 # Python
 __pycache__/
 *.py[cod]
+
+# Local-only Claude notes (not for the public repo — sensitive identity rules etc.)
+claude/local/
