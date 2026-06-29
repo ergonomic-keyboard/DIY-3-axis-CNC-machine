@@ -310,6 +310,42 @@
         "default_eta_days": 9
       },
       "added_by_user": true
+    },
+    {
+      "id": "user-tini",
+      "name": "tini..",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.tinytronics.nl/nl/kabels-en-connectoren/connectoren/overige/c14-chassis-connector-met-zekeringhouder",
+      "shipping": {
+        "standard_cost": 6.0,
+        "default_eta_days": null
+      },
+      "added_by_user": true
+    },
+    {
+      "id": "user-custom-shop",
+      "name": "Custom shop",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.tinytronics.nl/nl/schakelaars/manuele-schakelaars/drukknoppen-en-schakelaars/rode-drukknop-7mm?limit=100",
+      "shipping": {
+        "standard_cost": 6.0,
+        "default_eta_days": 0
+      },
+      "added_by_user": true
+    },
+    {
+      "id": "user-tiny",
+      "name": "tiny",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.tinytronics.nl/nl/schakelaars/manuele-schakelaars/microschakelaars/micro-switch-met-hefboom-afgerond",
+      "shipping": {
+        "standard_cost": 7.0,
+        "default_eta_days": 6
+      },
+      "added_by_user": true
     }
   ]
 }

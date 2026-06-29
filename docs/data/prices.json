@@ -1,6 +1,6 @@
 {
   "$schema_version": 2,
-  "last_updated_at": "2026-06-28T23:52:08Z",
+  "last_updated_at": "2026-06-29T00:34:56Z",
   "notes": "One entry per (item_code, shop) pair. The newest observation in `observations` is what the UI displays; history is appended, never overwritten. Each observation carries a `technique` (jsonld | opengraph | affiliate-api | manual) per SL-9.e. Refresh via tools/refresh_prices.py or the refresh-prices GitHub Action. Only add entries whose `url` points at a concrete product page — the refresh tool skips listing / search / category URLs by design (see SL-9.b).",
   "entries": [
     {
@@ -203,6 +203,14 @@
           "currency": "EUR",
           "in_stock": true,
           "eta_days": 2,
+          "technique": "manual"
+        },
+        {
+          "ts": "2026-06-29T00:27:22.449Z",
+          "price": 11.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": null,
           "technique": "manual"
         }
       ]
@@ -2109,6 +2117,54 @@
           "currency": "EUR",
           "in_stock": true,
           "eta_days": 9,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E14-user-1483",
+      "shop": "user-tini",
+      "url": "https://www.tinytronics.nl/nl/kabels-en-connectoren/connectoren/overige/c14-chassis-connector-met-zekeringhouder",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-29T00:31:11Z",
+          "price": 2.5,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": null,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E17-user-0448",
+      "shop": "user-custom-shop",
+      "url": "https://www.tinytronics.nl/nl/schakelaars/manuele-schakelaars/drukknoppen-en-schakelaars/rode-drukknop-7mm?limit=100",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-29T00:33:31Z",
+          "price": 2.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 0,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E21-user-f04d",
+      "shop": "user-tiny",
+      "url": "https://www.tinytronics.nl/nl/schakelaars/manuele-schakelaars/microschakelaars/micro-switch-met-hefboom-afgerond",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-29T00:34:56Z",
+          "price": 0.4,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 6,
           "technique": "manual"
         }
       ]

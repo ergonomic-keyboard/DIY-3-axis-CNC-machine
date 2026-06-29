@@ -1,5 +1,4 @@
 """Render a 2D plan view of the metal plate showing outline + holes."""
-import json
 from pathlib import Path
 
 import matplotlib
@@ -8,11 +7,11 @@ matplotlib.use("Agg")
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 
-from side_plate_left import OUTLINE, metal_holes  # type: ignore
+from side_plate_left import OUTLINE, load_holes, metal_holes  # type: ignore
 
 HERE = Path(__file__).resolve().parent
 
-holes = metal_holes(json.loads((HERE / "holes.json").read_text())["holes"])
+holes = metal_holes(load_holes())
 
 fig, ax = plt.subplots(figsize=(7, 12))
 poly = patches.Polygon(OUTLINE, closed=True, fill=True, facecolor="#cfd8dc", edgecolor="#263238", linewidth=1.5)

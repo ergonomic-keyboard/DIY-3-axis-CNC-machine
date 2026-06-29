@@ -50,7 +50,7 @@ numbers in the `OUTLINE` list map to V1..V24 in the polygon JSON.
 
 - **Hole positions** — the user deferred this; only the outline is in.
   The existing production model at
-  `hardware_mods/metal_plates/parts/side_movement/P20_left_side_plate/`
+  `hardware_mods/metal_plates/examples/side_movement/P20_left_side_plate/`
   derives holes from `holes.json` (extracted from the plastic STL) — that
   pipeline can be reused or adapted.
 - **Dimension calibration vs. real measurements** — the 25 distances in
@@ -59,7 +59,8 @@ numbers in the `OUTLINE` list map to V1..V24 in the polygon JSON.
   `3_measurements/outline.png`) and the parameter defaults updated.
 - **Plate thickness** — `PLATE_THICKNESS = 6.0 mm` is a placeholder.
 - **Visual preview** — no 2D plan renderer here yet; the existing
-  `parts/.../render_plan.py` is a good template if one is wanted.
+  `examples/side_movement/P20_left_side_plate/render_plan.py` is a good
+  template if one is wanted.
 
 ## Related tools in the repo
 
@@ -69,7 +70,7 @@ numbers in the `OUTLINE` list map to V1..V24 in the polygon JSON.
   click to define a closed polygon; saves vertices to JSON.
 - `hardware_mods/metal_plates/extract_holes.py` — pull hole positions from
   an STL of the plastic prototype.
-- `hardware_mods/metal_plates/parts/side_movement/P20_left_side_plate/`
+- `hardware_mods/metal_plates/examples/side_movement/P20_left_side_plate/`
   — older "production" model of this part (different silhouette, includes
   holes). Useful reference but its OUTLINE is not the one in this example.
 
@@ -77,8 +78,8 @@ numbers in the `OUTLINE` list map to V1..V24 in the polygon JSON.
 
 - New build123d scripts for any plate example go in that example's
   `4_outline/` directory; outputs go to its `5_models_and_renders/`.
-- The promoted, finished version of a plate is migrated to
-  `hardware_mods/metal_plates/parts/<axis>/<plate>/` — examples are the
-  workshop, `parts/` is the finished piece.
+- The promoted, finished version of a plate sits alongside its WIP
+  example folders as `examples/<group>/<plate>/` (no `_pXofN` suffix) —
+  the suffix-less folder holds the build script + final STEP/STL/plan.
 - Git: this repo uses the "Optimist Prime" identity for AI-authored
   commits; never the user's [redacted] work email.

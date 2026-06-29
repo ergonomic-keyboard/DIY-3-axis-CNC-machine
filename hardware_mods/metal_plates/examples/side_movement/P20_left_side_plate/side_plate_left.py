@@ -2,9 +2,9 @@
 
 Geometry:
   * Flat plate, 10 mm aluminium (one of the two thicknesses the video uses).
-  * Hole positions and diameters come from ./holes.json — produced by
-    `../../../extract_holes.py docs/stl_files/side_plates/left/LEFT_PLATE.stl
-    --out ./holes.json`.
+  * Hole positions and diameters come from the plastic STL at
+    docs/stl_files/side_plates/left/LEFT_PLATE.stl — read at build time
+    via extract_holes() so there's no cached duplicate to drift.
   * Silhouette is an approximation of the metal plate visible in
     `../../../examples/side_movement/P20_left_side_plate_p1of3/`
     (a flat panel rather than the plastic version's perpendicular fin).
@@ -15,7 +15,7 @@ on the XZ plane and is extruded along +Y.
 """
 from __future__ import annotations
 
-import json
+import sys
 from pathlib import Path
 
 from build123d import (
@@ -34,8 +34,12 @@ from build123d import (
 )
 
 HERE = Path(__file__).resolve().parent
-HOLES_JSON = HERE / "holes.json"
+REPO_ROOT = HERE.parent.parent.parent.parent.parent
+PLASTIC_STL = REPO_ROOT / "docs" / "stl_files" / "side_plates" / "left" / "LEFT_PLATE.stl"
 PLATE_THICKNESS = 10.0  # mm — aluminium side plate
+
+sys.path.insert(0, str(HERE.parent.parent.parent))  # for extract_holes
+from extract_holes import extract_holes  # noqa: E402
 
 # Outline of the metal side plate in the X-Z plane (mm), clockwise from
 # bottom-left. The shape is a flat panel that mirrors the silhouette of the
@@ -60,7 +64,7 @@ OUTLINE = [
 
 
 def load_holes() -> list[dict]:
-    return json.loads(HOLES_JSON.read_text())["holes"]
+    return extract_holes(PLASTIC_STL, verbose=False)["holes"]
 
 
 def metal_holes(holes: list[dict]) -> list[dict]:

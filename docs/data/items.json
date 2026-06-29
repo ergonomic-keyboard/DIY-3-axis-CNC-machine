@@ -723,6 +723,10 @@
           "code": "E14-user-dc1a",
           "name": "C14 10Amp",
           "ean": "4064161203683"
+        },
+        {
+          "code": "E14-user-1483",
+          "name": "C14 plug"
         }
       ]
     },
@@ -745,7 +749,13 @@
       "category": "electronics",
       "name": "Emergency stop switch (KJD17B)",
       "qty": 1,
-      "image": "images/parts/electronics/emergency_stop_switch.jpg"
+      "image": "images/parts/electronics/emergency_stop_switch.jpg",
+      "alternatives": [
+        {
+          "code": "E17-user-0448",
+          "name": "rooi 22v knopje"
+        }
+      ]
     },
     {
       "code": "E18",
@@ -786,7 +796,13 @@
       "category": "electronics",
       "name": "Microswitch",
       "qty": 5,
-      "image": "images/parts/electronics/microswitch.jpg"
+      "image": "images/parts/electronics/microswitch.jpg",
+      "alternatives": [
+        {
+          "code": "E21-user-f04d",
+          "name": "microswitch"
+        }
+      ]
     },
     {
       "code": "E22",

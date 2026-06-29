@@ -3,17 +3,19 @@
 Renders the plate face (the side perpendicular to the chosen face axis)
 with:
 
-  - every silhouette vertex labelled with (X, Z) and an index
-  - every edge labelled with its length in mm (and its angle, when not
-    horizontal/vertical)
-  - every hole on the face drawn at scale, labelled with (cx, cz),
-    diameter, and an index
-  - bounding-box width × height in the title
+  - silhouette vertices labelled V0..VN
+  - edge lengths and angles tabulated in the .txt sidecar
+  - holes drawn to scale, labelled H0..HN
+  - bbox width × height in the title
 
-Outputs:
-  <stem>_drawing.png  — high-DPI technical drawing (compact labels only)
-  <stem>_drawing.txt  — human-readable table of vertices, edges, holes
-  <stem>_drawing.json — machine-readable copy of every number on the PNG
+Outputs (default — mirrored, so docs/stl_files/<group>/<stem>.stl goes
+to docs/stl_drawings/<group>/<stem>_drawing.{png,txt,json}):
+  <stem>_drawing.png   — high-DPI technical drawing (compact labels only)
+  <stem>_drawing.txt   — human-readable table of vertices, edges, holes
+  <stem>_drawing.json  — machine-readable copy of every number on the PNG
+
+For STLs outside docs/stl_files/, outputs sit next to the source STL
+unless --out is given.
 
 Reproducible — same STL in, same drawing out.
 
@@ -21,6 +23,12 @@ Usage (inside nix-shell):
 
   python annotate_stl.py --stl docs/stl_files/router/Z_MOTOR_MOUNT.stl
   python annotate_stl.py --example examples/.../engine_holder_top_plate
+
+  # Batch — annotate every STL in the project:
+  find docs/stl_files -name '*.stl' -print0 | sort -z | \\
+      while IFS= read -r -d '' f; do \\
+          python hardware_mods/metal_plates/annotate_stl.py --stl "$f"; \\
+      done
 
 If --example is passed, the script uses the rotated STL already produced
 by rectify.py (2_flattened_image/stl_face_y.stl). For a bare --stl path,
@@ -307,6 +315,23 @@ def _drawing_payload(
     }
 
 
+def _default_drawing_out(stl: Path) -> Path:
+    """Mirror docs/stl_files/<group>/<stem>.stl → docs/stl_drawings/<group>/<stem>_drawing.png.
+
+    Falls back to "next to the STL" for paths outside the canonical
+    docs/stl_files/ tree.
+    """
+    stl_resolved = stl.resolve()
+    repo_root = HERE.parent.parent
+    src_root = (repo_root / "docs" / "stl_files").resolve()
+    try:
+        rel = stl_resolved.relative_to(src_root)
+    except ValueError:
+        return stl.with_name(stl.stem + "_drawing.png")
+    dst_root = repo_root / "docs" / "stl_drawings"
+    return dst_root / rel.parent / f"{stl.stem}_drawing.png"
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     g = ap.add_mutually_exclusive_group(required=True)
@@ -346,7 +371,7 @@ def main() -> None:
                 work_stl = tmpdir / (src.stem + ".rotated.stl")
                 write_rotated_stl(src, face_axis, work_stl)
             display_name = src.name
-            out_png = args.out or src.with_name(src.stem + "_drawing.png")
+            out_png = args.out or _default_drawing_out(src)
 
         plate = extract_holes(work_stl, verbose=False)
         y_holes = [h for h in plate["holes"] if h["axis"] == "Y"]

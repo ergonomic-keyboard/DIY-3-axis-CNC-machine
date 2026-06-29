@@ -1,7 +1,7 @@
 {
   "$kind": "cnc-shopping-site-default",
   "$schema_version": 1,
-  "updated_at": "2026-06-28T23:52:11Z",
+  "updated_at": "2026-06-29T00:26:03Z",
   "state": {
     "selected": {
       "S01": false,
@@ -103,7 +103,9 @@
     "shopOverride": {
       "E18": "amazon_nl",
       "E18-user-8988": "user-oystepper",
-      "E02": "user-digikehy"
+      "E02": "bol_nl",
+      "E17": "tinytronics",
+      "E01-user-6881": "user-amazon"
     },
     "collapsedCategories": {},
     "country": "NL",
