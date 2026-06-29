@@ -1,6 +1,6 @@
 {
   "$schema_version": 2,
-  "last_updated_at": "2026-06-28T23:22:40Z",
+  "last_updated_at": "2026-06-28T23:52:08Z",
   "notes": "One entry per (item_code, shop) pair. The newest observation in `observations` is what the UI displays; history is appended, never overwritten. Each observation carries a `technique` (jsonld | opengraph | affiliate-api | manual) per SL-9.e. Refresh via tools/refresh_prices.py or the refresh-prices GitHub Action. Only add entries whose `url` points at a concrete product page — the refresh tool skips listing / search / category URLs by design (see SL-9.b).",
   "entries": [
     {
@@ -2093,6 +2093,22 @@
           "currency": "EUR",
           "in_stock": true,
           "eta_days": 25,
+          "technique": "manual"
+        }
+      ]
+    },
+    {
+      "item_code": "E02",
+      "shop": "user-digikehy",
+      "url": "https://www.digikey.nl/ordering/shoppingcart",
+      "ean": null,
+      "observations": [
+        {
+          "ts": "2026-06-28T23:52:08.383Z",
+          "price": 42.0,
+          "currency": "EUR",
+          "in_stock": true,
+          "eta_days": 9,
           "technique": "manual"
         }
       ]

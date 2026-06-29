@@ -298,6 +298,18 @@
         "default_eta_days": 25
       },
       "added_by_user": true
+    },
+    {
+      "id": "user-digikehy",
+      "name": "digikehy",
+      "country": "NL",
+      "currency": "EUR",
+      "home_url": "https://www.digikey.nl/ordering/shoppingcart",
+      "shipping": {
+        "standard_cost": 10.0,
+        "default_eta_days": 9
+      },
+      "added_by_user": true
     }
   ]
 }

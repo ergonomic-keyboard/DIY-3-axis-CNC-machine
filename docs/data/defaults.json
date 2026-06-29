@@ -1,7 +1,7 @@
 {
   "$kind": "cnc-shopping-site-default",
   "$schema_version": 1,
-  "updated_at": "2026-06-28T22:06:43Z",
+  "updated_at": "2026-06-28T23:52:11Z",
   "state": {
     "selected": {
       "S01": false,
@@ -96,19 +96,48 @@
       "E20": "E20-user-2a24",
       "E23": "E23-user-ca36",
       "E22": "E22-user-6826",
-      "E01": "E01-user-6881"
+      "E01": "E01-user-6881",
+      "E11": "E11-user-77b0",
+      "E18": "E18-user-8988"
     },
-    "shopOverride": {},
+    "shopOverride": {
+      "E18": "amazon_nl",
+      "E18-user-8988": "user-oystepper",
+      "E02": "user-digikehy"
+    },
     "collapsedCategories": {},
     "country": "NL",
-    "thumbRem": 6.25,
-    "activeConfig": "custom",
+    "thumbRem": 12,
+    "activeConfig": "3",
     "savedConfigurations": [
       {
         "id": "0",
         "label": "0",
         "uses": {
           "E20": "E20-user-2a24"
+        }
+      },
+      {
+        "id": "2",
+        "label": "2",
+        "uses": {
+          "E20": "E20-user-2a24",
+          "E23": "E23-user-ca36",
+          "E22": "E22-user-6826",
+          "E01": "E01-user-6881",
+          "E11": "E11-user-77b0"
+        }
+      },
+      {
+        "id": "3",
+        "label": "3",
+        "uses": {
+          "E20": "E20-user-2a24",
+          "E23": "E23-user-ca36",
+          "E22": "E22-user-6826",
+          "E01": "E01-user-6881",
+          "E11": "E11-user-77b0",
+          "E18": "E18-user-8988"
         }
       }
     ]
