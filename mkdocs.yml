@@ -20,6 +20,7 @@ nav:
 - Software: 10-software.md
 - G-Code sender: 11-g-code-sender.md
 - Final notes: 12-final-notes.md
+- Mod construction: mod_construction.md
 markdown_extensions:
   - admonition
   - pymdownx.details
@@ -27,6 +28,8 @@ markdown_extensions:
 extra_css:
   - assets/stylesheets/toc-toggle.css
   - assets/stylesheets/shopping.css
+  - assets/stylesheets/mod_construction.css
 extra_javascript:
   - assets/javascripts/toc-toggle.js
   - assets/javascripts/shopping.js
+  - assets/javascripts/mod_construction.js

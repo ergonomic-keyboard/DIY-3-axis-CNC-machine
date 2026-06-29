@@ -1,0 +1,1589 @@
+{
+  "generated_from": "tools/build_mod_construction_data.py",
+  "parts": [
+    {
+      "id": "all",
+      "group": "",
+      "name": "all",
+      "plastic_images": [],
+      "build_images": [
+        "metal_plates_examples/all/Screenshot From 2026-06-27 00-20-18.png",
+        "metal_plates_examples/all/Screenshot From 2026-06-27 00-22-57.png"
+      ],
+      "metal_renders": [],
+      "drawing": null,
+      "drawing_data": null
+    },
+    {
+      "id": "cnc_clamp",
+      "group": "",
+      "name": "cnc clamp",
+      "plastic_images": [],
+      "build_images": [
+        "metal_plates_examples/cnc_clamp/Screenshot From 2026-06-27 00-27-37.png",
+        "metal_plates_examples/cnc_clamp/Screenshot From 2026-06-27 00-27-40.png",
+        "metal_plates_examples/cnc_clamp/Screenshot From 2026-06-27 00-27-45.png",
+        "metal_plates_examples/cnc_clamp/Screenshot From 2026-06-27 00-27-49.png",
+        "metal_plates_examples/cnc_clamp/Screenshot From 2026-06-27 00-28-00.png"
+      ],
+      "metal_renders": [],
+      "drawing": null,
+      "drawing_data": null
+    },
+    {
+      "id": "engine_sideways_belt_clamp",
+      "group": "mid_horizontal_movement",
+      "name": "engine sideways belt clamp",
+      "plastic_images": [],
+      "build_images": [
+        "metal_plates_examples/mid_horizontal_movement/engine_sideways_belt_clamp/Screenshot From 2026-06-27 00-26-16.png",
+        "metal_plates_examples/mid_horizontal_movement/engine_sideways_belt_clamp/Screenshot From 2026-06-27 00-26-28.png",
+        "metal_plates_examples/mid_horizontal_movement/engine_sideways_belt_clamp/Screenshot From 2026-06-27 00-26-36.png",
+        "metal_plates_examples/mid_horizontal_movement/engine_sideways_belt_clamp/Screenshot From 2026-06-27 00-26-42.png",
+        "metal_plates_examples/mid_horizontal_movement/engine_sideways_belt_clamp/Screenshot From 2026-06-27 00-26-46.png"
+      ],
+      "metal_renders": [],
+      "drawing": null,
+      "drawing_data": null
+    },
+    {
+      "id": "rails",
+      "group": "mid_horizontal_movement",
+      "name": "rails",
+      "plastic_images": [],
+      "build_images": [
+        "metal_plates_examples/mid_horizontal_movement/rails/Screenshot From 2026-06-27 00-23-25.png"
+      ],
+      "metal_renders": [],
+      "drawing": null,
+      "drawing_data": null
+    },
+    {
+      "id": "engine_holder_top_plate",
+      "group": "mid_vertical_movement",
+      "name": "engine holder top plate",
+      "plastic_images": [],
+      "build_images": [
+        "metal_plates_examples/mid_vertical_movement/engine_holder_top_plate/0_raw_screenshots/Screenshot From 2026-06-27 00-26-55.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_top_plate/0_raw_screenshots/Screenshot From 2026-06-27 00-28-11.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_top_plate/0_raw_screenshots/Screenshot From 2026-06-27 00-28-15.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_top_plate/0_raw_screenshots/Screenshot From 2026-06-27 00-28-20.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_top_plate/0_raw_screenshots/example.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_top_plate/0_raw_screenshots/example_schematic.jpg"
+      ],
+      "metal_renders": [
+        "metal_plates_examples/mid_vertical_movement/engine_holder_top_plate/5_models_and_renders/engine_holder_top_plate_plan.png"
+      ],
+      "drawing": "stl_drawings/router/Z_MOTOR_MOUNT_drawing.png",
+      "drawing_data": {
+        "source_stl": "/tmp/nix-shell-92633-2622442970/annotate_stl_2fxejbf1/Z_MOTOR_MOUNT.rotated.stl",
+        "vertices_xz_mm": [
+          [
+            196.28905487060547,
+            406.1307067871094
+          ],
+          [
+            173.88905487060546,
+            406.1307067871094
+          ],
+          [
+            173.83905487060548,
+            391.1307067871094
+          ],
+          [
+            67.28905487060547,
+            391.1307067871094
+          ],
+          [
+            67.28905487060547,
+            336.1307067871094
+          ],
+          [
+            173.83905487060548,
+            336.1307067871094
+          ],
+          [
+            173.88905487060546,
+            321.1307067871094
+          ],
+          [
+            196.28905487060547,
+            321.1307067871094
+          ]
+        ],
+        "edges": [
+          {
+            "i": 0,
+            "from": [
+              196.28905487060547,
+              406.1307067871094
+            ],
+            "to": [
+              173.88905487060546,
+              406.1307067871094
+            ],
+            "length_mm": 22.400000000000006,
+            "angle_deg": 180.0
+          },
+          {
+            "i": 1,
+            "from": [
+              173.88905487060546,
+              406.1307067871094
+            ],
+            "to": [
+              173.83905487060548,
+              391.1307067871094
+            ],
+            "length_mm": 15.000083333101854,
+            "angle_deg": -90.19098522435962
+          },
+          {
+            "i": 2,
+            "from": [
+              173.83905487060548,
+              391.1307067871094
+            ],
+            "to": [
+              67.28905487060547,
+              391.1307067871094
+            ],
+            "length_mm": 106.55000000000001,
+            "angle_deg": 180.0
+          },
+          {
+            "i": 3,
+            "from": [
+              67.28905487060547,
+              391.1307067871094
+            ],
+            "to": [
+              67.28905487060547,
+              336.1307067871094
+            ],
+            "length_mm": 55.0,
+            "angle_deg": -90.0
+          },
+          {
+            "i": 4,
+            "from": [
+              67.28905487060547,
+              336.1307067871094
+            ],
+            "to": [
+              173.83905487060548,
+              336.1307067871094
+            ],
+            "length_mm": 106.55000000000001,
+            "angle_deg": 0.0
+          },
+          {
+            "i": 5,
+            "from": [
+              173.83905487060548,
+              336.1307067871094
+            ],
+            "to": [
+              173.88905487060546,
+              321.1307067871094
+            ],
+            "length_mm": 15.000083333101854,
+            "angle_deg": -89.80901477564038
+          },
+          {
+            "i": 6,
+            "from": [
+              173.88905487060546,
+              321.1307067871094
+            ],
+            "to": [
+              196.28905487060547,
+              321.1307067871094
+            ],
+            "length_mm": 22.400000000000006,
+            "angle_deg": 0.0
+          },
+          {
+            "i": 7,
+            "from": [
+              196.28905487060547,
+              321.1307067871094
+            ],
+            "to": [
+              196.28905487060547,
+              406.1307067871094
+            ],
+            "length_mm": 85.0,
+            "angle_deg": 90.0
+          }
+        ],
+        "holes": [
+          {
+            "i": 0,
+            "cx": 136.789,
+            "cz": 363.631,
+            "d": 24.0,
+            "r": 12.0
+          },
+          {
+            "i": 1,
+            "cx": 97.789,
+            "cz": 363.631,
+            "d": 24.0,
+            "r": 12.0
+          },
+          {
+            "i": 2,
+            "cx": 97.789,
+            "cz": 363.631,
+            "d": 17.0,
+            "r": 8.5
+          },
+          {
+            "i": 3,
+            "cx": 136.789,
+            "cz": 363.631,
+            "d": 17.0,
+            "r": 8.5
+          },
+          {
+            "i": 4,
+            "cx": 82.289,
+            "cz": 348.131,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 5,
+            "cx": 82.289,
+            "cz": 379.131,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 6,
+            "cx": 152.289,
+            "cz": 348.131,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 7,
+            "cx": 152.289,
+            "cz": 379.131,
+            "d": 3.5,
+            "r": 1.75
+          }
+        ],
+        "bbox": {
+          "x_min": 67.28905487060547,
+          "x_max": 196.28905487060547,
+          "z_min": 321.1307067871094,
+          "z_max": 406.1307067871094,
+          "width": 129.0,
+          "height": 85.0
+        }
+      }
+    },
+    {
+      "id": "engine_holder_vertical_p1of2",
+      "group": "mid_vertical_movement",
+      "name": "engine holder vertical p1of2",
+      "plastic_images": [
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/1_original_plastic_images/carriage.jpg"
+      ],
+      "build_images": [
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-25-40.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-25-45.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-25-49.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-25-53.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-26-02.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-26-07.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/0_raw_screenshots/starting_point.png"
+      ],
+      "metal_renders": [
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/5_models_and_renders/starting_point_rect_metal_plan.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/5_models_and_renders/starting_point_rect_metal_vs_plastic.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/5_models_and_renders/starting_point_rect_nut_check.png"
+      ],
+      "drawing": "stl_drawings/router/CARRIAGE_drawing.png",
+      "drawing_data": {
+        "source_stl": "/tmp/nix-shell-165286-2848452033/annotate_stl_f3rnofoy/CARRIAGE.rotated.stl",
+        "vertices_xz_mm": [
+          [
+            362.1899108886719,
+            214.5
+          ],
+          [
+            352.1899108886719,
+            204.5
+          ],
+          [
+            352.1899108886719,
+            -14.5
+          ],
+          [
+            362.1899108886719,
+            -24.5
+          ],
+          [
+            447.1899108886719,
+            -24.5
+          ],
+          [
+            457.2399108886719,
+            -14.449999999999989
+          ],
+          [
+            505.58991088867185,
+            76.0
+          ],
+          [
+            505.58991088867185,
+            141.7
+          ],
+          [
+            457.2899108886719,
+            204.4
+          ],
+          [
+            447.1899108886719,
+            214.5
+          ]
+        ],
+        "edges": [
+          {
+            "i": 0,
+            "from": [
+              362.1899108886719,
+              214.5
+            ],
+            "to": [
+              352.1899108886719,
+              204.5
+            ],
+            "length_mm": 14.142135623730951,
+            "angle_deg": -135.0
+          },
+          {
+            "i": 1,
+            "from": [
+              352.1899108886719,
+              204.5
+            ],
+            "to": [
+              352.1899108886719,
+              -14.5
+            ],
+            "length_mm": 219.0,
+            "angle_deg": -90.0
+          },
+          {
+            "i": 2,
+            "from": [
+              352.1899108886719,
+              -14.5
+            ],
+            "to": [
+              362.1899108886719,
+              -24.5
+            ],
+            "length_mm": 14.142135623730951,
+            "angle_deg": -45.0
+          },
+          {
+            "i": 3,
+            "from": [
+              362.1899108886719,
+              -24.5
+            ],
+            "to": [
+              447.1899108886719,
+              -24.5
+            ],
+            "length_mm": 85.0,
+            "angle_deg": 0.0
+          },
+          {
+            "i": 4,
+            "from": [
+              447.1899108886719,
+              -24.5
+            ],
+            "to": [
+              457.2399108886719,
+              -14.449999999999989
+            ],
+            "length_mm": 14.212846301849622,
+            "angle_deg": 45.0
+          },
+          {
+            "i": 5,
+            "from": [
+              457.2399108886719,
+              -14.449999999999989
+            ],
+            "to": [
+              505.58991088867185,
+              76.0
+            ],
+            "length_mm": 102.5618106314431,
+            "angle_deg": 61.87329150011115
+          },
+          {
+            "i": 6,
+            "from": [
+              505.58991088867185,
+              76.0
+            ],
+            "to": [
+              505.58991088867185,
+              141.7
+            ],
+            "length_mm": 65.69999999999999,
+            "angle_deg": 90.0
+          },
+          {
+            "i": 7,
+            "from": [
+              505.58991088867185,
+              141.7
+            ],
+            "to": [
+              457.2899108886719,
+              204.4
+            ],
+            "length_mm": 79.14657288853383,
+            "angle_deg": 127.60831639004712
+          },
+          {
+            "i": 8,
+            "from": [
+              457.2899108886719,
+              204.4
+            ],
+            "to": [
+              447.1899108886719,
+              214.5
+            ],
+            "length_mm": 14.283556979968273,
+            "angle_deg": 135.00000000000009
+          },
+          {
+            "i": 9,
+            "from": [
+              447.1899108886719,
+              214.5
+            ],
+            "to": [
+              362.1899108886719,
+              214.5
+            ],
+            "length_mm": 85.0,
+            "angle_deg": 180.0
+          }
+        ],
+        "holes": [
+          {
+            "i": 0,
+            "cx": 494.771,
+            "cz": 100.25,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 1,
+            "cx": 494.771,
+            "cz": 131.25,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 2,
+            "cx": 463.771,
+            "cz": 100.25,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 3,
+            "cx": 463.771,
+            "cz": 131.25,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 4,
+            "cx": 362.19,
+            "cz": 154.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 5,
+            "cx": 362.19,
+            "cz": 174.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 6,
+            "cx": 382.19,
+            "cz": 174.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 7,
+            "cx": 447.19,
+            "cz": 174.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 8,
+            "cx": 382.19,
+            "cz": 154.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 9,
+            "cx": 447.19,
+            "cz": 154.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 10,
+            "cx": 427.19,
+            "cz": 174.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 11,
+            "cx": 427.19,
+            "cz": 154.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 12,
+            "cx": 362.19,
+            "cz": 40.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 13,
+            "cx": 362.19,
+            "cz": 60.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 14,
+            "cx": 447.19,
+            "cz": 40.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 15,
+            "cx": 382.19,
+            "cz": 60.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 16,
+            "cx": 447.19,
+            "cz": 60.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 17,
+            "cx": 382.19,
+            "cz": 40.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 18,
+            "cx": 427.19,
+            "cz": 40.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 19,
+            "cx": 427.19,
+            "cz": 60.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 20,
+            "cx": 479.195,
+            "cz": 89.314,
+            "d": 43.825,
+            "r": 21.912
+          },
+          {
+            "i": 21,
+            "cx": 493.811,
+            "cz": 82.75,
+            "d": 15.011,
+            "r": 7.506
+          },
+          {
+            "i": 22,
+            "cx": 464.731,
+            "cz": 82.75,
+            "d": 15.011,
+            "r": 7.506
+          },
+          {
+            "i": 23,
+            "cx": 382.19,
+            "cz": 120.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 24,
+            "cx": 427.19,
+            "cz": 120.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 25,
+            "cx": 427.19,
+            "cz": 100.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 26,
+            "cx": 447.19,
+            "cz": 100.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 27,
+            "cx": 447.19,
+            "cz": 120.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 28,
+            "cx": 427.19,
+            "cz": 6.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 29,
+            "cx": 382.19,
+            "cz": 26.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 30,
+            "cx": 362.19,
+            "cz": 100.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 31,
+            "cx": 362.19,
+            "cz": 120.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 32,
+            "cx": 427.19,
+            "cz": 26.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 33,
+            "cx": 447.19,
+            "cz": 26.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 34,
+            "cx": 382.19,
+            "cz": 100.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 35,
+            "cx": 447.19,
+            "cz": 6.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 36,
+            "cx": 382.19,
+            "cz": 6.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 37,
+            "cx": 362.19,
+            "cz": 26.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 38,
+            "cx": 362.19,
+            "cz": 6.5,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 39,
+            "cx": 494.771,
+            "cz": 131.25,
+            "d": 6.5,
+            "r": 3.25
+          },
+          {
+            "i": 40,
+            "cx": 463.771,
+            "cz": 131.25,
+            "d": 6.5,
+            "r": 3.25
+          },
+          {
+            "i": 41,
+            "cx": 494.771,
+            "cz": 100.25,
+            "d": 6.5,
+            "r": 3.25
+          },
+          {
+            "i": 42,
+            "cx": 463.771,
+            "cz": 100.25,
+            "d": 6.5,
+            "r": 3.25
+          },
+          {
+            "i": 43,
+            "cx": 367.19,
+            "cz": 204.5,
+            "d": 8.5,
+            "r": 4.25
+          },
+          {
+            "i": 44,
+            "cx": 442.19,
+            "cz": 204.5,
+            "d": 8.5,
+            "r": 4.25
+          },
+          {
+            "i": 45,
+            "cx": 447.19,
+            "cz": 26.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 46,
+            "cx": 382.19,
+            "cz": 100.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 47,
+            "cx": 362.19,
+            "cz": 100.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 48,
+            "cx": 427.19,
+            "cz": 26.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 49,
+            "cx": 362.19,
+            "cz": 26.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 50,
+            "cx": 362.19,
+            "cz": 120.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 51,
+            "cx": 447.19,
+            "cz": 60.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 52,
+            "cx": 362.19,
+            "cz": 60.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 53,
+            "cx": 382.19,
+            "cz": 26.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 54,
+            "cx": 447.19,
+            "cz": 40.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 55,
+            "cx": 362.19,
+            "cz": 40.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 56,
+            "cx": 447.19,
+            "cz": 174.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 57,
+            "cx": 447.19,
+            "cz": 120.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 58,
+            "cx": 447.19,
+            "cz": 154.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 59,
+            "cx": 447.19,
+            "cz": 100.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 60,
+            "cx": 427.19,
+            "cz": 120.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 61,
+            "cx": 427.19,
+            "cz": 100.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 62,
+            "cx": 362.19,
+            "cz": 174.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 63,
+            "cx": 362.19,
+            "cz": 154.5,
+            "d": 12.0,
+            "r": 6.0
+          },
+          {
+            "i": 64,
+            "cx": 382.19,
+            "cz": 120.5,
+            "d": 12.0,
+            "r": 6.0
+          }
+        ],
+        "bbox": {
+          "x_min": 352.1899108886719,
+          "x_max": 505.58991088867185,
+          "z_min": -24.5,
+          "z_max": 214.5,
+          "width": 153.39999999999998,
+          "height": 239.0
+        }
+      }
+    },
+    {
+      "id": "engine_vertical_plate_p2of2",
+      "group": "mid_vertical_movement",
+      "name": "engine vertical plate p2of2",
+      "plastic_images": [],
+      "build_images": [
+        "metal_plates_examples/mid_vertical_movement/engine_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-05.png",
+        "metal_plates_examples/mid_vertical_movement/engine_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-08.png",
+        "metal_plates_examples/mid_vertical_movement/engine_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-11.png",
+        "metal_plates_examples/mid_vertical_movement/engine_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-16.png",
+        "metal_plates_examples/mid_vertical_movement/engine_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-22.png",
+        "metal_plates_examples/mid_vertical_movement/engine_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-27.png"
+      ],
+      "metal_renders": [],
+      "drawing": null,
+      "drawing_data": null
+    },
+    {
+      "id": "P20_left_side_plate",
+      "group": "side_movement",
+      "name": "P20 left side plate",
+      "plastic_images": [],
+      "build_images": [
+        "metal_plates_examples/side_movement/P20_left_side_plate/side_plate_left_metal_plan.png"
+      ],
+      "metal_renders": [],
+      "drawing": null,
+      "drawing_data": null
+    },
+    {
+      "id": "P20_left_side_plate_p1of3",
+      "group": "side_movement",
+      "name": "P20 left side plate p1of3",
+      "plastic_images": [
+        "metal_plates_examples/side_movement/P20_left_side_plate_p1of3/1_original_plastic_images/left_plate.jpg",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p1of3/1_original_plastic_images/left_plate_grid.png"
+      ],
+      "build_images": [
+        "metal_plates_examples/side_movement/P20_left_side_plate_p1of3/0_raw_screenshots/Screenshot From 2026-06-27 00-21-31.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p1of3/0_raw_screenshots/Screenshot From 2026-06-27 00-21-46.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p1of3/0_raw_screenshots/Screenshot From 2026-06-27 00-21-52.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p1of3/0_raw_screenshots/Screenshot From 2026-06-27 00-22-10.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p1of3/0_raw_screenshots/Screenshot From 2026-06-27 00-22-16.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p1of3/0_raw_screenshots/Screenshot From 2026-06-27 00-22-32.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p1of3/0_raw_screenshots/Screenshot From 2026-06-27 00-22-40.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p1of3/0_raw_screenshots/Screenshot From 2026-06-27 00-22-52.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p1of3/0_raw_screenshots/source.png"
+      ],
+      "metal_renders": [
+        "metal_plates_examples/side_movement/P20_left_side_plate_p1of3/5_models_and_renders/Align_outline_\u2014_H_V_constraints_+_nudging.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p1of3/5_models_and_renders/corrected_Align_outline_\u2014_H_V_constraints_+_nudging.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p1of3/5_models_and_renders/source_rect_metal_plan.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p1of3/5_models_and_renders/source_rect_metal_vs_plastic.png"
+      ],
+      "drawing": null,
+      "drawing_data": null
+    },
+    {
+      "id": "P20_left_side_plate_p2of3",
+      "group": "side_movement",
+      "name": "P20 left side plate p2of3",
+      "plastic_images": [],
+      "build_images": [
+        "metal_plates_examples/side_movement/P20_left_side_plate_p2of3/Screenshot From 2026-06-27 00-23-34.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p2of3/Screenshot From 2026-06-27 00-23-45.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p2of3/left_side_plate_lower_back_clip.jpg"
+      ],
+      "metal_renders": [],
+      "drawing": null,
+      "drawing_data": null
+    },
+    {
+      "id": "P20_left_side_plate_p3of3",
+      "group": "side_movement",
+      "name": "P20 left side plate p3of3",
+      "plastic_images": [],
+      "build_images": [
+        "metal_plates_examples/side_movement/P20_left_side_plate_p3of3/Screenshot From 2026-06-27 00-24-02.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p3of3/Screenshot From 2026-06-27 00-24-25.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p3of3/Screenshot From 2026-06-27 00-24-31.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p3of3/Screenshot From 2026-06-27 00-24-42.png",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p3of3/left_side_plate_lower_front_clip.jpg",
+        "metal_plates_examples/side_movement/P20_left_side_plate_p3of3/left_side_plate_upper_front_clip.jpg"
+      ],
+      "metal_renders": [],
+      "drawing": null,
+      "drawing_data": null
+    },
+    {
+      "id": "sidebelt_clamp_p1of2",
+      "group": "side_movement",
+      "name": "sidebelt clamp p1of2",
+      "plastic_images": [],
+      "build_images": [
+        "metal_plates_examples/side_movement/sidebelt_clamp_p1of2/Screenshot From 2026-06-27 00-24-46.png",
+        "metal_plates_examples/side_movement/sidebelt_clamp_p1of2/Screenshot From 2026-06-27 00-24-52.png",
+        "metal_plates_examples/side_movement/sidebelt_clamp_p1of2/Screenshot From 2026-06-27 00-24-58.png",
+        "metal_plates_examples/side_movement/sidebelt_clamp_p1of2/Screenshot From 2026-06-27 00-25-03.png",
+        "metal_plates_examples/side_movement/sidebelt_clamp_p1of2/Screenshot From 2026-06-27 00-25-05.png"
+      ],
+      "metal_renders": [],
+      "drawing": null,
+      "drawing_data": null
+    },
+    {
+      "id": "sidebelt_clamp_p2of2",
+      "group": "side_movement",
+      "name": "sidebelt clamp p2of2",
+      "plastic_images": [],
+      "build_images": [
+        "metal_plates_examples/side_movement/sidebelt_clamp_p2of2/Screenshot From 2026-06-27 00-25-12.png",
+        "metal_plates_examples/side_movement/sidebelt_clamp_p2of2/Screenshot From 2026-06-27 00-25-16.png"
+      ],
+      "metal_renders": [],
+      "drawing": null,
+      "drawing_data": null
+    },
+    {
+      "id": "sidebelt_tensioner",
+      "group": "side_movement",
+      "name": "sidebelt tensioner",
+      "plastic_images": [],
+      "build_images": [
+        "metal_plates_examples/side_movement/sidebelt_tensioner/Screenshot From 2026-06-27 00-25-19.png",
+        "metal_plates_examples/side_movement/sidebelt_tensioner/Screenshot From 2026-06-27 00-25-23.png",
+        "metal_plates_examples/side_movement/sidebelt_tensioner/Screenshot From 2026-06-27 00-25-28.png",
+        "metal_plates_examples/side_movement/sidebelt_tensioner/Screenshot From 2026-06-27 00-25-34.png",
+        "metal_plates_examples/side_movement/sidebelt_tensioner/Screenshot From 2026-06-27 00-25-36.png"
+      ],
+      "metal_renders": [],
+      "drawing": null,
+      "drawing_data": null
+    }
+  ],
+  "fasteners": [
+    {
+      "id": "screws_M3_12mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M3",
+      "length_mm": 12.0,
+      "label": "M3 \u00b7 12 mm",
+      "image": "images/parts/consumables/screws/M3/M3_12mm.jpg"
+    },
+    {
+      "id": "screws_M3_16mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M3",
+      "length_mm": 16.0,
+      "label": "M3 \u00b7 16 mm",
+      "image": "images/parts/consumables/screws/M3/M3_16mm.jpg"
+    },
+    {
+      "id": "screws_M3_20mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M3",
+      "length_mm": 20.0,
+      "label": "M3 \u00b7 20 mm",
+      "image": "images/parts/consumables/screws/M3/M3_20mm.jpg"
+    },
+    {
+      "id": "screws_M3_25mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M3",
+      "length_mm": 25.0,
+      "label": "M3 \u00b7 25 mm",
+      "image": "images/parts/consumables/screws/M3/M3_25mm.jpg"
+    },
+    {
+      "id": "screws_M3_40mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M3",
+      "length_mm": 40.0,
+      "label": "M3 \u00b7 40 mm",
+      "image": "images/parts/consumables/screws/M3/M3_40mm.jpg"
+    },
+    {
+      "id": "screws_M3_5mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M3",
+      "length_mm": 5.0,
+      "label": "M3 \u00b7 5 mm",
+      "image": "images/parts/consumables/screws/M3/M3_5mm.jpg"
+    },
+    {
+      "id": "screws_M3_8mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M3",
+      "length_mm": 8.0,
+      "label": "M3 \u00b7 8 mm",
+      "image": "images/parts/consumables/screws/M3/M3_8mm.jpg"
+    },
+    {
+      "id": "screws_M4_18mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M4",
+      "length_mm": 18.0,
+      "label": "M4 \u00b7 18 mm",
+      "image": "images/parts/consumables/screws/M4/M4_18mm.jpg"
+    },
+    {
+      "id": "screws_M4_25mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M4",
+      "length_mm": 25.0,
+      "label": "M4 \u00b7 25 mm",
+      "image": "images/parts/consumables/screws/M4/M4_25mm.jpg"
+    },
+    {
+      "id": "screws_M4_40mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M4",
+      "length_mm": 40.0,
+      "label": "M4 \u00b7 40 mm",
+      "image": "images/parts/consumables/screws/M4/M4_40mm.jpg"
+    },
+    {
+      "id": "screws_M5_20mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M5",
+      "length_mm": 20.0,
+      "label": "M5 \u00b7 20 mm",
+      "image": "images/parts/consumables/screws/M5/M5_20mm.jpg"
+    },
+    {
+      "id": "screws_M5_40mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M5",
+      "length_mm": 40.0,
+      "label": "M5 \u00b7 40 mm",
+      "image": "images/parts/consumables/screws/M5/M5_40mm.jpg"
+    },
+    {
+      "id": "screws_M5_60mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M5",
+      "length_mm": 60.0,
+      "label": "M5 \u00b7 60 mm",
+      "image": "images/parts/consumables/screws/M5/M5_60mm.jpg"
+    },
+    {
+      "id": "screws_M5_80mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M5",
+      "length_mm": 80.0,
+      "label": "M5 \u00b7 80 mm",
+      "image": "images/parts/consumables/screws/M5/M5_80mm.jpg"
+    },
+    {
+      "id": "screws_M8_60mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M8",
+      "length_mm": 60.0,
+      "label": "M8 \u00b7 60 mm",
+      "image": "images/parts/consumables/screws/M8/M8_60mm.jpg"
+    },
+    {
+      "id": "screws_M8_80mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "M8",
+      "length_mm": 80.0,
+      "label": "M8 \u00b7 80 mm",
+      "image": "images/parts/consumables/screws/M8/M8_80mm.jpg"
+    },
+    {
+      "id": "screws_3-5mm_20mm",
+      "kind": "screws",
+      "role": "screw",
+      "thread": "3-5mm",
+      "length_mm": 20.0,
+      "label": "3-5mm \u00b7 20 mm",
+      "image": "images/parts/consumables/screws/other/3-5mm_20mm.jpg"
+    },
+    {
+      "id": "nuts_M4",
+      "kind": "nuts",
+      "role": "nut",
+      "thread": "M4",
+      "length_mm": null,
+      "label": "M4 \u00b7 nut",
+      "image": "images/parts/consumables/nuts/M4.jpg"
+    },
+    {
+      "id": "nuts_M5",
+      "kind": "nuts",
+      "role": "nut",
+      "thread": "M5",
+      "length_mm": null,
+      "label": "M5 \u00b7 nut",
+      "image": "images/parts/consumables/nuts/M5.jpg"
+    },
+    {
+      "id": "nuts_M8",
+      "kind": "nuts",
+      "role": "nut",
+      "thread": "M8",
+      "length_mm": null,
+      "label": "M8 \u00b7 nut",
+      "image": "images/parts/consumables/nuts/M8.jpg"
+    },
+    {
+      "id": "nuts_M8_locknut",
+      "kind": "nuts",
+      "role": "locknut",
+      "thread": "M8",
+      "length_mm": null,
+      "label": "M8 \u00b7 locknut",
+      "image": "images/parts/consumables/nuts/M8_locknut.jpg"
+    },
+    {
+      "id": "washers_10mm_5mm_1mm",
+      "kind": "washers",
+      "role": "washer",
+      "thread": "10mm_5mm_1mm",
+      "length_mm": null,
+      "label": "10mm_5mm_1mm \u00b7 washer",
+      "image": "images/parts/consumables/washers/10mm_5mm_1mm.jpg"
+    },
+    {
+      "id": "washers_15mm_5mm_1mm",
+      "kind": "washers",
+      "role": "washer",
+      "thread": "15mm_5mm_1mm",
+      "length_mm": null,
+      "label": "15mm_5mm_1mm \u00b7 washer",
+      "image": "images/parts/consumables/washers/15mm_5mm_1mm.jpg"
+    },
+    {
+      "id": "washers_15mm_8-5mm_1-5mm",
+      "kind": "washers",
+      "role": "washer",
+      "thread": "15mm_8-5mm_1-5mm",
+      "length_mm": null,
+      "label": "15mm_8-5mm_1-5mm \u00b7 washer",
+      "image": "images/parts/consumables/washers/15mm_8-5mm_1-5mm.jpg"
+    },
+    {
+      "id": "washers_20mm_10mm_2mm",
+      "kind": "washers",
+      "role": "washer",
+      "thread": "20mm_10mm_2mm",
+      "length_mm": null,
+      "label": "20mm_10mm_2mm \u00b7 washer",
+      "image": "images/parts/consumables/washers/20mm_10mm_2mm.jpg"
+    },
+    {
+      "id": "washers_8mm_4mm_0-5mm",
+      "kind": "washers",
+      "role": "washer",
+      "thread": "8mm_4mm_0-5mm",
+      "length_mm": null,
+      "label": "8mm_4mm_0-5mm \u00b7 washer",
+      "image": "images/parts/consumables/washers/8mm_4mm_0-5mm.jpg"
+    },
+    {
+      "id": "washers_8mm_4mm_1mm",
+      "kind": "washers",
+      "role": "washer",
+      "thread": "8mm_4mm_1mm",
+      "length_mm": null,
+      "label": "8mm_4mm_1mm \u00b7 washer",
+      "image": "images/parts/consumables/washers/8mm_4mm_1mm.jpg"
+    },
+    {
+      "id": "washers_9_4-5_1mm",
+      "kind": "washers",
+      "role": "washer",
+      "thread": "9_4-5_1mm",
+      "length_mm": null,
+      "label": "9_4-5_1mm \u00b7 washer",
+      "image": "images/parts/consumables/washers/9_4-5_1mm.jpg"
+    }
+  ],
+  "plastic_library": [
+    {
+      "id": "X-axis_belt_tension",
+      "category": "belt_tensioners",
+      "name": "X-axis belt tension",
+      "image": "images/parts/3d-printed/belt_tensioners/X-axis_belt_tension.jpg"
+    },
+    {
+      "id": "x-axis_fixed_belt_tension",
+      "category": "belt_tensioners",
+      "name": "x-axis fixed belt tension",
+      "image": "images/parts/3d-printed/belt_tensioners/x-axis_fixed_belt_tension.jpg"
+    },
+    {
+      "id": "y-axis_left_belt_tension",
+      "category": "belt_tensioners",
+      "name": "y-axis left belt tension",
+      "image": "images/parts/3d-printed/belt_tensioners/y-axis_left_belt_tension.jpg"
+    },
+    {
+      "id": "y-axis_left_belt_tension_slider",
+      "category": "belt_tensioners",
+      "name": "y-axis left belt tension slider",
+      "image": "images/parts/3d-printed/belt_tensioners/y-axis_left_belt_tension_slider.jpg"
+    },
+    {
+      "id": "y-axis_left_fixed_belt_tension",
+      "category": "belt_tensioners",
+      "name": "y-axis left fixed belt tension",
+      "image": "images/parts/3d-printed/belt_tensioners/y-axis_left_fixed_belt_tension.jpg"
+    },
+    {
+      "id": "y-axis_right_belt_tension",
+      "category": "belt_tensioners",
+      "name": "y-axis right belt tension",
+      "image": "images/parts/3d-printed/belt_tensioners/y-axis_right_belt_tension.jpg"
+    },
+    {
+      "id": "y-axis_right_belt_tension_slider",
+      "category": "belt_tensioners",
+      "name": "y-axis right belt tension slider",
+      "image": "images/parts/3d-printed/belt_tensioners/y-axis_right_belt_tension_slider.jpg"
+    },
+    {
+      "id": "y-axis_right_fixed_belt_tension",
+      "category": "belt_tensioners",
+      "name": "y-axis right fixed belt tension",
+      "image": "images/parts/3d-printed/belt_tensioners/y-axis_right_fixed_belt_tension.jpg"
+    },
+    {
+      "id": "back_panel_large_electronic_box",
+      "category": "electronic_boxes",
+      "name": "back panel large electronic box",
+      "image": "images/parts/3d-printed/electronic_boxes/large_electronic_box/back_panel_large_electronic_box.jpg"
+    },
+    {
+      "id": "front_middle_panel_large_electronic_box",
+      "category": "electronic_boxes",
+      "name": "front middle panel large electronic box",
+      "image": "images/parts/3d-printed/electronic_boxes/large_electronic_box/front_middle_panel_large_electronic_box.jpg"
+    },
+    {
+      "id": "front_panel_large_electronic_box",
+      "category": "electronic_boxes",
+      "name": "front panel large electronic box",
+      "image": "images/parts/3d-printed/electronic_boxes/large_electronic_box/front_panel_large_electronic_box.jpg"
+    },
+    {
+      "id": "back_middle_panel_small_electronic_box",
+      "category": "electronic_boxes",
+      "name": "back middle panel small electronic box",
+      "image": "images/parts/3d-printed/electronic_boxes/small_electronic_box/back_middle_panel_small_electronic_box.jpg"
+    },
+    {
+      "id": "back_panel_small_electronic_box",
+      "category": "electronic_boxes",
+      "name": "back panel small electronic box",
+      "image": "images/parts/3d-printed/electronic_boxes/small_electronic_box/back_panel_small_electronic_box.jpg"
+    },
+    {
+      "id": "front_middle_panel_small_electronic_box",
+      "category": "electronic_boxes",
+      "name": "front middle panel small electronic box",
+      "image": "images/parts/3d-printed/electronic_boxes/small_electronic_box/front_middle_panel_small_electronic_box.jpg"
+    },
+    {
+      "id": "front_panel_small_electronic_box",
+      "category": "electronic_boxes",
+      "name": "front panel small electronic box",
+      "image": "images/parts/3d-printed/electronic_boxes/small_electronic_box/front_panel_small_electronic_box.jpg"
+    },
+    {
+      "id": "wasteboard_bracket",
+      "category": "frame",
+      "name": "wasteboard bracket",
+      "image": "images/parts/3d-printed/frame/wasteboard_bracket.jpg"
+    },
+    {
+      "id": "y_axis_cable_chain_mount",
+      "category": "frame",
+      "name": "y axis cable chain mount",
+      "image": "images/parts/3d-printed/frame/y_axis_cable_chain_mount.jpg"
+    },
+    {
+      "id": "y_axis_cable_chain_support",
+      "category": "frame",
+      "name": "y axis cable chain support",
+      "image": "images/parts/3d-printed/frame/y_axis_cable_chain_support.jpg"
+    },
+    {
+      "id": "USB_A_female",
+      "category": "other",
+      "name": "USB A female",
+      "image": "images/parts/3d-printed/other/USB_A_female.jpg"
+    },
+    {
+      "id": "cable_strain_relief",
+      "category": "other",
+      "name": "cable strain relief",
+      "image": "images/parts/3d-printed/other/cable_strain_relief.jpg"
+    },
+    {
+      "id": "carriage",
+      "category": "other",
+      "name": "carriage",
+      "image": "images/parts/3d-printed/other/carriage.jpg"
+    },
+    {
+      "id": "end_stop_mount_ordinary",
+      "category": "other",
+      "name": "end stop mount ordinary",
+      "image": "images/parts/3d-printed/other/end_stop_mount_ordinary.jpg"
+    },
+    {
+      "id": "end_stop_mount_tall",
+      "category": "other",
+      "name": "end stop mount tall",
+      "image": "images/parts/3d-printed/other/end_stop_mount_tall.jpg"
+    },
+    {
+      "id": "end_stop_mount_thick",
+      "category": "other",
+      "name": "end stop mount thick",
+      "image": "images/parts/3d-printed/other/end_stop_mount_thick.jpg"
+    },
+    {
+      "id": "idler_block",
+      "category": "other",
+      "name": "idler block",
+      "image": "images/parts/3d-printed/other/idler_block.jpg"
+    },
+    {
+      "id": "rails_support",
+      "category": "other",
+      "name": "rails support",
+      "image": "images/parts/3d-printed/other/rails_support.jpg"
+    },
+    {
+      "id": "router_bracket",
+      "category": "other",
+      "name": "router bracket",
+      "image": "images/parts/3d-printed/other/router_bracket.jpg"
+    },
+    {
+      "id": "vaccum_funnel",
+      "category": "other",
+      "name": "vaccum funnel",
+      "image": "images/parts/3d-printed/other/vaccum_funnel.jpg"
+    },
+    {
+      "id": "vaccum_hose_ring",
+      "category": "other",
+      "name": "vaccum hose ring",
+      "image": "images/parts/3d-printed/other/vaccum_hose_ring.jpg"
+    },
+    {
+      "id": "vertical_carriage_slider",
+      "category": "other",
+      "name": "vertical carriage slider",
+      "image": "images/parts/3d-printed/other/vertical_carriage_slider.jpg"
+    },
+    {
+      "id": "x_axis_cable_chain_mount",
+      "category": "other",
+      "name": "x axis cable chain mount",
+      "image": "images/parts/3d-printed/other/x_axis_cable_chain_mount.jpg"
+    },
+    {
+      "id": "z_limit_trigger",
+      "category": "other",
+      "name": "z limit trigger",
+      "image": "images/parts/3d-printed/other/z_limit_trigger.jpg"
+    },
+    {
+      "id": "z_motor_mount",
+      "category": "other",
+      "name": "z motor mount",
+      "image": "images/parts/3d-printed/other/z_motor_mount.jpg"
+    },
+    {
+      "id": "left_plate",
+      "category": "side_plates",
+      "name": "left plate",
+      "image": "images/parts/3d-printed/side_plates/left_side_plates/left_plate.jpg"
+    },
+    {
+      "id": "left_side_plate_lower_back_clip",
+      "category": "side_plates",
+      "name": "left side plate lower back clip",
+      "image": "images/parts/3d-printed/side_plates/left_side_plates/left_side_plate_lower_back_clip.jpg"
+    },
+    {
+      "id": "left_side_plate_lower_front_clip",
+      "category": "side_plates",
+      "name": "left side plate lower front clip",
+      "image": "images/parts/3d-printed/side_plates/left_side_plates/left_side_plate_lower_front_clip.jpg"
+    },
+    {
+      "id": "left_side_plate_upper_front_clip",
+      "category": "side_plates",
+      "name": "left side plate upper front clip",
+      "image": "images/parts/3d-printed/side_plates/left_side_plates/left_side_plate_upper_front_clip.jpg"
+    },
+    {
+      "id": "right_plate",
+      "category": "side_plates",
+      "name": "right plate",
+      "image": "images/parts/3d-printed/side_plates/right_side_plates/right_plate.jpg"
+    },
+    {
+      "id": "right_side_plate_lower_back_clip",
+      "category": "side_plates",
+      "name": "right side plate lower back clip",
+      "image": "images/parts/3d-printed/side_plates/right_side_plates/right_side_plate_lower_back_clip.jpg"
+    },
+    {
+      "id": "right_side_plate_lower_front_clip",
+      "category": "side_plates",
+      "name": "right side plate lower front clip",
+      "image": "images/parts/3d-printed/side_plates/right_side_plates/right_side_plate_lower_front_clip.jpg"
+    },
+    {
+      "id": "right_side_plate_upper_front_clip",
+      "category": "side_plates",
+      "name": "right side plate upper front clip",
+      "image": "images/parts/3d-printed/side_plates/right_side_plates/right_side_plate_upper_front_clip.jpg"
+    }
+  ]
+}
