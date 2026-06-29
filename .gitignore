@@ -13,3 +13,6 @@ __pycache__/
 
 # Local-only Claude notes (not for the public repo — sensitive identity rules etc.)
 claude/local/
+
+# FreeCAD backup files
+*.FCBak
