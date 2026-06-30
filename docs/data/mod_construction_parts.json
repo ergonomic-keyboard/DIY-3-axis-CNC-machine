@@ -59,252 +59,26 @@
       "drawing_data": null
     },
     {
-      "id": "engine_holder_top_plate",
+      "id": "engine_holder_vertical_plate_p1of2",
       "group": "mid_vertical_movement",
-      "name": "engine holder top plate",
-      "plastic_images": [],
-      "build_images": [
-        "metal_plates_examples/mid_vertical_movement/engine_holder_top_plate/0_raw_screenshots/Screenshot From 2026-06-27 00-26-55.png",
-        "metal_plates_examples/mid_vertical_movement/engine_holder_top_plate/0_raw_screenshots/Screenshot From 2026-06-27 00-28-11.png",
-        "metal_plates_examples/mid_vertical_movement/engine_holder_top_plate/0_raw_screenshots/Screenshot From 2026-06-27 00-28-15.png",
-        "metal_plates_examples/mid_vertical_movement/engine_holder_top_plate/0_raw_screenshots/Screenshot From 2026-06-27 00-28-20.png",
-        "metal_plates_examples/mid_vertical_movement/engine_holder_top_plate/0_raw_screenshots/example.png",
-        "metal_plates_examples/mid_vertical_movement/engine_holder_top_plate/0_raw_screenshots/example_schematic.jpg"
-      ],
-      "metal_renders": [
-        "metal_plates_examples/mid_vertical_movement/engine_holder_top_plate/5_models_and_renders/engine_holder_top_plate_plan.png"
-      ],
-      "drawing": "stl_drawings/router/Z_MOTOR_MOUNT_drawing.png",
-      "drawing_data": {
-        "source_stl": "/tmp/nix-shell-92633-2622442970/annotate_stl_2fxejbf1/Z_MOTOR_MOUNT.rotated.stl",
-        "vertices_xz_mm": [
-          [
-            196.28905487060547,
-            406.1307067871094
-          ],
-          [
-            173.88905487060546,
-            406.1307067871094
-          ],
-          [
-            173.83905487060548,
-            391.1307067871094
-          ],
-          [
-            67.28905487060547,
-            391.1307067871094
-          ],
-          [
-            67.28905487060547,
-            336.1307067871094
-          ],
-          [
-            173.83905487060548,
-            336.1307067871094
-          ],
-          [
-            173.88905487060546,
-            321.1307067871094
-          ],
-          [
-            196.28905487060547,
-            321.1307067871094
-          ]
-        ],
-        "edges": [
-          {
-            "i": 0,
-            "from": [
-              196.28905487060547,
-              406.1307067871094
-            ],
-            "to": [
-              173.88905487060546,
-              406.1307067871094
-            ],
-            "length_mm": 22.400000000000006,
-            "angle_deg": 180.0
-          },
-          {
-            "i": 1,
-            "from": [
-              173.88905487060546,
-              406.1307067871094
-            ],
-            "to": [
-              173.83905487060548,
-              391.1307067871094
-            ],
-            "length_mm": 15.000083333101854,
-            "angle_deg": -90.19098522435962
-          },
-          {
-            "i": 2,
-            "from": [
-              173.83905487060548,
-              391.1307067871094
-            ],
-            "to": [
-              67.28905487060547,
-              391.1307067871094
-            ],
-            "length_mm": 106.55000000000001,
-            "angle_deg": 180.0
-          },
-          {
-            "i": 3,
-            "from": [
-              67.28905487060547,
-              391.1307067871094
-            ],
-            "to": [
-              67.28905487060547,
-              336.1307067871094
-            ],
-            "length_mm": 55.0,
-            "angle_deg": -90.0
-          },
-          {
-            "i": 4,
-            "from": [
-              67.28905487060547,
-              336.1307067871094
-            ],
-            "to": [
-              173.83905487060548,
-              336.1307067871094
-            ],
-            "length_mm": 106.55000000000001,
-            "angle_deg": 0.0
-          },
-          {
-            "i": 5,
-            "from": [
-              173.83905487060548,
-              336.1307067871094
-            ],
-            "to": [
-              173.88905487060546,
-              321.1307067871094
-            ],
-            "length_mm": 15.000083333101854,
-            "angle_deg": -89.80901477564038
-          },
-          {
-            "i": 6,
-            "from": [
-              173.88905487060546,
-              321.1307067871094
-            ],
-            "to": [
-              196.28905487060547,
-              321.1307067871094
-            ],
-            "length_mm": 22.400000000000006,
-            "angle_deg": 0.0
-          },
-          {
-            "i": 7,
-            "from": [
-              196.28905487060547,
-              321.1307067871094
-            ],
-            "to": [
-              196.28905487060547,
-              406.1307067871094
-            ],
-            "length_mm": 85.0,
-            "angle_deg": 90.0
-          }
-        ],
-        "holes": [
-          {
-            "i": 0,
-            "cx": 136.789,
-            "cz": 363.631,
-            "d": 24.0,
-            "r": 12.0
-          },
-          {
-            "i": 1,
-            "cx": 97.789,
-            "cz": 363.631,
-            "d": 24.0,
-            "r": 12.0
-          },
-          {
-            "i": 2,
-            "cx": 97.789,
-            "cz": 363.631,
-            "d": 17.0,
-            "r": 8.5
-          },
-          {
-            "i": 3,
-            "cx": 136.789,
-            "cz": 363.631,
-            "d": 17.0,
-            "r": 8.5
-          },
-          {
-            "i": 4,
-            "cx": 82.289,
-            "cz": 348.131,
-            "d": 3.5,
-            "r": 1.75
-          },
-          {
-            "i": 5,
-            "cx": 82.289,
-            "cz": 379.131,
-            "d": 3.5,
-            "r": 1.75
-          },
-          {
-            "i": 6,
-            "cx": 152.289,
-            "cz": 348.131,
-            "d": 3.5,
-            "r": 1.75
-          },
-          {
-            "i": 7,
-            "cx": 152.289,
-            "cz": 379.131,
-            "d": 3.5,
-            "r": 1.75
-          }
-        ],
-        "bbox": {
-          "x_min": 67.28905487060547,
-          "x_max": 196.28905487060547,
-          "z_min": 321.1307067871094,
-          "z_max": 406.1307067871094,
-          "width": 129.0,
-          "height": 85.0
-        }
-      }
-    },
-    {
-      "id": "engine_holder_vertical_p1of2",
-      "group": "mid_vertical_movement",
-      "name": "engine holder vertical p1of2",
+      "name": "engine holder vertical plate p1of2",
       "plastic_images": [
-        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/1_original_plastic_images/carriage.jpg"
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p1of2/1_original_plastic_images/carriage.jpg"
       ],
       "build_images": [
-        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-25-40.png",
-        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-25-45.png",
-        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-25-49.png",
-        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-25-53.png",
-        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-26-02.png",
-        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-26-07.png",
-        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/0_raw_screenshots/starting_point.png"
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-25-40.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-25-45.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-25-49.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-25-53.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-26-02.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-26-07.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p1of2/0_raw_screenshots/Screenshot From 2026-06-27 00-27-27.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p1of2/0_raw_screenshots/starting_point.png"
       ],
       "metal_renders": [
-        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/5_models_and_renders/starting_point_rect_metal_plan.png",
-        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/5_models_and_renders/starting_point_rect_metal_vs_plastic.png",
-        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_p1of2/5_models_and_renders/starting_point_rect_nut_check.png"
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p1of2/5_models_and_renders/starting_point_rect_metal_plan.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p1of2/5_models_and_renders/starting_point_rect_metal_vs_plastic.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p1of2/5_models_and_renders/starting_point_rect_nut_check.png"
       ],
       "drawing": "stl_drawings/router/CARRIAGE_drawing.png",
       "drawing_data": {
@@ -951,21 +725,271 @@
       }
     },
     {
-      "id": "engine_vertical_plate_p2of2",
+      "id": "engine_holder_vertical_plate_p2of2",
       "group": "mid_vertical_movement",
-      "name": "engine vertical plate p2of2",
+      "name": "engine holder vertical plate p2of2",
       "plastic_images": [],
       "build_images": [
-        "metal_plates_examples/mid_vertical_movement/engine_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-05.png",
-        "metal_plates_examples/mid_vertical_movement/engine_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-08.png",
-        "metal_plates_examples/mid_vertical_movement/engine_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-11.png",
-        "metal_plates_examples/mid_vertical_movement/engine_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-16.png",
-        "metal_plates_examples/mid_vertical_movement/engine_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-22.png",
-        "metal_plates_examples/mid_vertical_movement/engine_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-27.png"
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-05.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-08.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-11.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-16.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-22.png",
+        "metal_plates_examples/mid_vertical_movement/engine_holder_vertical_plate_p2of2/Screenshot From 2026-06-27 00-27-27.png"
       ],
       "metal_renders": [],
       "drawing": null,
       "drawing_data": null
+    },
+    {
+      "id": "threaded_rod_clamper",
+      "group": "mid_vertical_movement",
+      "name": "threaded rod clamper",
+      "plastic_images": [],
+      "build_images": [
+        "metal_plates_examples/mid_vertical_movement/threaded_rod_clamper/Screenshot From 2026-06-27 00-27-05.png",
+        "metal_plates_examples/mid_vertical_movement/threaded_rod_clamper/Screenshot From 2026-06-27 00-27-08.png",
+        "metal_plates_examples/mid_vertical_movement/threaded_rod_clamper/Screenshot From 2026-06-27 00-27-11.png",
+        "metal_plates_examples/mid_vertical_movement/threaded_rod_clamper/Screenshot From 2026-06-27 00-27-16.png",
+        "metal_plates_examples/mid_vertical_movement/threaded_rod_clamper/Screenshot From 2026-06-27 00-27-22.png",
+        "metal_plates_examples/mid_vertical_movement/threaded_rod_clamper/Screenshot From 2026-06-27 00-27-27.png"
+      ],
+      "metal_renders": [],
+      "drawing": null,
+      "drawing_data": null
+    },
+    {
+      "id": "top_stepper_holder",
+      "group": "mid_vertical_movement",
+      "name": "top stepper holder",
+      "plastic_images": [],
+      "build_images": [
+        "metal_plates_examples/mid_vertical_movement/top_stepper_holder/0_raw_screenshots/Screenshot From 2026-06-27 00-26-55.png",
+        "metal_plates_examples/mid_vertical_movement/top_stepper_holder/0_raw_screenshots/Screenshot From 2026-06-27 00-27-05.png",
+        "metal_plates_examples/mid_vertical_movement/top_stepper_holder/0_raw_screenshots/Screenshot From 2026-06-27 00-27-08.png",
+        "metal_plates_examples/mid_vertical_movement/top_stepper_holder/0_raw_screenshots/Screenshot From 2026-06-27 00-27-11.png",
+        "metal_plates_examples/mid_vertical_movement/top_stepper_holder/0_raw_screenshots/Screenshot From 2026-06-27 00-27-16.png",
+        "metal_plates_examples/mid_vertical_movement/top_stepper_holder/0_raw_screenshots/Screenshot From 2026-06-27 00-27-22.png",
+        "metal_plates_examples/mid_vertical_movement/top_stepper_holder/0_raw_screenshots/Screenshot From 2026-06-27 00-27-27.png",
+        "metal_plates_examples/mid_vertical_movement/top_stepper_holder/0_raw_screenshots/Screenshot From 2026-06-27 00-28-11.png",
+        "metal_plates_examples/mid_vertical_movement/top_stepper_holder/0_raw_screenshots/Screenshot From 2026-06-27 00-28-15.png",
+        "metal_plates_examples/mid_vertical_movement/top_stepper_holder/0_raw_screenshots/Screenshot From 2026-06-27 00-28-20.png",
+        "metal_plates_examples/mid_vertical_movement/top_stepper_holder/0_raw_screenshots/example.png",
+        "metal_plates_examples/mid_vertical_movement/top_stepper_holder/0_raw_screenshots/example_schematic.jpg"
+      ],
+      "metal_renders": [
+        "metal_plates_examples/mid_vertical_movement/top_stepper_holder/5_models_and_renders/engine_holder_top_plate_plan.png"
+      ],
+      "drawing": "stl_drawings/router/Z_MOTOR_MOUNT_drawing.png",
+      "drawing_data": {
+        "source_stl": "/tmp/nix-shell-92633-2622442970/annotate_stl_2fxejbf1/Z_MOTOR_MOUNT.rotated.stl",
+        "vertices_xz_mm": [
+          [
+            196.28905487060547,
+            406.1307067871094
+          ],
+          [
+            173.88905487060546,
+            406.1307067871094
+          ],
+          [
+            173.83905487060548,
+            391.1307067871094
+          ],
+          [
+            67.28905487060547,
+            391.1307067871094
+          ],
+          [
+            67.28905487060547,
+            336.1307067871094
+          ],
+          [
+            173.83905487060548,
+            336.1307067871094
+          ],
+          [
+            173.88905487060546,
+            321.1307067871094
+          ],
+          [
+            196.28905487060547,
+            321.1307067871094
+          ]
+        ],
+        "edges": [
+          {
+            "i": 0,
+            "from": [
+              196.28905487060547,
+              406.1307067871094
+            ],
+            "to": [
+              173.88905487060546,
+              406.1307067871094
+            ],
+            "length_mm": 22.400000000000006,
+            "angle_deg": 180.0
+          },
+          {
+            "i": 1,
+            "from": [
+              173.88905487060546,
+              406.1307067871094
+            ],
+            "to": [
+              173.83905487060548,
+              391.1307067871094
+            ],
+            "length_mm": 15.000083333101854,
+            "angle_deg": -90.19098522435962
+          },
+          {
+            "i": 2,
+            "from": [
+              173.83905487060548,
+              391.1307067871094
+            ],
+            "to": [
+              67.28905487060547,
+              391.1307067871094
+            ],
+            "length_mm": 106.55000000000001,
+            "angle_deg": 180.0
+          },
+          {
+            "i": 3,
+            "from": [
+              67.28905487060547,
+              391.1307067871094
+            ],
+            "to": [
+              67.28905487060547,
+              336.1307067871094
+            ],
+            "length_mm": 55.0,
+            "angle_deg": -90.0
+          },
+          {
+            "i": 4,
+            "from": [
+              67.28905487060547,
+              336.1307067871094
+            ],
+            "to": [
+              173.83905487060548,
+              336.1307067871094
+            ],
+            "length_mm": 106.55000000000001,
+            "angle_deg": 0.0
+          },
+          {
+            "i": 5,
+            "from": [
+              173.83905487060548,
+              336.1307067871094
+            ],
+            "to": [
+              173.88905487060546,
+              321.1307067871094
+            ],
+            "length_mm": 15.000083333101854,
+            "angle_deg": -89.80901477564038
+          },
+          {
+            "i": 6,
+            "from": [
+              173.88905487060546,
+              321.1307067871094
+            ],
+            "to": [
+              196.28905487060547,
+              321.1307067871094
+            ],
+            "length_mm": 22.400000000000006,
+            "angle_deg": 0.0
+          },
+          {
+            "i": 7,
+            "from": [
+              196.28905487060547,
+              321.1307067871094
+            ],
+            "to": [
+              196.28905487060547,
+              406.1307067871094
+            ],
+            "length_mm": 85.0,
+            "angle_deg": 90.0
+          }
+        ],
+        "holes": [
+          {
+            "i": 0,
+            "cx": 136.789,
+            "cz": 363.631,
+            "d": 24.0,
+            "r": 12.0
+          },
+          {
+            "i": 1,
+            "cx": 97.789,
+            "cz": 363.631,
+            "d": 24.0,
+            "r": 12.0
+          },
+          {
+            "i": 2,
+            "cx": 97.789,
+            "cz": 363.631,
+            "d": 17.0,
+            "r": 8.5
+          },
+          {
+            "i": 3,
+            "cx": 136.789,
+            "cz": 363.631,
+            "d": 17.0,
+            "r": 8.5
+          },
+          {
+            "i": 4,
+            "cx": 82.289,
+            "cz": 348.131,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 5,
+            "cx": 82.289,
+            "cz": 379.131,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 6,
+            "cx": 152.289,
+            "cz": 348.131,
+            "d": 3.5,
+            "r": 1.75
+          },
+          {
+            "i": 7,
+            "cx": 152.289,
+            "cz": 379.131,
+            "d": 3.5,
+            "r": 1.75
+          }
+        ],
+        "bbox": {
+          "x_min": 67.28905487060547,
+          "x_max": 196.28905487060547,
+          "z_min": 321.1307067871094,
+          "z_max": 406.1307067871094,
+          "width": 129.0,
+          "height": 85.0
+        }
+      }
     },
     {
       "id": "P20_left_side_plate",
