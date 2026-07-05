@@ -261,18 +261,11 @@ def _build_assembly(document: "FreeCAD.Document") -> None:
     #   Gantry beams (X≈77..167) → p1of2 (X=137..143) → MGN12H blocks (X=143..156)
     #   → rails (X≈150) → p2of2 (X=156..166)
     #
-    # p1of2: yaw=−90 → local_X→world(−Y), local_Y→world(+X), local_Z→world(+Z).
-    #   Back face (local Y=−6) at world X = 143+(−6) = 137 (rests on gantry).
-    #   Front face (local Y=0)  at world X = 143        (blocks mount here, faces +X).
-    #   place_y=829 → plate body Y = 829−506..829−358.5 = 323..471, centre≈397.
-    #   MGN12H bolt-group world Y:
-    #     left-rail  group (local X≈372) → Y = 829−372 = 457
-    #     right-rail group (local X≈437) → Y = 829−437 = 392
     MV = f"{METAL}/mid_vertical_movement"
     gantry(add_step("Engine_Holder_P1",
         f"{MV}/engine_holder_vertical_plate_p1of2"
         "/5_models_and_renders/starting_point_rect_metal.step",
-        x=143, y=829, z=93, yaw=-90))
+        x=137, y=-35, z=93, yaw=90))
 
     # Two MGN12 rails: bolted to p2of2, slide in Z through the fixed blocks.
     # Cross-section: 8mm deep (X) × 12mm wide (Y), length 200mm.
