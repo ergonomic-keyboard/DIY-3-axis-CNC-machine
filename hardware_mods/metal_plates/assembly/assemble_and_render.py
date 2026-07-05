@@ -174,6 +174,22 @@ def _build_assembly(document: "FreeCAD.Document") -> None:
     add_box("Rail_Y_Left",  600, 9, 7, 150,  -9, -7, COL_RAIL)
     add_box("Rail_Y_Right", 600, 9, 7, 150, 793, -7, COL_RAIL)
 
+    # ── AXIS INDICATOR (3-D, frame-fixed) ─────────────────────────────────────
+    # Origin: front-right corner of frame at (X=0, Y=793, Z=0).
+    # The vertical column Frame_Vert_0_763 is the post between the two beams.
+    # Z (blue) → up, X (red) → machine depth, Y (green) → machine width inward.
+    AL, AW = 160, 18   # rod length and cross-section (mm)
+    OX, OY, OZ = 0, 793, 0
+    add_box("Axis_Z", AW, AW, AL,
+            OX - AW/2, OY - AW/2, OZ,
+            color=(0.05, 0.20, 0.95))   # blue — up
+    add_box("Axis_X", AL, AW, AW,
+            OX, OY - AW/2, OZ - AW/2,
+            color=(0.95, 0.10, 0.05))   # red — depth (into machine)
+    add_box("Axis_Y", AW, AL, AW,
+            OX - AW/2, OY - AL, OZ - AW/2,
+            color=(0.05, 0.85, 0.10))   # green — width (toward machine centre)
+
     # ── GANTRY ────────────────────────────────────────────────────────────────
     # Three 803 mm beams running in Y (machine-X direction)
     GZ_U, GZ_U2, GZ_L = 148, 118, 78
@@ -285,65 +301,18 @@ def _build_assembly(document: "FreeCAD.Document") -> None:
 
 # ── XYZ axis overlay ──────────────────────────────────────────────────────────
 
-def _draw_axes(png_path: str) -> None:
-    """Overlay an XYZ axis indicator onto a rendered PNG frame."""
-    # PIL lives in the project venv, not in the FreeCAD system Python.
+def _rotate_frame(png_path: str) -> None:
+    """Rotate rendered frame 90° clockwise (960×600 → 600×960 portrait)."""
     import sys as _sys
     _venv_sp = os.path.join(REPO, ".venv/lib/python3.13/site-packages")
     if _venv_sp not in _sys.path:
         _sys.path.insert(0, _venv_sp)
     try:
-        from PIL import Image, ImageDraw, ImageFont  # noqa: F401
+        from PIL import Image
     except ImportError:
         return
-
-    img = Image.open(png_path).convert("RGBA")
-    overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    draw = ImageDraw.Draw(overlay)
-
-    # Origin in bottom-left corner, 80px from edges
-    ox, oy = 90, img.height - 90
-    L = 55   # arrow length in pixels
-
-    # Approximate 2D projections of 3D axes for camera at ~210° azimuth, 35° elev
-    # Script X (machine depth, into screen) → down-right
-    # Script Y (machine width, left-right)  → right
-    # Script Z (vertical)                   → up
-    axes = [
-        ("X", (ox + int(L * 0.50), oy + int(L * 0.65)), (220, 50,  50,  230)),
-        ("Y", (ox + int(L * 0.95), oy                ), ( 50, 200, 50,  230)),
-        ("Z", (ox,                 oy - L             ), ( 60, 120, 230, 230)),
-    ]
-
-    # Draw filled origin circle
-    r = 5
-    draw.ellipse([ox - r, oy - r, ox + r, oy + r], fill=(220, 220, 220, 200))
-
-    for label, (ex, ey), color in axes:
-        # Shaft
-        draw.line([(ox, oy), (ex, ey)], fill=color, width=3)
-        # Arrowhead: small filled triangle
-        dx, dy = ex - ox, ey - oy
-        length = max(1, math.hypot(dx, dy))
-        ux, uy = dx / length, dy / length
-        px, py = -uy, ux          # perpendicular
-        tip = (ex, ey)
-        base1 = (ex - int(ux * 10 + px * 5), ey - int(uy * 10 + py * 5))
-        base2 = (ex - int(ux * 10 - px * 5), ey - int(uy * 10 - py * 5))
-        draw.polygon([tip, base1, base2], fill=color)
-        # Label
-        draw.text((ex + int(ux * 6 + 2), ey + int(uy * 6 - 6)), label,
-                  fill=color)
-
-    # Background rectangle for readability
-    bg = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    bg_draw = ImageDraw.Draw(bg)
-    bg_draw.rectangle([ox - 70, oy - 70, ox + 80, oy + 20],
-                       fill=(0, 0, 0, 80))
-
-    img = Image.alpha_composite(img, bg)
-    img = Image.alpha_composite(img, overlay)
-    img.convert("RGB").save(png_path)
+    img = Image.open(png_path)
+    img.rotate(-90, expand=True).save(png_path)
 
 
 # ── Render inner (runs inside Xvfb subprocess) ────────────────────────────────
@@ -351,9 +320,9 @@ def _draw_axes(png_path: str) -> None:
 def _render_inner() -> None:
     import FreeCADGui
 
-    W, H   = 960, 600
+    W, H   = 960, 600   # FreeCAD render size; PIL then rotates 90° CW → 600×960
     FRAMES = 48
-    FPS    = 12
+    FPS    = 6          # half speed
 
     # Gantry (Y-axis) travel: X offset from natural position
     X_FRONT, X_BACK = 13.0, 517.0
@@ -437,7 +406,7 @@ def _render_inner() -> None:
     START_A = math.radians(210)
     SWEEP   = math.radians(45)
 
-    def _set_camera(frame: int) -> None:
+    def _frame_theta(frame: int) -> float:
         t = frame / FRAMES
         if t < 0.25:
             frac =  t / 0.25
@@ -445,7 +414,10 @@ def _render_inner() -> None:
             frac =  1 - 2 * (t - 0.25) / 0.5
         else:
             frac = -1 + (t - 0.75) / 0.25
-        theta = START_A + frac * SWEEP
+        return START_A + frac * SWEEP
+
+    def _set_camera(frame: int) -> None:
+        theta = _frame_theta(frame)
         dx =  cos_e * math.cos(theta)
         dy =  cos_e * math.sin(theta)
         dz = -sin_e
@@ -475,12 +447,13 @@ def _render_inner() -> None:
 
         png = os.path.join(tmpdir, f"frame_{i:03d}.png")
         view.saveImage(png, W, H, "White")
-        _draw_axes(png)
+        _rotate_frame(png)   # 90° CW → 600×960 portrait
         frame_paths.append(png)
         print(f"  frame {i+1:02d}/{FRAMES}  gantry_x={delta_x:5.0f}  z={delta_z:+5.0f} → {png}",
               flush=True)
 
     # 6. Assemble GIF with ffmpeg
+    # Frames are 600×960 (portrait) after PIL rotation; skip scaling.
     concat = os.path.join(tmpdir, "frames.txt")
     duration = 1.0 / FPS
     with open(concat, "w") as f:
@@ -491,10 +464,7 @@ def _render_inner() -> None:
     subprocess.run([
         "ffmpeg", "-y",
         "-f", "concat", "-safe", "0", "-i", concat,
-        "-vf", (
-            "scale=960:-1:flags=lanczos,"
-            "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse"
-        ),
+        "-vf", "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
         "-loop", "0",
         GIF_PATH,
     ], check=True)
