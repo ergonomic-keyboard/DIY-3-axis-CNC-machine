@@ -190,6 +190,16 @@ def _build_assembly(document: "FreeCAD.Document") -> None:
             OX - AW/2, OY - AL, OZ - AW/2,
             color=(0.05, 0.85, 0.10))   # green — width (toward machine centre)
 
+    # Text labels at rod tips (App::Annotation renders as viewport text)
+    for lbl, lx, ly, lz in [
+        ("Z", OX,          OY,          OZ + AL + 15),
+        ("X", OX + AL + 15, OY,         OZ          ),
+        ("Y", OX,          OY - AL - 15, OZ         ),
+    ]:
+        ann = doc.addObject("App::Annotation", f"AxisLabel_{lbl}")
+        ann.LabelText = [lbl]
+        ann.Position  = FreeCAD.Vector(lx, ly, lz)
+
     # ── GANTRY ────────────────────────────────────────────────────────────────
     # Three 803 mm beams running in Y (machine-X direction)
     GZ_U, GZ_U2, GZ_L = 148, 118, 78
@@ -302,17 +312,87 @@ def _build_assembly(document: "FreeCAD.Document") -> None:
 # ── XYZ axis overlay ──────────────────────────────────────────────────────────
 
 def _rotate_frame(png_path: str) -> None:
-    """Rotate rendered frame 90° clockwise (960×600 → 600×960 portrait)."""
+    """Rotate 90° CW and draw X/Y/Z labels next to the coloured axis rods.
+
+    Labels are placed by scanning for each rod's colour in the rendered image,
+    finding the bounding box of those pixels, and writing the letter beyond the
+    outermost edge of that bounding box.  No projection maths needed.
+    """
     import sys as _sys
     _venv_sp = os.path.join(REPO, ".venv/lib/python3.13/site-packages")
     if _venv_sp not in _sys.path:
         _sys.path.insert(0, _venv_sp)
     try:
-        from PIL import Image
+        from PIL import Image, ImageDraw, ImageChops, ImageFont
     except ImportError:
         return
-    img = Image.open(png_path)
-    img.rotate(-90, expand=True).save(png_path)
+
+    img = Image.open(png_path).rotate(-90, expand=True).convert("RGB")
+    r_ch, g_ch, b_ch = img.split()
+    draw = ImageDraw.Draw(img)
+
+    # Try to get a decent sized font; fall back to PIL default if unavailable.
+    try:
+        font = ImageFont.truetype("/run/current-system/sw/share/fonts/truetype/DejaVuSans-Bold.ttf", 36)
+    except Exception:
+        try:
+            font = ImageFont.load_default(size=36)
+        except Exception:
+            font = ImageFont.load_default()
+
+    def _mask(ch, lo=None, hi=None):
+        """Return an "L" mask: 255 where lo < ch < hi (None = no bound)."""
+        if lo is not None and hi is not None:
+            return ch.point(lambda v: 255 if lo < v < hi else 0)
+        if lo is not None:
+            return ch.point(lambda v: 255 if v > lo else 0)
+        return ch.point(lambda v: 255 if v < hi else 0)
+
+    def _find_bbox(r_lo=None, r_hi=None, g_lo=None, g_hi=None,
+                   b_lo=None, b_hi=None):
+        """Bounding box of pixels that pass ALL supplied channel thresholds."""
+        layers = []
+        if r_lo is not None or r_hi is not None:
+            layers.append(_mask(r_ch, r_lo, r_hi))
+        if g_lo is not None or g_hi is not None:
+            layers.append(_mask(g_ch, g_lo, g_hi))
+        if b_lo is not None or b_hi is not None:
+            layers.append(_mask(b_ch, b_lo, b_hi))
+        if not layers:
+            return None
+        combined = layers[0]
+        for lyr in layers[1:]:
+            combined = ImageChops.multiply(combined, lyr)
+        return combined.getbbox()   # (left, upper, right, lower) or None
+
+    # Rod colours (from add_box color tuples, scaled to 0-255 and thresholded):
+    #   Z blue  (0.05, 0.20, 0.95) → R≈13, G≈51, B≈242
+    #   X red   (0.95, 0.10, 0.05) → R≈242, G≈26, B≈13
+    #   Y green (0.05, 0.85, 0.10) → R≈13, G≈217, B≈26
+    axes = [
+        # label  r_lo  r_hi  g_lo  g_hi  b_lo  b_hi  tip_edge  fill_colour
+        ("Z", None, 80,  None, 120, 160, None, "right", (30,  80, 220)),
+        ("X", 160, None, None,  60, None,  60, "right", (220, 30,  20)),
+        ("Y", None,  60, 140, None, None,  60, "bottom",(20, 180,  30)),
+    ]
+
+    for label, r_lo, r_hi, g_lo, g_hi, b_lo, b_hi, tip_edge, fill in axes:
+        bb = _find_bbox(r_lo, r_hi, g_lo, g_hi, b_lo, b_hi)
+        if bb is None:
+            continue
+        left, top, right, bottom = bb
+        PAD = 6
+        if tip_edge == "right":
+            tx, ty = right + PAD, (top + bottom) // 2 - 18
+        else:  # bottom
+            tx, ty = (left + right) // 2 - 10, bottom + PAD
+
+        # White halo so the letter is readable against the grey machine
+        for ox, oy in [(-2,0),(2,0),(0,-2),(0,2)]:
+            draw.text((tx + ox, ty + oy), label, font=font, fill=(255,255,255))
+        draw.text((tx, ty), label, font=font, fill=fill)
+
+    img.save(png_path)
 
 
 # ── Render inner (runs inside Xvfb subprocess) ────────────────────────────────
@@ -375,6 +455,20 @@ def _render_inner() -> None:
                 pass
             try:
                 vobj.LineColor = (0.15, 0.15, 0.15)
+            except Exception:
+                pass
+
+        # Axis text labels: black text, large font so they're readable
+        for lbl in ("X", "Y", "Z"):
+            ann = gdoc.getObject(f"AxisLabel_{lbl}")
+            if ann is None:
+                continue
+            try:
+                ann.TextColor = (0.0, 0.0, 0.0)
+            except Exception:
+                pass
+            try:
+                ann.FontSize = 120
             except Exception:
                 pass
     else:
