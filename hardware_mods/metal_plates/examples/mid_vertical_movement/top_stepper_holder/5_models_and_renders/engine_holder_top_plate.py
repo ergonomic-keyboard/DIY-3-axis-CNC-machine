@@ -15,6 +15,7 @@ import json
 from pathlib import Path
 
 import matplotlib
+import matplotlib.patches as mpatches
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
@@ -46,18 +47,30 @@ HOLES_JSON = EX / "2_flattened_image" / "holes_from_stl.json"
 PLATE_THICKNESS = 6.0  # mm
 
 POCKET_DIAM = 22.0  # mm — motor shaft + lead-screw bearing clearance
+POCKET_R = POCKET_DIAM / 2  # 11 mm
 
 # M5 mounting features at the back edge, 65 mm pitch to match
 # engine_holder_vertical_p1of2's top keyhole-slot spacing, plus a
 # central one through the lead-screw axis.
 M5_PITCH = 65.0
 M5_HOLE_DIAM = 5.5
-M5_SLOT_LEN = 12.0  # mm — long axis along Y/Z (length-wise on plate)
 
 # Motor centre (mid-point of the 4 M3 holes from Z_MOTOR_MOUNT.stl
 # Z-face: X = (82.289 + 152.289)/2, Z = (348.131 + 379.131)/2).
 CENTER_X = 117.289
 CENTER_Z = 363.631
+
+# Slider slots — horizontal (long axis in X), one above each pocket semicircle.
+# Positioned along the positive-Z side of the merged oval cutout.
+SLIDER_TOTAL_LEN = 25.0   # mm — total horizontal slot length including end caps
+SLIDER_WIDTH = M5_HOLE_DIAM  # 5.5 mm — slot thickness (Z extent)
+SLIDER_GAP = 2.0          # mm — clearance between oval top edge and slot bottom
+
+# Holes A and B — M5 clearance mounting holes in the top cross-member of the
+# T-bar, aligned with the bolt holes on p1of2's top edge (edges 49/51 and 57/59).
+# X positions follow the M5_PITCH spacing; Z chosen to sit in the upper
+# cross-member clear of the slider slots.
+HOLE_AB_Z = 385.0
 
 
 # ---------------------------------------------------------------------------
@@ -90,16 +103,30 @@ def pocket_centres(y_holes: list[dict]) -> list[tuple[float, float]]:
     return out
 
 
-def m5_slot_centres() -> list[tuple[float, float]]:
-    """3 M5 slots at the back edge of the main body, centred on motor X."""
-    # Back of main body sits at Z = 391.13 (silhouette top). Place slot
-    # centres at Z = 385 so the slot ends sit ~6 mm shy of the top edge
-    # and clear the M3 row at Z=379.131.
-    z = 385.0
+# ---------------------------------------------------------------------------
+# Derived geometry helpers
+# ---------------------------------------------------------------------------
+def oval_params(pockets: list[tuple[float, float]]) -> dict:
+    """Return geometry of the merged athletics-track oval from the two pocket centres."""
+    left_cx  = min(p[0] for p in pockets)
+    right_cx = max(p[0] for p in pockets)
+    cz       = pockets[0][1]          # both pockets share the same Z
+    straight = right_cx - left_cx     # 39 mm straight section between centres
+    return dict(left_cx=left_cx, right_cx=right_cx, cz=cz,
+                cx=(left_cx + right_cx) / 2, straight=straight)
+
+
+def slider_centres(oval: dict) -> list[tuple[float, float]]:
+    """Two horizontal slider slots: one centred above each oval end-semicircle."""
+    slider_z = oval["cz"] + POCKET_R + SLIDER_GAP + SLIDER_WIDTH / 2
+    return [(oval["left_cx"], slider_z), (oval["right_cx"], slider_z)]
+
+
+def hole_ab_centres() -> list[tuple[float, float]]:
+    """Holes A and B: M5 clearance holes in the top cross-member at M5_PITCH spacing."""
     return [
-        (CENTER_X - M5_PITCH / 2, z),
-        (CENTER_X,                z),
-        (CENTER_X + M5_PITCH / 2, z),
+        (CENTER_X - M5_PITCH / 2, HOLE_AB_Z),
+        (CENTER_X + M5_PITCH / 2, HOLE_AB_Z),
     ]
 
 
@@ -108,33 +135,50 @@ def m5_slot_centres() -> list[tuple[float, float]]:
 # ---------------------------------------------------------------------------
 def build(silhouette: list[tuple[float, float]],
           m3: list[tuple[float, float]],
-          pockets: list[tuple[float, float]],
-          slots: list[tuple[float, float]]) -> BuildPart:
+          pockets: list[tuple[float, float]]) -> BuildPart:
+    oval    = oval_params(pockets)
+    sliders = slider_centres(oval)
+    holes_ab = hole_ab_centres()
+
+    slider_straight = SLIDER_TOTAL_LEN - SLIDER_WIDTH  # straight section of each slot
+
     with BuildPart() as plate:
-        with BuildSketch() as sk:
+        with BuildSketch():
             with BuildLine():
                 Polyline(*silhouette, close=True)
             make_face()
+
+            # M3 motor-mount holes
             if m3:
                 with Locations(*m3):
                     Circle(3.5 / 2, mode=Mode.SUBTRACT)
-            if pockets:
-                with Locations(*pockets):
-                    Circle(POCKET_DIAM / 2, mode=Mode.SUBTRACT)
-            if slots:
-                slot_w = M5_HOLE_DIAM
-                slot_h = M5_SLOT_LEN
-                straight = max(slot_h - slot_w, 0.0)
-                with Locations(*slots):
-                    Rectangle(slot_w, straight, mode=Mode.SUBTRACT)
-                # Round the slot ends (semicircular caps).
-                cap_offset = straight / 2
-                cap_centres = []
-                for cx, cz in slots:
-                    cap_centres.append((cx, cz - cap_offset))
-                    cap_centres.append((cx, cz + cap_offset))
-                with Locations(*cap_centres):
-                    Circle(slot_w / 2, mode=Mode.SUBTRACT)
+
+            # ── Merged oval (single athletics-track cutout) ───────────────────
+            # Rectangle spanning the straight section + a full circle at each end.
+            with Locations((oval["cx"], oval["cz"])):
+                Rectangle(oval["straight"], POCKET_DIAM, mode=Mode.SUBTRACT)
+            with Locations((oval["left_cx"], oval["cz"])):
+                Circle(POCKET_R, mode=Mode.SUBTRACT)
+            with Locations((oval["right_cx"], oval["cz"])):
+                Circle(POCKET_R, mode=Mode.SUBTRACT)
+
+            # ── Two horizontal slider slots ───────────────────────────────────
+            # Long axis in X, positioned along the top of the merged oval.
+            with Locations(*sliders):
+                Rectangle(slider_straight, SLIDER_WIDTH, mode=Mode.SUBTRACT)
+            # Semicircular end caps (left and right of each slot)
+            cap_offset = slider_straight / 2
+            slider_caps = []
+            for cx, cz in sliders:
+                slider_caps.append((cx - cap_offset, cz))
+                slider_caps.append((cx + cap_offset, cz))
+            with Locations(*slider_caps):
+                Circle(SLIDER_WIDTH / 2, mode=Mode.SUBTRACT)
+
+            # ── Holes A and B (top cross-member, aligned with p1of2 top edge) ─
+            with Locations(*holes_ab):
+                Circle(M5_HOLE_DIAM / 2, mode=Mode.SUBTRACT)
+
         extrude(amount=PLATE_THICKNESS)
     return plate
 
@@ -142,39 +186,72 @@ def build(silhouette: list[tuple[float, float]],
 # ---------------------------------------------------------------------------
 # Plan render
 # ---------------------------------------------------------------------------
-def render_plan(silhouette, m3, pockets, slots, out_png: Path) -> None:
+def _draw_oblong_h(ax, cx, cz, total_len, width, **kw):
+    """Draw a horizontal oblong (stadium) outline on ax."""
+    straight = total_len - width
+    r = width / 2
+    rect = mpatches.FancyBboxPatch(
+        (cx - straight / 2 - r, cz - r),
+        straight + 2 * r, 2 * r,
+        boxstyle=f"round,pad=0,rounding_size={r}",
+        **kw,
+    )
+    ax.add_patch(rect)
+
+
+def _draw_oblong_v(ax, cx, cz, total_len, width, **kw):
+    """Draw a vertical oblong (stadium) outline on ax."""
+    straight = total_len - width
+    r = width / 2
+    rect = mpatches.FancyBboxPatch(
+        (cx - r, cz - straight / 2 - r),
+        2 * r, straight + 2 * r,
+        boxstyle=f"round,pad=0,rounding_size={r}",
+        **kw,
+    )
+    ax.add_patch(rect)
+
+
+def render_plan(silhouette, m3, pockets, out_png: Path) -> None:
+    oval     = oval_params(pockets)
+    sliders  = slider_centres(oval)
+    holes_ab = hole_ab_centres()
+
     fig, ax = plt.subplots(figsize=(9, 6))
     xs = [p[0] for p in silhouette] + [silhouette[0][0]]
     zs = [p[1] for p in silhouette] + [silhouette[0][1]]
     ax.plot(xs, zs, "k-", lw=2)
     ax.fill(xs, zs, color="lightgray", alpha=0.4)
 
+    # M3 motor holes
     for cx, cz in m3:
         ax.add_patch(plt.Circle((cx, cz), 3.5 / 2,
                                 fill=False, color="tab:blue", lw=1.5))
-    for cx, cz in pockets:
-        ax.add_patch(plt.Circle((cx, cz), POCKET_DIAM / 2,
-                                fill=False, color="tab:green", lw=1.5))
 
-    slot_w = M5_HOLE_DIAM
-    slot_h = M5_SLOT_LEN
-    for cx, cz in slots:
-        rect = plt.Rectangle((cx - slot_w / 2, cz - slot_h / 2 + slot_w / 2),
-                              slot_w, max(slot_h - slot_w, 0.0),
-                              fill=False, color="tab:red", lw=1.5)
-        ax.add_patch(rect)
-        ax.add_patch(plt.Circle((cx, cz - (slot_h - slot_w) / 2),
-                                slot_w / 2, fill=False, color="tab:red", lw=1.5))
-        ax.add_patch(plt.Circle((cx, cz + (slot_h - slot_w) / 2),
-                                slot_w / 2, fill=False, color="tab:red", lw=1.5))
+    # Merged oval
+    oval_total_x = oval["straight"] + 2 * POCKET_R
+    _draw_oblong_h(ax, oval["cx"], oval["cz"], oval_total_x, POCKET_DIAM,
+                   fill=False, edgecolor="tab:green", linewidth=2)
+
+    # Slider slots (horizontal)
+    for cx, cz in sliders:
+        _draw_oblong_h(ax, cx, cz, SLIDER_TOTAL_LEN, SLIDER_WIDTH,
+                       fill=False, edgecolor="tab:orange", linewidth=1.5)
+
+    # Holes A and B
+    for i, (cx, cz) in enumerate(holes_ab):
+        ax.add_patch(plt.Circle((cx, cz), M5_HOLE_DIAM / 2,
+                                fill=False, color="tab:red", lw=1.5))
+        ax.text(cx, cz, f"{'AB'[i]}", ha="center", va="center",
+                fontsize=7, color="tab:red", fontweight="bold")
 
     ax.set_aspect("equal")
     ax.grid(True, alpha=0.3, lw=0.5)
     ax.set_xlabel("X (mm)")
     ax.set_ylabel("Z (mm)")
     ax.set_title(
-        f"{NAME}  —  plastic silhouette, M3 motor mount (blue), "
-        f"pockets (green), M5 slots (red)"
+        f"{NAME}  —  M3 (blue), merged oval (green), "
+        f"slider slots (orange), holes A/B (red)"
     )
     fig.tight_layout()
     fig.savefig(out_png, dpi=150, bbox_inches="tight")
@@ -184,18 +261,17 @@ def render_plan(silhouette, m3, pockets, slots, out_png: Path) -> None:
 def main() -> None:
     silhouette = load_silhouette()
     y_holes = load_y_holes()
-    m3 = m3_centres(y_holes)
+    m3      = m3_centres(y_holes)
     pockets = pocket_centres(y_holes)
-    slots = m5_slot_centres()
 
-    plate = build(silhouette, m3, pockets, slots)
+    plate = build(silhouette, m3, pockets)
 
     step_path = HERE / f"{NAME}.step"
-    stl_path = HERE / f"{NAME}.stl"
+    stl_path  = HERE / f"{NAME}.stl"
     plan_path = HERE / f"{NAME}_plan.png"
     export_step(plate.part, str(step_path))
     export_stl(plate.part, str(stl_path))
-    render_plan(silhouette, m3, pockets, slots, plan_path)
+    render_plan(silhouette, m3, pockets, plan_path)
     print(f"wrote {step_path.name}")
     print(f"wrote {stl_path.name}")
     print(f"wrote {plan_path.name}")
