@@ -283,14 +283,18 @@ def _build_assembly(document: "FreeCAD.Document") -> None:
 
     # p2of2: sliding plate, carries the router clamps.
     # Local STEP coords (flat): X=−75..75 (150mm), Y=−130..90 (220mm), Z=0..10.
-    # Rotation yaw=90, pitch=90 → local_Z→worldX, local_X→worldY, local_Y→worldZ.
-    #   place_x=114 → plate back face (local Z=10) at world X=114+10=124 (block front)
-    #   place_y=370 → centred at (337+402)/2=369.5≈370 (mid-point of two rails)
-    #   place_z=210 → Z range = 210+(−130..90) = 80..300
+    # Rotation yaw=90, pitch=180, roll=−90:
+    #   local_X → world −Y  (plate width 150 mm spans Y)
+    #   local_Y → world +Z  (plate height 220 mm spans Z — vertical) ✓
+    #   local_Z → world −X  (plate thickness 10 mm in X, face pointing +X toward p1)
+    # Achieved by: CCW 90° around +X, then CW 90° around +Z (user-specified).
+    #   place_x=134 → back face (local Z=10) at X=124 (block front face)
+    #   place_y=370 → Y centre at (337+402)/2=370 (midpoint of the two rails)
+    #   place_z=210 → plate spans Z=80..300, covering blocks at Z=140..274
     P2 = (f"{MV}/engine_holder_vertical_plate_p2of2"
           "/5_models_and_renders/engine_holder_vertical_plate_p2of2.step")
     gantry(z_slide(add_step("Engine_Holder_P2", P2,
-        x=114, y=370, z=210, yaw=90, pitch=90)))
+        x=134, y=370, z=210, yaw=90, pitch=180, roll=-90)))
 
     # Router clamps (fixed to p2of2 front face, metal).
     gantry(z_slide(add_step("Router_Clamp_Bottom",
