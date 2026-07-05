@@ -244,61 +244,70 @@ def _build_assembly(document: "FreeCAD.Document") -> None:
         x=0, y=0, z=93))
 
     # ── Z-AXIS ASSEMBLY ───────────────────────────────────────────────────────
-    # p1of2: static back plate, face pointing in X direction.
-    # Original STEP local coords: X=358.5..506 (width 147.5mm), Y=-6..0 (6mm
-    # thick), Z=-5.5..212.8 (218mm tall).
-    # With yaw=-90: local_X→world -Y, local_Y→world X, local_Z→world Z.
-    #   tx=137  → face at world X=137 (front face of gantry)
-    #   ty=829  → plate width centred at world Y=829-432=397 (gantry centre)
-    #   tz=93   → same attachment level as side plates
+    # p1of2: static back plate, in the YZ plane (face normal in ±X direction).
+    # Local STEP coords: X=358.5..506 (width 147.5mm), Y=−6..0 (6mm thick,
+    # local Y=0 is the front face), Z=−5.5..212.8 (218mm tall).
+    #
+    # Desired orientation: bearing hole (local X≈479) toward higher Y (machine
+    # right); MGN12H bolt groups at lower Y than bearing hole.  Achieved with
+    # yaw=+90: local_X→world +Y, local_Y→world −X, local_Z→world Z.
+    #   place_y=−35 → plate body at world Y = −35+358.5..−35+506 = 323..471
+    #                  centred at Y≈397 (gantry centre)
+    #   place_x=137 → front face (local Y=0) at world X=137
+    # MGN12H bolt-group world Y centres after this placement:
+    #   left-rail group  (local X≈372) → world Y = −35+372 = 337
+    #   right-rail group (local X≈437) → world Y = −35+437 = 402
     MV = f"{METAL}/mid_vertical_movement"
     gantry(add_step("Engine_Holder_P1",
         f"{MV}/engine_holder_vertical_plate_p1of2"
         "/5_models_and_renders/starting_point_rect_metal.step",
-        x=137, y=829, z=93, yaw=-90))
+        x=137, y=-35, z=93, yaw=90))
 
-    # Two MGN12 rails (fixed to p1of2 face), running vertically (Z).
-    # Rail cross-section: 8mm deep (X) × 12mm wide (Y), length 200mm.
-    # Rails sit on p1of2 face (X=137), columns at Y=354 and Y=428.
-    gantry(add_box("Rail_Z_Left",  8, 12, 200, 137, 354, 100, COL_RAIL))
-    gantry(add_box("Rail_Z_Right", 8, 12, 200, 137, 428, 100, COL_RAIL))
+    # Two MGN12 rails: bolted to p2of2, slide in Z through the fixed blocks.
+    # Cross-section: 8mm deep (X) × 12mm wide (Y), length 200mm.
+    # Y centres match the MGN12H bolt-group centres on p1of2 (337 and 402).
+    gantry(z_slide(add_box("Rail_Z_Left",  8, 12, 200, 125, 331, 100, COL_RAIL)))
+    gantry(z_slide(add_box("Rail_Z_Right", 8, 12, 200, 125, 396, 100, COL_RAIL)))
+
+    # Four MGN12H blocks: bolted FIXED to p1of2 front face (world X=137).
+    # Block: 13mm deep (X) × 26mm wide (Y) × 34mm tall (Z).
+    # Two blocks per rail (lower at Z=140, upper at Z=240).
+    # Y box-corner = rail_centre − 13 (block half-width).
+    for blk_name, by, bz in [
+        ("MGN12H_Block_LL", 324, 140),   # left rail, lower
+        ("MGN12H_Block_LU", 324, 240),   # left rail, upper
+        ("MGN12H_Block_RL", 389, 140),   # right rail, lower
+        ("MGN12H_Block_RU", 389, 240),   # right rail, upper
+    ]:
+        gantry(add_box(blk_name, 13, 26, 34, 124, by, bz, COL_BLOCK))
 
     # p2of2: sliding plate, carries the router clamps.
-    # Local STEP coords (flat): X=-75..75 (150mm), Y=-130..90 (220mm), Z=0..10.
+    # Local STEP coords (flat): X=−75..75 (150mm), Y=−130..90 (220mm), Z=0..10.
     # Rotation yaw=90, pitch=90 → local_Z→worldX, local_X→worldY, local_Y→worldZ.
-    #   tx=150 → plate back at X=150 (resting on blocks), face at X=160
-    #   ty=397 → centred at gantry centre Y=397
-    #   tz=210 → Z range = 210+(-130..90) = 80..300, centre≈190
+    #   place_x=114 → plate back face (local Z=10) at world X=114+10=124 (block front)
+    #   place_y=370 → centred at (337+402)/2=369.5≈370 (mid-point of two rails)
+    #   place_z=210 → Z range = 210+(−130..90) = 80..300
     P2 = (f"{MV}/engine_holder_vertical_plate_p2of2"
           "/5_models_and_renders/engine_holder_vertical_plate_p2of2.step")
     gantry(z_slide(add_step("Engine_Holder_P2", P2,
-        x=150, y=397, z=210, yaw=90, pitch=90)))
+        x=114, y=370, z=210, yaw=90, pitch=90)))
 
-    # Four MGN12H blocks (fixed to p2of2, slide on the rails).
-    # Block: 13mm deep (X) × 26mm wide (Y) × 34mm tall (Z).
-    # Two blocks per rail, one at lower Z and one at upper Z.
-    for blk_name, by, bz in [
-        ("MGN12H_Block_LL", 347, 140),
-        ("MGN12H_Block_LU", 347, 240),
-        ("MGN12H_Block_RL", 421, 140),
-        ("MGN12H_Block_RU", 421, 240),
-    ]:
-        gantry(z_slide(add_box(blk_name, 13, 26, 34, 137, by, bz, COL_BLOCK)))
-
-    # Router clamps (fixed to p2of2, metal).
-    # Centred at Y=397, face at X≈160; Z positions relative to p2of2 centre.
+    # Router clamps (fixed to p2of2 front face, metal).
     gantry(z_slide(add_step("Router_Clamp_Bottom",
         f"{MV}/router_clamp_bottom/5_models_and_renders/router_clamp.step",
-        x=160, y=397, z=160)))
+        x=100, y=370, z=160)))
     gantry(z_slide(add_step("Router_Clamp_Top",
         f"{MV}/router_clamp_top/5_models_and_renders/router_clamp.step",
-        x=160, y=397, z=185)))
+        x=100, y=370, z=185)))
 
     # ── TOP STEPPER HOLDER (metal) ────────────────────────────────────────────
+    # Sits on top of p1of2 (world X≈137, Y≈397, Z≈306).
+    # x=137 aligns it with p1of2 in depth; Y offset needs measuring from STEP
+    # local origin (kept at current value until STEP can be measured cleanly).
     gantry(add_step("Top_Stepper_Holder",
         f"{MV}/top_stepper_holder"
         "/5_models_and_renders/engine_holder_top_plate.step",
-        x=0, y=490 - 363.5, z=93 + 212))
+        x=137, y=490 - 363.5, z=93 + 212))
 
     # ── ENGINE SIDEWAYS BELT CLAMP (metal) ────────────────────────────────────
     gantry(add_step("Engine_Sideways_Belt_Clamp",
