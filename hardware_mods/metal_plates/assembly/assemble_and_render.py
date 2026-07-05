@@ -3,9 +3,11 @@
 
 Coordinate system (same as STL/STEP origins):
   X  →  machine Y direction  (depth: front = 0, back = 900 mm)
-  Y  →  machine X direction  (width: left outer = -10, right outer = 793 mm)
+  Y  →  machine X direction  (width: left outer = 0, right outer = 793 mm)
   Z  →  vertical             (Z=0 = plate attachment level;
                                frame lives below: Z = -140 → 0)
+
+Origin (0,0,0): front-left corner of the frame at plate-attachment height.
 
 Run from repo root:
     python hardware_mods/metal_plates/assembly/assemble_and_render.py
@@ -37,7 +39,6 @@ import Part
 REPO   = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
            os.path.abspath(__file__)))))
 METAL  = os.path.join(REPO, "hardware_mods/metal_plates/examples")
-PLAST  = os.path.join(REPO, "docs/stl_files")
 OUT    = os.path.join(REPO, "hardware_mods/metal_plates/assembly")
 
 FCSTD_PATH = os.path.join(OUT, "cnc_assembly.FCStd")
@@ -47,12 +48,13 @@ GIF_PATH   = os.path.join(OUT, "cnc_assembly_gif.gif")
 COL_EXTRUSION = (0.70, 0.72, 0.75)
 COL_RAIL      = (0.82, 0.84, 0.86)
 COL_METAL     = (0.55, 0.60, 0.65)
-COL_PLASTIC   = (0.12, 0.45, 0.12)
+COL_BLOCK     = (0.40, 0.42, 0.45)   # MGN12H blocks — slightly darker
 
 # ── Mutable globals populated by _build_assembly() ───────────────────────────
 doc: "FreeCAD.Document | None" = None
 _color_queue: list[tuple[str, tuple]] = []
-_gantry: list[tuple[str, float]] = []
+_gantry:    list[tuple[str, float]] = []   # (name, base_x) — Y-axis travel
+_z_slider:  list[tuple[str, float]] = []   # (name, base_z) — Z-axis travel
 
 
 # ── Geometry helpers ──────────────────────────────────────────────────────────
@@ -88,19 +90,34 @@ def add_step(name: str, path: str,
     return obj
 
 
-def add_stl(name: str, path: str,
-            x=0.0, y=0.0, z=0.0,
-            color=COL_PLASTIC) -> "FreeCAD.DocumentObject":
-    m = Mesh.Mesh(path)
-    obj = doc.addObject("Mesh::Feature", name)
-    obj.Mesh = m
-    _place(obj, x, y, z)
+def add_step_mirror_y(name: str, path: str,
+                      x=0.0, y=0.0, z=0.0,
+                      yaw=0.0, pitch=0.0, roll=0.0,
+                      mirror_at_y: float = 396.5,
+                      color=COL_METAL) -> "FreeCAD.DocumentObject":
+    """Load a STEP and mirror it across the plane Y = mirror_at_y."""
+    shape = Part.Shape()
+    shape.read(path)
+    shape_m = shape.mirror(
+        FreeCAD.Vector(0, mirror_at_y, 0),
+        FreeCAD.Vector(0, 1, 0),
+    )
+    obj = doc.addObject("Part::Feature", name)
+    obj.Shape = shape_m
+    _place(obj, x, y, z, yaw, pitch, roll)
     _color_queue.append((obj.Name, color))
     return obj
 
 
 def gantry(obj) -> "FreeCAD.DocumentObject":
+    """Mark object as part of the Y-travelling gantry."""
     _gantry.append((obj.Name, obj.Placement.Base.x))
+    return obj
+
+
+def z_slide(obj) -> "FreeCAD.DocumentObject":
+    """Mark object as part of the Z-travelling slider."""
+    _z_slider.append((obj.Name, obj.Placement.Base.z))
     return obj
 
 
@@ -116,6 +133,18 @@ def set_gantry_x(delta: float) -> None:
         )
 
 
+def set_slider_z(delta: float) -> None:
+    for name, base_z in _z_slider:
+        o = doc.getObject(name)
+        if o is None:
+            continue
+        pl = o.Placement
+        o.Placement = FreeCAD.Placement(
+            FreeCAD.Vector(pl.Base.x, pl.Base.y, base_z + delta),
+            pl.Rotation,
+        )
+
+
 # ── Assembly builder (called in both phases) ──────────────────────────────────
 
 def _build_assembly(document: "FreeCAD.Document") -> None:
@@ -124,6 +153,7 @@ def _build_assembly(document: "FreeCAD.Document") -> None:
     doc = document
     _color_queue.clear()
     _gantry.clear()
+    _z_slider.clear()
 
     # ── FRAME ─────────────────────────────────────────────────────────────────
     # Left  Y-rail: Y=0..30    Right Y-rail: Y=763..793
@@ -156,73 +186,164 @@ def _build_assembly(document: "FreeCAD.Document") -> None:
     gantry(add_box("Rail_X_Upper", 9, 600, 7, GX + 21,      110, GZ_U  + 30, COL_RAIL))
     gantry(add_box("Rail_X_Lower", 9, 600, 7, GX + 30 + 21, 110, GZ_U2 + 30, COL_RAIL))
 
-    # Left side-plate (metal, P20)
+    # ── LEFT SIDE PLATE (metal) ───────────────────────────────────────────────
+    # Left plate + clips placed at (0,0,93); their STEP coords are world coords.
+    SP = f"{METAL}/side_movement"
     gantry(add_step("Side_Plate_Left",
-        f"{METAL}/side_movement/P20_left_side_plate/side_plate_left_metal.step",
+        f"{SP}/P20_left_side_plate/side_plate_left_metal.step",
         x=0, y=0, z=93))
-
     gantry(add_step("Side_Plate_Back_Clip",
-        f"{METAL}/side_movement/P20_left_side_plate_p2of3/5_models_and_renders/back_clip.step",
+        f"{SP}/P20_left_side_plate_p2of3/5_models_and_renders/back_clip.step",
         x=0, y=0, z=93))
-
     gantry(add_step("Side_Plate_Lower_Front_Clip",
-        f"{METAL}/side_movement/P20_left_side_plate_p3of3/5_models_and_renders/lower_front_clip.step",
+        f"{SP}/P20_left_side_plate_p3of3/5_models_and_renders/lower_front_clip.step",
         x=0, y=0, z=93))
-
     gantry(add_step("Side_Plate_Upper_Front_Clip",
-        f"{METAL}/side_movement/P20_left_side_plate_p3of3/5_models_and_renders/upper_front_clip.step",
+        f"{SP}/P20_left_side_plate_p3of3/5_models_and_renders/upper_front_clip.step",
         x=0, y=0, z=93))
 
-    # Right side-plate (plastic, still P29)
-    gantry(add_stl("Side_Plate_Right",
-        f"{PLAST}/side_plates/right/RIGHT_PLATE.stl",
+    # ── RIGHT SIDE PLATE (mirrored left, metal) ───────────────────────────────
+    # Mirrored across Y = 793/2 = 396.5.  Same (0,0,93) placement as left side.
+    gantry(add_step_mirror_y("Side_Plate_Right",
+        f"{SP}/P20_left_side_plate/side_plate_left_metal.step",
+        x=0, y=0, z=93))
+    gantry(add_step_mirror_y("Side_Plate_Right_Back_Clip",
+        f"{SP}/P20_left_side_plate_p2of3/5_models_and_renders/back_clip.step",
+        x=0, y=0, z=93))
+    gantry(add_step_mirror_y("Side_Plate_Right_Lower_Front_Clip",
+        f"{SP}/P20_left_side_plate_p3of3/5_models_and_renders/lower_front_clip.step",
+        x=0, y=0, z=93))
+    gantry(add_step_mirror_y("Side_Plate_Right_Upper_Front_Clip",
+        f"{SP}/P20_left_side_plate_p3of3/5_models_and_renders/upper_front_clip.step",
         x=0, y=0, z=93))
 
-    # Carriage (plastic, P07)
-    gantry(add_stl("Carriage",
-        f"{PLAST}/router/CARRIAGE.stl",
-        x=137 - 239, y=411.5 - 428.5, z=93))
-
-    # Z-axis motor plate (metal, engine_holder_vertical_plate p1of2)
-    gantry(add_step("Engine_Holder_Plate_P1",
-        f"{METAL}/mid_vertical_movement/engine_holder_vertical_plate_p1of2"
+    # ── Z-AXIS ASSEMBLY ───────────────────────────────────────────────────────
+    # p1of2: static back plate, face pointing in X direction.
+    # Original STEP local coords: X=358.5..506 (width 147.5mm), Y=-6..0 (6mm
+    # thick), Z=-5.5..212.8 (218mm tall).
+    # With yaw=-90: local_X→world -Y, local_Y→world X, local_Z→world Z.
+    #   tx=137  → face at world X=137 (front face of gantry)
+    #   ty=829  → plate width centred at world Y=829-432=397 (gantry centre)
+    #   tz=93   → same attachment level as side plates
+    MV = f"{METAL}/mid_vertical_movement"
+    gantry(add_step("Engine_Holder_P1",
+        f"{MV}/engine_holder_vertical_plate_p1of2"
         "/5_models_and_renders/starting_point_rect_metal.step",
-        x=137 - (358 + 506) / 2, y=490, z=93))
+        x=137, y=829, z=93, yaw=-90))
 
-    # Top stepper holder (metal)
+    # Two MGN12 rails (fixed to p1of2 face), running vertically (Z).
+    # Rail cross-section: 8mm deep (X) × 12mm wide (Y), length 200mm.
+    # Rails sit on p1of2 face (X=137), columns at Y=354 and Y=428.
+    gantry(add_box("Rail_Z_Left",  8, 12, 200, 137, 354, 100, COL_RAIL))
+    gantry(add_box("Rail_Z_Right", 8, 12, 200, 137, 428, 100, COL_RAIL))
+
+    # p2of2: sliding plate, carries the router clamps.
+    # Local STEP coords (flat): X=-75..75 (150mm), Y=-130..90 (220mm), Z=0..10.
+    # Rotation yaw=90, pitch=90 → local_Z→worldX, local_X→worldY, local_Y→worldZ.
+    #   tx=150 → plate back at X=150 (resting on blocks), face at X=160
+    #   ty=397 → centred at gantry centre Y=397
+    #   tz=210 → Z range = 210+(-130..90) = 80..300, centre≈190
+    P2 = (f"{MV}/engine_holder_vertical_plate_p2of2"
+          "/5_models_and_renders/engine_holder_vertical_plate_p2of2.step")
+    gantry(z_slide(add_step("Engine_Holder_P2", P2,
+        x=150, y=397, z=210, yaw=90, pitch=90)))
+
+    # Four MGN12H blocks (fixed to p2of2, slide on the rails).
+    # Block: 13mm deep (X) × 26mm wide (Y) × 34mm tall (Z).
+    # Two blocks per rail, one at lower Z and one at upper Z.
+    for blk_name, by, bz in [
+        ("MGN12H_Block_LL", 347, 140),
+        ("MGN12H_Block_LU", 347, 240),
+        ("MGN12H_Block_RL", 421, 140),
+        ("MGN12H_Block_RU", 421, 240),
+    ]:
+        gantry(z_slide(add_box(blk_name, 13, 26, 34, 137, by, bz, COL_BLOCK)))
+
+    # Router clamps (fixed to p2of2, metal).
+    # Centred at Y=397, face at X≈160; Z positions relative to p2of2 centre.
+    gantry(z_slide(add_step("Router_Clamp_Bottom",
+        f"{MV}/router_clamp_bottom/5_models_and_renders/router_clamp.step",
+        x=160, y=397, z=160)))
+    gantry(z_slide(add_step("Router_Clamp_Top",
+        f"{MV}/router_clamp_top/5_models_and_renders/router_clamp.step",
+        x=160, y=397, z=185)))
+
+    # ── TOP STEPPER HOLDER (metal) ────────────────────────────────────────────
     gantry(add_step("Top_Stepper_Holder",
-        f"{METAL}/mid_vertical_movement/top_stepper_holder"
+        f"{MV}/top_stepper_holder"
         "/5_models_and_renders/engine_holder_top_plate.step",
         x=0, y=490 - 363.5, z=93 + 212))
 
-    # Router clamps (metal, bottom and top)
-    gantry(add_step("Router_Clamp_Bottom",
-        f"{METAL}/mid_vertical_movement/router_clamp_bottom"
-        "/5_models_and_renders/router_clamp.step",
-        x=137, y=411.5, z=93 - 30))
-
-    gantry(add_step("Router_Clamp_Top",
-        f"{METAL}/mid_vertical_movement/router_clamp_top"
-        "/5_models_and_renders/router_clamp.step",
-        x=137, y=411.5, z=93 - 18))
-
-    # Vertical slider (plastic, P36)
-    gantry(add_stl("Vertical_Slider",
-        f"{PLAST}/router/VERTICAL_SLIDER.stl",
-        x=137 - 251.5, y=411.5 - 138.5, z=93))
-
-    # Router bracket (plastic, P24)
-    gantry(add_stl("Router_Bracket",
-        f"{PLAST}/router/ROUTER_BRACKET.stl",
-        x=137 - 324, y=411.5 - 138.5, z=93))
-
-    # Engine sideways belt clamp (metal)
+    # ── ENGINE SIDEWAYS BELT CLAMP (metal) ────────────────────────────────────
     gantry(add_step("Engine_Sideways_Belt_Clamp",
         f"{METAL}/mid_horizontal_movement/engine_sideways_belt_clamp"
         "/5_models_and_renders/engine_sideways_belt_clamp.step",
         x=137, y=-10, z=93 + 50))
 
     doc.recompute()
+
+
+# ── XYZ axis overlay ──────────────────────────────────────────────────────────
+
+def _draw_axes(png_path: str) -> None:
+    """Overlay an XYZ axis indicator onto a rendered PNG frame."""
+    # PIL lives in the project venv, not in the FreeCAD system Python.
+    import sys as _sys
+    _venv_sp = os.path.join(REPO, ".venv/lib/python3.13/site-packages")
+    if _venv_sp not in _sys.path:
+        _sys.path.insert(0, _venv_sp)
+    try:
+        from PIL import Image, ImageDraw, ImageFont  # noqa: F401
+    except ImportError:
+        return
+
+    img = Image.open(png_path).convert("RGBA")
+    overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+
+    # Origin in bottom-left corner, 80px from edges
+    ox, oy = 90, img.height - 90
+    L = 55   # arrow length in pixels
+
+    # Approximate 2D projections of 3D axes for camera at ~210° azimuth, 35° elev
+    # Script X (machine depth, into screen) → down-right
+    # Script Y (machine width, left-right)  → right
+    # Script Z (vertical)                   → up
+    axes = [
+        ("X", (ox + int(L * 0.50), oy + int(L * 0.65)), (220, 50,  50,  230)),
+        ("Y", (ox + int(L * 0.95), oy                ), ( 50, 200, 50,  230)),
+        ("Z", (ox,                 oy - L             ), ( 60, 120, 230, 230)),
+    ]
+
+    # Draw filled origin circle
+    r = 5
+    draw.ellipse([ox - r, oy - r, ox + r, oy + r], fill=(220, 220, 220, 200))
+
+    for label, (ex, ey), color in axes:
+        # Shaft
+        draw.line([(ox, oy), (ex, ey)], fill=color, width=3)
+        # Arrowhead: small filled triangle
+        dx, dy = ex - ox, ey - oy
+        length = max(1, math.hypot(dx, dy))
+        ux, uy = dx / length, dy / length
+        px, py = -uy, ux          # perpendicular
+        tip = (ex, ey)
+        base1 = (ex - int(ux * 10 + px * 5), ey - int(uy * 10 + py * 5))
+        base2 = (ex - int(ux * 10 - px * 5), ey - int(uy * 10 - py * 5))
+        draw.polygon([tip, base1, base2], fill=color)
+        # Label
+        draw.text((ex + int(ux * 6 + 2), ey + int(uy * 6 - 6)), label,
+                  fill=color)
+
+    # Background rectangle for readability
+    bg = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    bg_draw = ImageDraw.Draw(bg)
+    bg_draw.rectangle([ox - 70, oy - 70, ox + 80, oy + 20],
+                       fill=(0, 0, 0, 80))
+
+    img = Image.alpha_composite(img, bg)
+    img = Image.alpha_composite(img, overlay)
+    img.convert("RGB").save(png_path)
 
 
 # ── Render inner (runs inside Xvfb subprocess) ────────────────────────────────
@@ -234,29 +355,40 @@ def _render_inner() -> None:
     FRAMES = 48
     FPS    = 12
 
-    # Gantry travel: X offset from natural position
+    # Gantry (Y-axis) travel: X offset from natural position
     X_FRONT, X_BACK = 13.0, 517.0
 
-    def _travel(i: int) -> float:
+    # Z-slider travel: Z offset from resting position (±80 mm, 160 mm total)
+    Z_BOT, Z_TOP = -80.0, 80.0
+
+    def _gantry_travel(i: int) -> float:
         half = FRAMES // 2
         if i < half:
             return X_FRONT + (X_BACK - X_FRONT) * i / (half - 1)
         return X_BACK - (X_BACK - X_FRONT) * (i - half) / (half - 1)
 
-    # 1. GUI init FIRST — DISPLAY is already set by our parent process
+    def _slider_travel(i: int) -> float:
+        # Quarter-period offset so Z goes up while gantry moves forward
+        phase = (i + FRAMES // 4) % FRAMES
+        half  = FRAMES // 2
+        if phase < half:
+            return Z_BOT + (Z_TOP - Z_BOT) * phase / (half - 1)
+        return Z_TOP - (Z_TOP - Z_BOT) * (phase - half) / (half - 1)
+
+    # 1. GUI init FIRST
     print("[render] Starting FreeCADGui ...", flush=True)
     FreeCADGui.showMainWindow()
     time.sleep(1.0)
     print("[render] showMainWindow OK", flush=True)
 
-    # 2. Build assembly with GUI active → view is created automatically
+    # 2. Build assembly with GUI active
     print("[render] Building assembly ...", flush=True)
     document = FreeCAD.newDocument("CNC_Assembly")
     _build_assembly(document)
     print("[render] Assembly built", flush=True)
     time.sleep(0.5)
 
-    # 3. Apply colours via the GUI document wrapper
+    # 3. Apply colours
     gdoc = FreeCADGui.getDocument(doc.Name)
     if gdoc is None:
         FreeCADGui.setActiveDocument(doc.Name)
@@ -279,7 +411,7 @@ def _render_inner() -> None:
     else:
         print("[render] WARNING: could not get GUI document — colours skipped", flush=True)
 
-    # 4. Get the 3-D viewport
+    # 4. Get 3-D viewport
     view = None
     for _attempt in range(5):
         try:
@@ -291,36 +423,28 @@ def _render_inner() -> None:
         time.sleep(0.5)
 
     if view is None:
-        print("[render] ERROR: no active 3-D view available — aborting render", flush=True)
+        print("[render] ERROR: no active 3-D view — aborting", flush=True)
         return
 
-    # Set perspective camera for better depth perception
     try:
         view.setCameraType("Perspective")
     except Exception:
         pass
 
-    # Camera: sweep ±45° around a fixed front-left-above angle.
-    # setViewDirection changes only the camera's pointing direction; the camera
-    # position is then re-fitted each frame so the machine stays centred.
-    # viewDir = (cos θ · cos φ, sin θ · cos φ, −sin φ)  (pointing INTO scene)
-    ELEV    = math.radians(35)       # camera elevation above XY plane
+    ELEV    = math.radians(35)
     cos_e   = math.cos(ELEV)
     sin_e   = math.sin(ELEV)
-    # Start angle (°): ~210° puts camera at front-left-above, showing the
-    # gantry, the frame depth, and the carriage assembly together.
     START_A = math.radians(210)
-    SWEEP   = math.radians(45)       # ±45° arc (90° total sweep)
+    SWEEP   = math.radians(45)
 
     def _set_camera(frame: int) -> None:
-        # Oscillate: 0→+45° then +45°→-45° then -45°→0°  (triangle wave)
-        t = frame / FRAMES            # 0..1
+        t = frame / FRAMES
         if t < 0.25:
-            frac =  t / 0.25          # 0→1
+            frac =  t / 0.25
         elif t < 0.75:
-            frac =  1 - 2 * (t - 0.25) / 0.5   # 1→-1
+            frac =  1 - 2 * (t - 0.25) / 0.5
         else:
-            frac = -1 + (t - 0.75) / 0.25       # -1→0
+            frac = -1 + (t - 0.75) / 0.25
         theta = START_A + frac * SWEEP
         dx =  cos_e * math.cos(theta)
         dy =  cos_e * math.sin(theta)
@@ -331,7 +455,6 @@ def _render_inner() -> None:
         except Exception:
             pass
 
-    # Initialise camera
     _set_camera(0)
     doc.recompute()
     time.sleep(0.3)
@@ -342,16 +465,20 @@ def _render_inner() -> None:
     tmpdir = tempfile.mkdtemp(prefix="cnc_gif_")
 
     for i in range(FRAMES):
-        delta_x = _travel(i)
+        delta_x = _gantry_travel(i)
+        delta_z = _slider_travel(i)
         set_gantry_x(delta_x)
+        set_slider_z(delta_z)
         doc.recompute()
 
         _set_camera(i)
 
         png = os.path.join(tmpdir, f"frame_{i:03d}.png")
         view.saveImage(png, W, H, "White")
+        _draw_axes(png)
         frame_paths.append(png)
-        print(f"  frame {i+1:02d}/{FRAMES}  delta_x={delta_x:5.0f} mm  → {png}", flush=True)
+        print(f"  frame {i+1:02d}/{FRAMES}  gantry_x={delta_x:5.0f}  z={delta_z:+5.0f} → {png}",
+              flush=True)
 
     # 6. Assemble GIF with ffmpeg
     concat = os.path.join(tmpdir, "frames.txt")
@@ -412,7 +539,8 @@ def _main() -> None:
             check=False,
         )
         if result.returncode != 0:
-            print(f"[assemble] Render subprocess exited with code {result.returncode}", flush=True)
+            print(f"[assemble] Render subprocess exited with code {result.returncode}",
+                  flush=True)
             sys.exit(result.returncode)
     finally:
         xvfb.terminate()
