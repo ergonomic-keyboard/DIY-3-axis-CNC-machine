@@ -513,3 +513,15 @@ body:has(.mc-app) .md-content__inner {
   margin-bottom: 0.2rem;
   letter-spacing: 0.04em;
 }
+
+/* --- part thumbnail (used in component plan-view tables) -------------- */
+.part-thumb {
+  --part-thumb-size: 90px;
+  width: var(--part-thumb-size);
+  height: var(--part-thumb-size);
+  object-fit: contain;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 4px;
+  background: var(--md-code-bg-color, rgba(0,0,0,0.03));
+  vertical-align: middle;
+}

@@ -26,10 +26,10 @@ Stage 4 (frames 24–31) in the staged GIF covers all Z-axis components includin
 
 | Part | Plastic original | Metal replacement |
 |------|-----------------|-------------------|
-| M36.a — vertical plate p1of2 | ![carriage](../images/3dprinted_parts/router/carriage.jpg) `carriage` (P07) | ![M36a_plan](../images/metal/components/M36a_plan.png) `M36a_plan` |
+| M36.a — vertical plate p1of2 | <img class="part-thumb" src="../images/3dprinted_parts/router/carriage.jpg" alt="carriage"> `carriage` (P07) | <img class="part-thumb" src="../images/metal/components/M36a_plan.png" alt="M36a_plan"> `M36a_plan` |
 
 `M36a_vs_plastic`
-![M36a_vs_plastic](../images/metal/components/M36a_vs_plastic.png)
+<img class="part-thumb" src="../images/metal/components/M36a_vs_plastic.png" alt="M36a_vs_plastic" style="--part-thumb-size: 180px">
 
 ## p1of2 outtake tab bolts
 

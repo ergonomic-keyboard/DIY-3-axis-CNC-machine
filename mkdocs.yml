@@ -37,6 +37,7 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - attr_list
 extra_css:
   - assets/stylesheets/toc-toggle.css
   - assets/stylesheets/shopping.css

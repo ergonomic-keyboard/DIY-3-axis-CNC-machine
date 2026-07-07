@@ -34,9 +34,9 @@ Stage 4 (frames 24–31) in the staged GIF includes M36.b and the router clamps.
 
 | Part | Plastic original | Metal replacement |
 |------|-----------------|-------------------|
-| M36.b — vertical plate p2of2 | ![vertical_slider](../images/3dprinted_parts/router/vertical_slider.jpg) `vertical_slider` (P36) | *(no plan PNG — see staged assembly GIF)* |
-| M24.a — router clamp bottom | ![router_bracket](../images/3dprinted_parts/router/router_bracket.jpg) `router_bracket` (P24) | ![M24a_plan](../images/metal/components/M24a_plan.png) `M24a_plan` |
-| M24.b — router clamp top | *(same P24 bracket, split into two metal halves)* | ![M24b_plan](../images/metal/components/M24b_plan.png) `M24b_plan` |
+| M36.b — vertical plate p2of2 | <img class="part-thumb" src="../images/3dprinted_parts/router/vertical_slider.jpg" alt="vertical_slider"> `vertical_slider` (P36) | *(no plan PNG — see staged assembly GIF)* |
+| M24.a — router clamp bottom | <img class="part-thumb" src="../images/3dprinted_parts/router/router_bracket.jpg" alt="router_bracket"> `router_bracket` (P24) | <img class="part-thumb" src="../images/metal/components/M24a_plan.png" alt="M24a_plan"> `M24a_plan` |
+| M24.b — router clamp top | *(same P24 bracket, split into two metal halves)* | <img class="part-thumb" src="../images/metal/components/M24b_plan.png" alt="M24b_plan"> `M24b_plan` |
 
 ## Z-rails to p2of2
 

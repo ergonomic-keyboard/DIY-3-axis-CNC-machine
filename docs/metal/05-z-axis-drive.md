@@ -34,7 +34,7 @@ Stage 4 (frames 24–31) in the staged GIF includes M40.a and the Z stepper moto
 
 | Part | Plastic original | Metal replacement |
 |------|-----------------|-------------------|
-| M40.a — engine holder top plate | ![z_motor_mount](../images/3dprinted_parts/router/z_motor_mount.jpg) `z_motor_mount` (P40) | ![M40a_plan](../images/metal/components/M40a_plan.png) `M40a_plan` |
+| M40.a — engine holder top plate | <img class="part-thumb" src="../images/3dprinted_parts/router/z_motor_mount.jpg" alt="z_motor_mount"> `z_motor_mount` (P40) | <img class="part-thumb" src="../images/metal/components/M40a_plan.png" alt="M40a_plan"> `M40a_plan` |
 
 ## Z stepper motor, pulleys and belt
 

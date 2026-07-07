@@ -4,40 +4,50 @@ Left and right gantry holders: metal side plates (M20/M29) with Y-axis geared st
 
 ## Components
 
-| Code | Part | Qty | 3D object | Metal change |
-|------|------|-----|-----------|--------------|
-| M20.a | side plate left — body | 1 | `Side_Plate_Left` | **metal** replaces P20 |
-| M20.b | side plate left — back clip | 1 | `Side_Plate_Back_Clip` | **metal** replaces P21 |
-| M20.c | side plate left — lower front clip | 1 | `Side_Plate_Lower_Front_Clip` | **metal** replaces P22 |
-| M20.d | side plate left — upper front clip | 1 | `Side_Plate_Upper_Front_Clip` | **metal** replaces P23 |
-| M29.a | side plate right — body | 1 | `Side_Plate_Left_R` (Y-mirror) | **metal** replaces P29 |
-| M29.b | side plate right — back clip | 1 | `Side_Plate_Back_Clip_R` | **metal** replaces P30 |
-| M29.c | side plate right — lower front clip | 1 | `Side_Plate_Lower_Front_Clip_R` | **metal** replaces P31 |
-| M29.d | side plate right — upper front clip | 1 | `Side_Plate_Upper_Front_Clip_R` | **metal** replaces P32 |
-| O22  | MGN12H rail block (Y-axis, 2 per rail) | 4 | — | unchanged |
-| E18  | Geared NEMA17 stepper motor (1:19, 8 mm shaft) | 2 | — | unchanged |
-| O18  | HTD5M pulley 12T 8 mm bore 15 mm wide | 2 | — | unchanged |
-| O17  | HTD5M belt 15 mm wide | ~2 m each | — | unchanged |
-| O01  | 698zz bearing | 12 | — | unchanged |
-| P16  | Idler block (3D-printed) | 3 | — | unchanged |
-| P17  | Left belt tension slider (3D-printed) | 1 | — | unchanged |
-| P18  | Left belt tensioner (3D-printed) | 1 | — | unchanged |
-| P19  | Left fixed belt tensioner (3D-printed) | 1 | — | unchanged |
-| P26  | Right belt tension slider (3D-printed) | 1 | — | unchanged |
-| P27  | Right belt tensioner (3D-printed) | 2 | — | unchanged |
-| P28  | Right fixed belt tensioner (3D-printed) | 2 | — | unchanged |
-| P08  | End-stop mount ordinary (3D-printed) | 2 | — | unchanged |
-| T01  | M5×140 mm threaded rod | 2 | `Rod_Beam_Lo`, `Rod_Beam_Up` | unchanged |
-| S14  | M5×60 mm screw (top beam) | 2 | — | unchanged |
-| S04  | M3×20 mm screw (side plate to blocks) | 16 | — | unchanged |
-| S06  | M3×40 mm screw (motor to side plate) | 8 | — | unchanged |
-| S12  | M5×20 mm screw (tensioners, end-stop mounts) | 12 | — | unchanged |
-| S15  | M8×60 mm fully-threaded screw (idlers, tensioners) | 5 | — | unchanged |
-| N02  | M5 nut | ~4 | `NutR_Beam_*` | unchanged |
-| N03  | M8 nut | ~6 | — | unchanged |
-| W03  | Washer 15×8.5×1.5 mm | 24 | — | unchanged |
-| W04  | Washer 20×10×2 mm | 2 | — | unchanged |
-| W05  | Washer 8×4×0.5 mm | 8 | — | unchanged |
+**Metal replacements** — these plastic parts are removed and replaced:
+
+| Code | Plastic original | Metal plan | Part | Qty | 3D object |
+|------|-----------------|-----------|------|-----|-----------|
+| M20.a | ![left_plate](../images/3dprinted_parts/side_plates/left/left_plate.jpg){.part-thumb} `left_plate` | ![M20a_plan](../images/metal/components/M20a_plan.png){.part-thumb} `M20a_plan` | side plate left — body | 1 | `Side_Plate_Left` |
+| M20.b | ![left_plate_back_plate_back_clip](../images/3dprinted_parts/side_plates/left/left_plate_back_plate_back_clip.jpg){.part-thumb} `left_plate_back_plate_back_clip` | ![M20b_plan](../images/metal/components/M20b_plan.png){.part-thumb} `M20b_plan` | side plate left — back clip | 1 | `Side_Plate_Back_Clip` |
+| M20.c | ![left_plate_lower_front_clip](../images/3dprinted_parts/side_plates/left/left_plate_lower_front_clip.jpg){.part-thumb} `left_plate_lower_front_clip` | ![M20c_plan](../images/metal/components/M20c_plan.png){.part-thumb} `M20c_plan` | side plate left — lower front clip | 1 | `Side_Plate_Lower_Front_Clip` |
+| M20.d | ![left_plate_upper_front_clip](../images/3dprinted_parts/side_plates/left/left_plate_upper_front_clip.jpg){.part-thumb} `left_plate_upper_front_clip` | ![M20d_plan](../images/metal/components/M20d_plan.png){.part-thumb} `M20d_plan` | side plate left — upper front clip | 1 | `Side_Plate_Upper_Front_Clip` |
+| M29.a | ![right_plate](../images/3dprinted_parts/side_plates/right/right_plate.jpg){.part-thumb} `right_plate` | *(Y-mirror of M20.a)* | side plate right — body | 1 | `Side_Plate_Left_R` |
+| M29.b | ![right_plate_back_clip](../images/3dprinted_parts/side_plates/right/right_plate_back_clip.jpg){.part-thumb} `right_plate_back_clip` | *(Y-mirror of M20.b)* | side plate right — back clip | 1 | `Side_Plate_Back_Clip_R` |
+| M29.c | ![right_plate_lower_front_clip](../images/3dprinted_parts/side_plates/right/right_plate_lower_front_clip.jpg){.part-thumb} `right_plate_lower_front_clip` | *(Y-mirror of M20.c)* | side plate right — lower front clip | 1 | `Side_Plate_Lower_Front_Clip_R` |
+| M29.d | ![right_plate_upper_front_clip](../images/3dprinted_parts/side_plates/right/right_plate_upper_front_clip.jpg){.part-thumb} `right_plate_upper_front_clip` | *(Y-mirror of M20.d)* | side plate right — upper front clip | 1 | `Side_Plate_Upper_Front_Clip_R` |
+
+`M20a_vs_plastic`
+![M20a_vs_plastic](../images/metal/components/M20a_vs_plastic.png)
+
+**Other components** — unchanged from the plastic build:
+
+| Code | Part | Qty | 3D object |
+|------|------|-----|-----------|
+| O22  | MGN12H rail block (Y-axis, 2 per rail) | 4 | — |
+| E18  | Geared NEMA17 stepper motor (1:19, 8 mm shaft) | 2 | — |
+| O18  | HTD5M pulley 12T 8 mm bore 15 mm wide | 2 | — |
+| O17  | HTD5M belt 15 mm wide | ~2 m each | — |
+| O01  | 698zz bearing | 12 | — |
+| P16  | Idler block (3D-printed) | 3 | — |
+| P17  | Left belt tension slider (3D-printed) | 1 | — |
+| P18  | Left belt tensioner (3D-printed) | 1 | — |
+| P19  | Left fixed belt tensioner (3D-printed) | 1 | — |
+| P26  | Right belt tension slider (3D-printed) | 1 | — |
+| P27  | Right belt tensioner (3D-printed) | 2 | — |
+| P28  | Right fixed belt tensioner (3D-printed) | 2 | — |
+| P08  | End-stop mount ordinary (3D-printed) | 2 | — |
+| T01  | M5×140 mm threaded rod | 2 | `Rod_Beam_Lo`, `Rod_Beam_Up` |
+| S14  | M5×60 mm screw (top beam) | 2 | — |
+| S04  | M3×20 mm screw (side plate to blocks) | 16 | — |
+| S06  | M3×40 mm screw (motor to side plate) | 8 | — |
+| S12  | M5×20 mm screw (tensioners, end-stop mounts) | 12 | — |
+| S15  | M8×60 mm fully-threaded screw (idlers, tensioners) | 5 | — |
+| N02  | M5 nut | ~4 | `NutR_Beam_*` |
+| N03  | M8 nut | ~6 | — |
+| W03  | Washer 15×8.5×1.5 mm | 24 | — |
+| W04  | Washer 20×10×2 mm | 2 | — |
+| W05  | Washer 8×4×0.5 mm | 8 | — |
 
 ## 3D view — stage 2
 
@@ -48,20 +58,6 @@ Stage 2 (frames 8–15) in the staged GIF: side plates and clips assembling onto
 
 > Per-stage sub-GIF (frames 8–15 only) planned — RR-04.
 > Per-component rotating GIFs (M20.a–d) planned — RR-03.
-
-## Component plan views
-
-| Part | Plastic original | Metal replacement |
-|------|-----------------|-------------------|
-| M20.a — side plate body | ![left_plate](../images/3dprinted_parts/side_plates/left/left_plate.jpg) `left_plate` (P20) | ![M20a_plan](../images/metal/components/M20a_plan.png) `M20a_plan` |
-| M20.b — back clip | ![left_plate_back_plate_back_clip](../images/3dprinted_parts/side_plates/left/left_plate_back_plate_back_clip.jpg) `left_plate_back_plate_back_clip` (P21) | ![M20b_plan](../images/metal/components/M20b_plan.png) `M20b_plan` |
-| M20.c — lower front clip | ![left_plate_lower_front_clip](../images/3dprinted_parts/side_plates/left/left_plate_lower_front_clip.jpg) `left_plate_lower_front_clip` (P22) | ![M20c_plan](../images/metal/components/M20c_plan.png) `M20c_plan` |
-| M20.d — upper front clip | ![left_plate_upper_front_clip](../images/3dprinted_parts/side_plates/left/left_plate_upper_front_clip.jpg) `left_plate_upper_front_clip` (P23) | ![M20d_plan](../images/metal/components/M20d_plan.png) `M20d_plan` |
-
-`M20a_vs_plastic`
-![M20a_vs_plastic](../images/metal/components/M20a_vs_plastic.png)
-
-M29.a–d (right side) are Y-mirrors of M20.a–d — no separate design files.
 
 ## Side plates to upper frame
 

@@ -4,32 +4,39 @@ Three 803 mm aluminium bridge beams (**O05**) form the gantry. Two of the three 
 
 ## Components
 
-| Code | Part | Qty | 3D object | Metal change |
-|------|------|-----|-----------|--------------|
-| O05  | Aluminium profile 803×30×30 mm (bridge beams) | 3 | `Gantry_Beam_Upper1`, `Gantry_Beam_Upper2`, `Gantry_Beam_Lower` | unchanged |
-| O21  | MGN12H linear rail 600 mm (X-axis) | 2 | `Rail_X_Upper`, `Rail_X_Lower` | unchanged |
-| O22  | MGN12H rail block (4× X-axis) | 4 | — | unchanged |
-| MX.1 | engine sideways belt clamp | 1 | `Engine_Sideways_Belt_Clamp` | **new metal** (no plastic equivalent) |
-| P07  | Carriage (3D-printed) | 1 | — | unchanged |
-| O19  | KFL08 rod bearing 8 mm | 2 | — | unchanged |
-| E18  | Geared NEMA17 stepper motor (1:19, 8 mm shaft, X-axis) | 1 | — | unchanged |
-| O18  | HTD5M pulley 12T 8 mm bore 15 mm wide | 1 | — | unchanged |
-| O17  | HTD5M belt 15 mm wide | ~2 m | — | unchanged |
-| O01  | 698zz bearing | 6 | — | unchanged |
-| P16  | Idler block (3D-printed) | 1 | — | unchanged |
-| P28  | Right fixed belt tensioner (3D-printed) | 1 | — | unchanged |
-| P27  | Right belt tensioner (3D-printed) | 1 | — | unchanged |
-| P08  | End-stop mount ordinary (3D-printed) | 1 | — | unchanged |
-| P38  | X-axis cable chain mount (3D-printed) | 1 | — | unchanged |
-| P05  | Y-axis cable chain mount (3D-printed) | 1 | — | unchanged |
-| P06  | Y-axis cable chain support (3D-printed) | 1 | — | unchanged |
-| O09  | Cable chain 30×15 mm inner | 2 | — | unchanged |
-| S03  | M3×16 mm screw (rail to beam) | 32 | — | unchanged |
-| S05  | M3×25 mm screw (carriage to blocks) | 16 | — | unchanged |
-| S12  | M5×20 mm screw (tensioner, end-stop, cable chain) | 8 | — | unchanged |
-| S10  | M4×25 mm screw (cable chain mounts) | 7 | — | unchanged |
-| N01  | M4 nut | 5 | — | unchanged |
-| W01  | Washer 10×5×1 mm | 5 | — | unchanged |
+**New metal part** — no plastic equivalent:
+
+| Code | Metal plan | Part | Qty | 3D object |
+|------|-----------|------|-----|-----------|
+| MX.1 | ![MX1_plan](../images/metal/components/MX1_plan.png){.part-thumb} `MX1_plan` | engine sideways belt clamp | 1 | `Engine_Sideways_Belt_Clamp` |
+
+**Other components** — unchanged from the plastic build:
+
+| Code | Part | Qty | 3D object |
+|------|------|-----|-----------|
+| O05  | Aluminium profile 803×30×30 mm (bridge beams) | 3 | `Gantry_Beam_Upper1`, `Gantry_Beam_Upper2`, `Gantry_Beam_Lower` |
+| O21  | MGN12H linear rail 600 mm (X-axis) | 2 | `Rail_X_Upper`, `Rail_X_Lower` |
+| O22  | MGN12H rail block (4× X-axis) | 4 | — |
+| P07  | Carriage (3D-printed) | 1 | — |
+| O19  | KFL08 rod bearing 8 mm | 2 | — |
+| E18  | Geared NEMA17 stepper motor (1:19, 8 mm shaft, X-axis) | 1 | — |
+| O18  | HTD5M pulley 12T 8 mm bore 15 mm wide | 1 | — |
+| O17  | HTD5M belt 15 mm wide | ~2 m | — |
+| O01  | 698zz bearing | 6 | — |
+| P16  | Idler block (3D-printed) | 1 | — |
+| P28  | Right fixed belt tensioner (3D-printed) | 1 | — |
+| P27  | Right belt tensioner (3D-printed) | 1 | — |
+| P08  | End-stop mount ordinary (3D-printed) | 1 | — |
+| P38  | X-axis cable chain mount (3D-printed) | 1 | — |
+| P05  | Y-axis cable chain mount (3D-printed) | 1 | — |
+| P06  | Y-axis cable chain support (3D-printed) | 1 | — |
+| O09  | Cable chain 30×15 mm inner | 2 | — |
+| S03  | M3×16 mm screw (rail to beam) | 32 | — |
+| S05  | M3×25 mm screw (carriage to blocks) | 16 | — |
+| S12  | M5×20 mm screw (tensioner, end-stop, cable chain) | 8 | — |
+| S10  | M4×25 mm screw (cable chain mounts) | 7 | — |
+| N01  | M4 nut | 5 | — |
+| W01  | Washer 10×5×1 mm | 5 | — |
 
 ## 3D view — stage 3
 
@@ -39,14 +46,6 @@ Stage 3 (frames 16–23) in the staged GIF: gantry bridge beams and X-rails asse
 ![Staged assembly — stage 3](../images/metal/cnc_assembly_staged_gif.gif)
 
 > Per-stage sub-GIF (frames 16–23 only) planned — RR-04.
-
-## Component plan view — MX.1
-
-MX.1 is a new metal part with no plastic equivalent.
-
-| Part | Plan view |
-|------|-----------|
-| MX.1 — engine sideways belt clamp | ![MX1_plan](../images/metal/components/MX1_plan.png) `MX1_plan` |
 
 ## Rails to bridge beams
 
