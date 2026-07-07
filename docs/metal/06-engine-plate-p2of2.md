@@ -25,41 +25,52 @@
 
 Stage 4 (frames 24–31) in the staged GIF includes M36.b and the router clamps.
 
+`cnc_assembly_staged_gif`
 ![Staged assembly — stage 4](../images/metal/cnc_assembly_staged_gif.gif)
 
 > Per-component rotating GIFs for M36.b, M24.a, M24.b planned — RR-03.
 
 ## Component plan views
 
-| Part | Plan view |
-|------|-----------|
-| M24.a — router clamp bottom | ![M24a_plan](../images/metal/components/M24a_plan.png) |
-| M24.b — router clamp top | ![M24b_plan](../images/metal/components/M24b_plan.png) |
+| Part | Plastic original | Metal replacement |
+|------|-----------------|-------------------|
+| M36.b — vertical plate p2of2 | ![vertical_slider](../images/3dprinted_parts/router/vertical_slider.jpg) `vertical_slider` (P36) | *(no plan PNG — see staged assembly GIF)* |
+| M24.a — router clamp bottom | ![router_bracket](../images/3dprinted_parts/router/router_bracket.jpg) `router_bracket` (P24) | ![M24a_plan](../images/metal/components/M24a_plan.png) `M24a_plan` |
+| M24.b — router clamp top | *(same P24 bracket, split into two metal halves)* | ![M24b_plan](../images/metal/components/M24b_plan.png) `M24b_plan` |
 
 ## Z-rails to p2of2
 
 Remove the 4× MGN12H blocks (**O22**) from the 200 mm Z-rails (**O20**). Screw the rails to the **back face** of M36.b using 16× M3×20 mm screws (**S04**), 8 per rail. Slide the blocks back on and tape the ends to prevent them falling off.
 
+`assemble_carriage_6_0`
 ![assemble_carriage_6_0](../images/build/frame/assemble_carriage_6_0.jpg)
 
+`assemble_carriage_6`
 ![assemble_carriage_6](../images/build/frame/assemble_carriage_6.jpg)
 
+`assemble_carriage_7`
 ![assemble_carriage_7](../images/build/frame/assemble_carriage_7.jpg)
 
+`assemble_carriage_8`
 ![assemble_carriage_8](../images/build/frame/assemble_carriage_8.jpg)
 
 ## p2of2 to M36.a block carriages
 
 Align M36.b so its 4 MGN12H block carriages line up with the 4 blocks fixed to M36.a. The acme rod must pass through M36.b's acme nut (**O03**). Attach using 16× M3×25 mm screws (**S05**).
 
+`assemble_carriage_17`
 ![assemble_carriage_17](../images/build/frame/assemble_carriage_17.jpg)
 
+`assemble_carriage_18`
 ![assemble_carriage_18](../images/build/frame/assemble_carriage_18.jpg)
 
+`assemble_carriage_19`
 ![assemble_carriage_19](../images/build/frame/assemble_carriage_19.jpg)
 
+`assemble_carriage_20`
 ![assemble_carriage_20](../images/build/frame/assemble_carriage_20.jpg)
 
+`assemble_carriage_21`
 ![assemble_carriage_21](../images/build/frame/assemble_carriage_21.jpg)
 
 ## Router clamps (M24.a/b)
@@ -68,16 +79,22 @@ The Makita router (**E20**) clamps to the **front face** of M36.b using metal cl
 
 In the plastic build, a single printed P24 bracket was used with M5 screws. The metal clamps use the same router barrel diameter but a different bolt pattern — refer to the 3D assembly GIF for exact bolt positions.
 
+`attach_router_to_carriage_1`
 ![attach_router_to_carriage_1](../images/build/frame/attach_router_to_carriage_1.jpg)
 
+`attach_router_to_carriage_2`
 ![attach_router_to_carriage_2](../images/build/frame/attach_router_to_carriage_2.jpg)
 
+`attach_router_to_carriage_3`
 ![attach_router_to_carriage_3](../images/build/frame/attach_router_to_carriage_3.jpg)
 
+`attach_router_to_carriage_4`
 ![attach_router_to_carriage_4](../images/build/frame/attach_router_to_carriage_4.jpg)
 
+`attach_router_to_carriage_6`
 ![attach_router_to_carriage_6](../images/build/frame/attach_router_to_carriage_6.jpg)
 
+`attach_router_to_carriage_7`
 ![attach_router_to_carriage_7](../images/build/frame/attach_router_to_carriage_7.jpg)
 
 ## Router cable management
@@ -89,62 +106,87 @@ To allow easy router replacement, fit a power plug (**E04**) and socket (**E05**
 
 Cut the router's power cord at a length that reaches behind the X-axis cable chain mount. Insert the section closest to the router into a flexible conduit (**O13**). Strip and solder the plug side.
 
+`router_cable_management_23`
 ![router_cable_management_23](../images/build/frame/router_cable_management_23.jpg)
 
+`router_cable_management_1`
 ![router_cable_management_1](../images/build/frame/router_cable_management_1.jpg)
 
+`router_cable_management_2`
 ![router_cable_management_2](../images/build/frame/router_cable_management_2.jpg)
 
+`router_cable_management_3`
 ![router_cable_management_3](../images/build/frame/router_cable_management_3.jpg)
 
 Wire and close the power plug:
 
+`router_cable_management_4`
 ![router_cable_management_4](../images/build/frame/router_cable_management_4.jpg)
 
+`router_cable_management_5`
 ![router_cable_management_5](../images/build/frame/router_cable_management_5.jpg)
 
+`router_cable_management_6`
 ![router_cable_management_6](../images/build/frame/router_cable_management_6.jpg)
 
+`router_cable_management_7`
 ![router_cable_management_7](../images/build/frame/router_cable_management_7.jpg)
 
+`router_cable_management_8`
 ![router_cable_management_8](../images/build/frame/router_cable_management_8.jpg)
 
 Thread the other end of the power cord through the Y-axis cable chain, around the left side plate, and through the X-axis cable chain. Use a cable tie (**O11**) as a pull-through hook for the rubber cable.
 
+`router_cable_management_9`
 ![router_cable_management_9](../images/build/frame/router_cable_management_9.jpg)
 
+`router_cable_management_10`
 ![router_cable_management_10](../images/build/frame/router_cable_management_10.jpg)
 
+`router_cable_management_11`
 ![router_cable_management_11](../images/build/frame/router_cable_management_11.jpg)
 
+`router_cable_management_12`
 ![router_cable_management_12](../images/build/frame/router_cable_management_12.jpg)
 
+`router_cable_management_13`
 ![router_cable_management_13](../images/build/frame/router_cable_management_13.jpg)
 
+`router_cable_management_14`
 ![router_cable_management_14](../images/build/frame/router_cable_management_14.jpg)
 
+`router_cable_management_15`
 ![router_cable_management_15](../images/build/frame/router_cable_management_15.jpg)
 
 Strip the socket-side wires and connect to the power socket:
 
+`router_cable_management_16`
 ![router_cable_management_16](../images/build/frame/router_cable_management_16.jpg)
 
+`router_cable_management_17`
 ![router_cable_management_17](../images/build/frame/router_cable_management_17.jpg)
 
+`router_cable_management_18`
 ![router_cable_management_18](../images/build/frame/router_cable_management_18.jpg)
 
+`router_cable_management_19`
 ![router_cable_management_19](../images/build/frame/router_cable_management_19.jpg)
 
+`router_cable_management_20`
 ![router_cable_management_20](../images/build/frame/router_cable_management_20.jpg)
 
+`router_cable_management_21`
 ![router_cable_management_21](../images/build/frame/router_cable_management_21.jpg)
 
+`router_cable_management_22`
 ![router_cable_management_22](../images/build/frame/router_cable_management_22.jpg)
 
 Strap the plug and socket to the back of the X-axis cable chain mount with cable ties. Strap the flexible conduit to the stepper motor conduit. Make sure the conduit does not drag along the upper bridge beam.
 
+`router_cable_management_23`
 ![router_cable_management_23](../images/build/frame/router_cable_management_23.jpg)
 
+`router_cable_management_24`
 ![router_cable_management_24](../images/build/frame/router_cable_management_24.jpg)
 
 ---

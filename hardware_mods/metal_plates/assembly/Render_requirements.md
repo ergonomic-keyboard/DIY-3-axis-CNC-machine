@@ -20,4 +20,5 @@ A.4 For each of the sub assembly pages use the text and fotos of http://127.0.0.
 http://127.0.0.1:8000/DIY-3-axis-CNC-machine/04-stepper-motors-and-end-stops/ etc. to include the instructions written and with the fotos as guide (even though some may only be from plastic components that are not used anymore). Name each foto (copy pastable name, so I can quickly tell you which fotos should move where if you put them in the wrong place.)
 
 
-Use the manual designs where available.
+B.0 Use the manual designs where available.
+B.1 Include an image of the 3d render of the replacement metal part(s) in the table next to the image of the original plastic part.
