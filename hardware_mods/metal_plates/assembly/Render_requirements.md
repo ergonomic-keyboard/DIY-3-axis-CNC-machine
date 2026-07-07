@@ -23,9 +23,36 @@ http://127.0.0.1:8000/DIY-3-axis-CNC-machine/04-stepper-motors-and-end-stops/ et
 B.0 Use the manual designs where available.
 B.1 Include an image of the 3d render of the replacement metal part(s) in the table next to the image of the original plastic part.
 
+
+
 C.0 Ensure a 3d render of each metal part is available. 
 C.1 Ensure the connection mechanisms function. (For example m36a_plan shows 4 hexacgonal nut heads in the right position in the drawing, but actually those top 2 bolts should be rotated 90 degrees to point upwards, (instead of into the screen), and similarly the bottom ones should point downwards. The usage of bolts is weird in this design as some go into the sides of the plates instead of through the flat holes of the plates like one normally bolts ).
 C.2 Ensure all connection mechanisms, like bolts are parametererised, such that if one swaps out a M4 bolt with an M5 bolt, that it updates the accompanying holes.
 C.3 Ensure the assembly physically is possible, e.g. make sure the bolts do not go through the metal (instead of through a hole).
 C.4 Add threads into the designs, or at least a thread specification per hole where appropriate.
+C.5 Ensure you update the freecad models where necessary (with versioning in the name.)
+C.6.0 Make the assembly of the sub componets:
+Overview & full assembly
+I. Aluminium frame
+II. Side plates & Y-axis
+III. Gantry & X-axis
+IV. Engine plate p1of2
+V. Z-axis drive
+VI. Engine plate p2of2 & router
+as a exploded view towards assembly script (with parameterisation).
+C.6.1 Ensure those visualisations are both visible (in Freecad as movement animation if possible, and) as gif and .mp4.
+C.6 Then ensure the sub-components assembly is visualised in 1 large visualisation.
 
+
+## Handover data:
+
+Handover for new chat — DIY CNC machine docs, branch retry-assembly-renders
+
+
+We've been building metal instruction pages under docs/metal/ for the MkDocs site (mkdocs serve running at http://127.0.0.1:8000). Read the memory file project_docs_metal_pages.md for full state.
+
+
+What's working:
+
+A global thumbnail slider (part-thumb-slider.js) auto-injects a "Thumbnails" size control on any page with .part-thumb images. CSS variable --part-thumb-size lives on :root. The slider persists to localStorage.
+All 6 metal pages (01–06) have labeled build photos (` filename above each image) and thumbnail columns in the Components table using ![alt](../images/...){.part-thumb} syntax (markdown, not raw HTML — important for MkDocs path rewriting).
