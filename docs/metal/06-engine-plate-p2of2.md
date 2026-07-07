@@ -4,22 +4,29 @@
 
 ## Components
 
-| Code | Part | Qty | 3D object | Metal change |
-|------|------|-----|-----------|--------------|
-| M36.b | vertical plate p2of2 — sliding front plate | 1 | `Engine_Holder_P2` | **metal** replaces P36 |
-| M24.a | router clamp — bottom half | 1 | `Router_Clamp_Bottom` | **metal** replaces P24 (part) |
-| M24.b | router clamp — top half | 1 | `Router_Clamp_Top` | **metal** replaces P24 (part) |
-| O20   | MGN12H linear rail 200 mm (Z-axis vertical) | 2 | `Rail_Z_Left`, `Rail_Z_Right` | unchanged |
-| O22   | MGN12H rail block (4× Z-axis, on O20 rails) | 4 | — | unchanged |
-| O03   | Acme nut 8×8 mm (integrated in M36.b) | 1 | — | unchanged |
-| E20   | Makita RT0700C(J) trimming router | 1 | — | unchanged |
-| E04   | 220V power plug | 1 | — | unchanged |
-| E05   | 220V power socket | 1 | — | unchanged |
-| S04   | M3×20 mm screw (Z-rails to M36.b back face) | 16 | `BoltM3_P2_*` | unchanged |
-| S05   | M3×25 mm screw (M36.b carriages to M36.a blocks) | 16 | — | unchanged |
-| S11   | M4×40 mm screw (router clamps) | 4 | `Bolt_RC_*` | unchanged |
-| O11   | Cable ties | ~5 | — | unchanged |
-| O13   | Flexible conduit | ~0.5 m | — | unchanged |
+**Metal replacements** — plastic parts removed from this build:
+
+| Code | Plastic original | Metal plan | Part | Qty | 3D object |
+|------|-----------------|-----------|------|-----|-----------|
+| M36.b | ![vertical_slider](../images/3dprinted_parts/router/vertical_slider.jpg){.part-thumb} `vertical_slider` | *(no plan PNG yet)* | vertical plate p2of2 — sliding front plate | 1 | `Engine_Holder_P2` |
+| M24.a | ![router_bracket](../images/3dprinted_parts/router/router_bracket.jpg){.part-thumb} `router_bracket` | ![M24a_plan](../images/metal/components/M24a_plan.png){.part-thumb} `M24a_plan` | router clamp — bottom half | 1 | `Router_Clamp_Bottom` |
+| M24.b | *(same P24 bracket, split into two halves)* | ![M24b_plan](../images/metal/components/M24b_plan.png){.part-thumb} `M24b_plan` | router clamp — top half | 1 | `Router_Clamp_Top` |
+
+**Other components** — unchanged:
+
+| Code | Part | Qty | 3D object |
+|------|------|-----|-----------|
+| O20   | MGN12H linear rail 200 mm (Z-axis vertical) | 2 | `Rail_Z_Left`, `Rail_Z_Right` |
+| O22   | MGN12H rail block (4× Z-axis, on O20 rails) | 4 | — |
+| O03   | Acme nut 8×8 mm (integrated in M36.b) | 1 | — |
+| E20   | Makita RT0700C(J) trimming router | 1 | — |
+| E04   | 220V power plug | 1 | — |
+| E05   | 220V power socket | 1 | — |
+| S04   | M3×20 mm screw (Z-rails to M36.b back face) | 16 | `BoltM3_P2_*` |
+| S05   | M3×25 mm screw (M36.b carriages to M36.a blocks) | 16 | — |
+| S11   | M4×40 mm screw (router clamps) | 4 | `Bolt_RC_*` |
+| O11   | Cable ties | ~5 | — |
+| O13   | Flexible conduit | ~0.5 m | — |
 
 ## 3D view — stage 4
 
@@ -29,14 +36,6 @@ Stage 4 (frames 24–31) in the staged GIF includes M36.b and the router clamps.
 ![Staged assembly — stage 4](../images/metal/cnc_assembly_staged_gif.gif)
 
 > Per-component rotating GIFs for M36.b, M24.a, M24.b planned — RR-03.
-
-## Component plan views
-
-| Part | Plastic original | Metal replacement |
-|------|-----------------|-------------------|
-| M36.b — vertical plate p2of2 | <img class="part-thumb" src="../images/3dprinted_parts/router/vertical_slider.jpg" alt="vertical_slider"> `vertical_slider` (P36) | *(no plan PNG — see staged assembly GIF)* |
-| M24.a — router clamp bottom | <img class="part-thumb" src="../images/3dprinted_parts/router/router_bracket.jpg" alt="router_bracket"> `router_bracket` (P24) | <img class="part-thumb" src="../images/metal/components/M24a_plan.png" alt="M24a_plan"> `M24a_plan` |
-| M24.b — router clamp top | *(same P24 bracket, split into two metal halves)* | <img class="part-thumb" src="../images/metal/components/M24b_plan.png" alt="M24b_plan"> `M24b_plan` |
 
 ## Z-rails to p2of2
 

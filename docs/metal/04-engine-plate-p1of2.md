@@ -4,13 +4,23 @@
 
 ## Components
 
-| Code | Part | Qty | 3D object | Metal change |
-|------|------|-----|-----------|--------------|
-| M36.a | vertical plate p1of2 — gantry-fixed back plate | 1 | `Engine_Holder_P1` | **metal** replaces P07 (Z-face) |
-| O22   | MGN12H rail block (4× Z-axis, fixed to M36.a) | 4 | `MGN12H_Block_LL/LU/RL/RU` | unchanged |
-| N02   | M5 DIN 934 nut (p1of2 outtake tab bolts) | 4 | `Nut_P1_Top/Bot_*` | unchanged |
-| S12   | M5×20 mm screw (p1of2 tab bolts) | 4 | `Bolt_P1_Top/Bot_*` | unchanged |
-| S03   | M3×16 mm screw (MGN12H blocks to M36.a) | 16 | `BoltM3_Blk_*` | unchanged |
+**Metal replacement** — plastic part removed from this build:
+
+| Code | Plastic original | Metal plan | Part | Qty | 3D object |
+|------|-----------------|-----------|------|-----|-----------|
+| M36.a | ![carriage](../images/3dprinted_parts/router/carriage.jpg){.part-thumb} `carriage` | ![M36a_plan](../images/metal/components/M36a_plan.png){.part-thumb} `M36a_plan` | vertical plate p1of2 — gantry-fixed back plate | 1 | `Engine_Holder_P1` |
+
+`M36a_vs_plastic`
+![M36a_vs_plastic](../images/metal/components/M36a_vs_plastic.png)
+
+**Other components** — unchanged:
+
+| Code | Part | Qty | 3D object |
+|------|------|-----|-----------|
+| O22   | MGN12H rail block (4× Z-axis, fixed to M36.a) | 4 | `MGN12H_Block_LL/LU/RL/RU` |
+| N02   | M5 DIN 934 nut (p1of2 outtake tab bolts) | 4 | `Nut_P1_Top/Bot_*` |
+| S12   | M5×20 mm screw (p1of2 tab bolts) | 4 | `Bolt_P1_Top/Bot_*` |
+| S03   | M3×16 mm screw (MGN12H blocks to M36.a) | 16 | `BoltM3_Blk_*` |
 
 ## 3D view — stage 4
 
@@ -21,15 +31,6 @@ Stage 4 (frames 24–31) in the staged GIF covers all Z-axis components includin
 
 > Per-stage sub-GIF (frames 24–31 only) planned — RR-04.
 > Per-component rotating GIF for M36.a planned — RR-03.
-
-## Component plan views
-
-| Part | Plastic original | Metal replacement |
-|------|-----------------|-------------------|
-| M36.a — vertical plate p1of2 | <img class="part-thumb" src="../images/3dprinted_parts/router/carriage.jpg" alt="carriage"> `carriage` (P07) | <img class="part-thumb" src="../images/metal/components/M36a_plan.png" alt="M36a_plan"> `M36a_plan` |
-
-`M36a_vs_plastic`
-<img class="part-thumb" src="../images/metal/components/M36a_vs_plastic.png" alt="M36a_vs_plastic" style="--part-thumb-size: 180px">
 
 ## p1of2 outtake tab bolts
 

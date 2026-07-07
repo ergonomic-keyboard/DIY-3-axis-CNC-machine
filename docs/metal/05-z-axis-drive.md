@@ -4,22 +4,29 @@
 
 ## Components
 
-| Code | Part | Qty | 3D object | Metal change |
-|------|------|-----|-----------|--------------|
-| M40.a | engine holder top plate — Z stepper mount | 1 | `Top_Stepper_Holder` | **metal** replaces P40 |
-| E11  | Bipolar NEMA17 stepper motor (no gear, 5 mm shaft) | 1 | — | unchanged |
-| O14  | GT2 belt 6 mm wide 300 mm | 1 | — | unchanged |
-| O15  | GT2 pulley 16T 5 mm bore (motor shaft) | 1 | — | unchanged |
-| O16  | GT2 pulley 60T 8 mm bore (acme rod) | 1 | — | unchanged |
-| O02  | Acme threaded rod 300 mm 8×8 mm | 1 | — | unchanged |
-| O03  | Acme nut 8×8 mm | 1 | — | unchanged (integrated in M36.b) |
-| O19  | KFL08 rod bearing 8 mm | 2 | — | unchanged (top & bottom of carriage P07) |
-| S12  | M5×20 mm screw (M40.a holes A & B into M36.a) | 2 | `Bolt_TSH_*` | unchanged |
-| S08  | M3×8 mm screw (Z-motor to M40.a) | 4 | — | unchanged |
-| W06  | Washer 8×4×1 mm | 4 | — | unchanged |
-| S16  | M8×80 mm screw (M40.a to carriage) | 2 | — | unchanged |
-| N03  | M8 nut | 2 | — | unchanged |
-| W04  | Washer 20×10×2 mm | 1 | — | unchanged |
+**Metal replacement** — plastic part removed from this build:
+
+| Code | Plastic original | Metal plan | Part | Qty | 3D object |
+|------|-----------------|-----------|------|-----|-----------|
+| M40.a | ![z_motor_mount](../images/3dprinted_parts/router/z_motor_mount.jpg){.part-thumb} `z_motor_mount` | ![M40a_plan](../images/metal/components/M40a_plan.png){.part-thumb} `M40a_plan` | engine holder top plate — Z stepper mount | 1 | `Top_Stepper_Holder` |
+
+**Other components** — unchanged:
+
+| Code | Part | Qty | 3D object |
+|------|------|-----|-----------|
+| E11  | Bipolar NEMA17 stepper motor (no gear, 5 mm shaft) | 1 | — |
+| O14  | GT2 belt 6 mm wide 300 mm | 1 | — |
+| O15  | GT2 pulley 16T 5 mm bore (motor shaft) | 1 | — |
+| O16  | GT2 pulley 60T 8 mm bore (acme rod) | 1 | — |
+| O02  | Acme threaded rod 300 mm 8×8 mm | 1 | — |
+| O03  | Acme nut 8×8 mm | 1 | — (integrated in M36.b) |
+| O19  | KFL08 rod bearing 8 mm | 2 | — (top & bottom of carriage P07) |
+| S12  | M5×20 mm screw (M40.a holes A & B into M36.a) | 2 | `Bolt_TSH_*` |
+| S08  | M3×8 mm screw (Z-motor to M40.a) | 4 | — |
+| W06  | Washer 8×4×1 mm | 4 | — |
+| S16  | M8×80 mm screw (M40.a to carriage) | 2 | — |
+| N03  | M8 nut | 2 | — |
+| W04  | Washer 20×10×2 mm | 1 | — |
 
 ## 3D view — stage 4
 
@@ -29,12 +36,6 @@ Stage 4 (frames 24–31) in the staged GIF includes M40.a and the Z stepper moto
 ![Staged assembly — stage 4](../images/metal/cnc_assembly_staged_gif.gif)
 
 > Per-component rotating GIF for M40.a planned — RR-03.
-
-## Component plan views
-
-| Part | Plastic original | Metal replacement |
-|------|-----------------|-------------------|
-| M40.a — engine holder top plate | <img class="part-thumb" src="../images/3dprinted_parts/router/z_motor_mount.jpg" alt="z_motor_mount"> `z_motor_mount` (P40) | <img class="part-thumb" src="../images/metal/components/M40a_plan.png" alt="M40a_plan"> `M40a_plan` |
 
 ## Z stepper motor, pulleys and belt
 
