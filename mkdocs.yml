@@ -5,22 +5,32 @@ theme:
   scheme: default
   palette:
     primary: red
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
 nav:
-- Bill of materials: BILLOFMATERIAL.md
-- Shopping: shopping.md
-- Main frame: 01-main-frame.md
-- Y-axis: 02-y-axis.md
-- X-axis and Z-axis: 03-x-axis-and-z-axis.md
-- Stepper motors and end-stops: 04-stepper-motors-and-end-stops.md
-- Router: 05-router.md
-- Electronic boxes: 06-electronic-boxes.md
-- Electrical wiring and connect components: 07-electrical-wiring-and-connect-components.md
-- Wasteboard: 08-wasteboard.md
-- Dust shoe: 09-dust-shoe.md
-- Software: 10-software.md
-- G-Code sender: 11-g-code-sender.md
-- Final notes: 12-final-notes.md
-- Mod construction: mod_construction.md
+- Plastic - Bill of materials: BILLOFMATERIAL.md
+- Plastic - Instructions:
+  - Main frame: 01-main-frame.md
+  - Y-axis: 02-y-axis.md
+  - X-axis and Z-axis: 03-x-axis-and-z-axis.md
+  - Stepper motors and end-stops: 04-stepper-motors-and-end-stops.md
+  - Router: 05-router.md
+  - Electronic boxes: 06-electronic-boxes.md
+  - Electrical wiring and connect components: 07-electrical-wiring-and-connect-components.md
+  - Wasteboard: 08-wasteboard.md
+  - Dust shoe: 09-dust-shoe.md
+  - Software: 10-software.md
+  - G-Code sender: 11-g-code-sender.md
+  - Final notes: 12-final-notes.md
+- Metal - Shopping: metal/shopping.md
+- Metal - Instructions:
+  - Overview: metal/index.md
+  - Main frame: metal/01-main-frame.md
+  - Y-axis: metal/02-y-axis.md
+  - X-axis and Z-axis: metal/03-x-axis-and-z-axis.md
+  - Stepper motors and end-stops: metal/04-stepper-motors-and-end-stops.md
+  - Router: metal/05-router.md
 markdown_extensions:
   - admonition
   - pymdownx.details

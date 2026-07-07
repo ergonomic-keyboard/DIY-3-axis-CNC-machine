@@ -1,5 +1,37 @@
 # Stepper motors and end-stops
 
+## Components
+
+| Code | Part | Qty | 3D assembly object |
+|------|------|-----|--------------------|
+| E18  | Geared NEMA17 stepper motor (1:19, Y-axis ×2 + X-axis ×1) | 3 | — |
+| E11  | Bipolar NEMA17 stepper motor (no gear, Z-axis) | 1 | — |
+| E21  | Microswitch (end-stop) | 5 | — |
+| E03  | 0.75 mm² wire black/red (end-stop wiring) | ~10 m | — |
+| E08  | AWG22 wire (stepper motor extension) | ~10 m/colour | — |
+| E25  | Spade connector 2.8 mm | 10 | — |
+| P08  | End-stop mount (ordinary) | 3 | — |
+| P09  | End-stop mount (tall, Y+ axis) | 1 | — |
+| P10  | End-stop mount (thick, X+ axis) | 1 | — |
+| P39  | Z-axis end-stop trigger | 1 | — |
+| P40  | Z-axis stepper motor mount | 1 | — |
+| O08  | Braided cable sleeve 20 mm | 5 m | — |
+| O09  | Cable chain 30×15 mm inner | 2 | — |
+| O11  | Cable ties | ~10 | — |
+| O13  | Flexible conduit | ~1 m | — |
+| O24  | Shrinking tubes | — | — |
+| S02  | M3×12 mm screw (end-stop mounting) | 10 | — |
+| S08  | M3×8 mm screw (Z-motor to mount) | 4 | — |
+| S13  | M5×40 mm screw (X+ end-stop mount) | 2 | — |
+| S16  | M8×80 mm screw (Z motor mount to carriage) | 2 | — |
+| S10  | M4×25 mm screw (cable chain mounts) | 7 | — |
+| S12  | M5×20 mm screw (Y end-stop mounts) | 2 | — |
+| N01  | M4 nut | 5 | — |
+| N03  | M8 nut | 2 | — |
+| W04  | Washer 20×10×2 mm | 1 | — |
+| W01  | Washer 10×5×1 mm | 5 | — |
+| W06  | Washer 8×4×1 mm | 4 | — |
+
 ## Extend stepper motor wires
 
 All 4 stepper motors (2x Y-axis, 1x X-axis and 1x Z-axis) get their power and movement instructions from the Arduino + CNC shield that in a later step will be attached in the small electronic box. Therefore, the stepper motor cables needed to be extended to reach through the cable chains all the way to the front of the machine, where the small electronic box will be located.

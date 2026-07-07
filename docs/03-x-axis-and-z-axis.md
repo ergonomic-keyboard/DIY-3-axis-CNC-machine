@@ -1,5 +1,58 @@
 # X-axis and Z-axis
 
+## Components
+
+### X-axis (gantry bridge)
+
+| Code | Part | Qty | 3D assembly object |
+|------|------|-----|--------------------|
+| O05  | Aluminium profile 803×30×30 mm (bridge beams) | 3 | `Gantry_Beam_Upper1`, `Gantry_Beam_Upper2`, `Gantry_Beam_Lower` |
+| O21  | MGN12H linear rail 600 mm (X-axis carriage rails) | 2 | `Rail_X_Upper`, `Rail_X_Lower` |
+| O22  | MGN12H linear rail block | 4 | — (X-axis, 2 per rail) |
+| P07  | Carriage | 1 | — |
+| O19  | KFL08 rod bearing 8 mm | 2 | — |
+| E18  | Geared NEMA17 stepper motor (1:19, 8 mm shaft) | 1 | — |
+| O18  | HTD5M pulley 12T 8 mm bore 15 mm wide | 1 | — |
+| O17  | HTD5M belt 15 mm wide | ~2 m | — |
+| O01  | 698zz bearing | 6 | — |
+| P16  | Idler block | 1 | — |
+| P28  | Right fixed belt tensioner | 1 | — |
+| P27  | Right belt tensioner | 1 | — |
+| P08  | End-stop mount (ordinary) | 1 | — |
+| P38  | X-axis cable chain mount | 1 | — |
+| P05  | Y-axis cable chain mount | 1 | — |
+| P06  | Y-axis cable chain support | 1 | — |
+| O09  | Cable chain 30×15 mm inner | 2 | — |
+| S03  | M3×16 mm screw (rail to beam) | 32 | — |
+| S05  | M3×25 mm screw (carriage to blocks) | 16 | — |
+| S12  | M5×20 mm screw | 8 | — |
+
+### Z-axis (vertical slider — metal plate modification)
+
+| Code | Part | Qty | 3D assembly object |
+|------|------|-----|--------------------|
+| Custom | engine_holder_vertical_plate_p1of2 (gantry-fixed back plate) | 1 | `Engine_Holder_P1` |
+| Custom | engine_holder_vertical_plate_p2of2 (sliding front plate) | 1 | `Engine_Holder_P2` |
+| Custom | router_clamp_bottom | 1 | `Router_Clamp_Bottom` |
+| Custom | router_clamp_top | 1 | `Router_Clamp_Top` |
+| O20   | MGN12H linear rail 200 mm (Z-axis vertical rails) | 2 | `Rail_Z_Left`, `Rail_Z_Right` |
+| O22   | MGN12H linear rail block | 4 | `MGN12H_Block_LL/LU/RL/RU` |
+| O02   | Acme threaded rod 300 mm 8×8 mm | 1 | — |
+| O03   | Acme threaded rod nut 8×8 mm | 1 | — |
+| E11   | Bipolar NEMA17 stepper motor (no gear, 5 mm shaft) | 1 | — |
+| O14   | GT2 belt 6 mm wide 300 mm | 1 | — |
+| O15   | GT2 pulley 16T 5 mm bore | 1 | — |
+| O16   | GT2 pulley 60T 8 mm bore | 1 | — |
+| P40   | Z-axis stepper motor mount (original design) | 1 | — (replaced by `Top_Stepper_Holder`) |
+| Custom | engine_holder_top_plate (modified stepper holder) | 1 | `Top_Stepper_Holder` |
+| Custom | engine_sideways_belt_clamp | 1 | `Engine_Sideways_Belt_Clamp` |
+| S03   | M3×16 mm screw (Z-rail to p1of2) | 16 | `BoltM3_Blk_*` |
+| S03   | M3×16 mm screw (p2of2 to blocks) | 16 | `BoltM3_P2_*` |
+| N02   | M5 DIN 934 nut (p1of2 outtake tabs) | 4 | `Nut_P1_Top/Bot_*` |
+| S12   | M5×20 mm screw (p1of2 tab bolts) | 4 | `Bolt_P1_Top/Bot_*` |
+| S12   | M5×20 mm screw (stepper holder) | 2 | `Bolt_TSH_*` |
+| S11   | M4×40 mm screw (router clamp) | 4 | `Bolt_RC_*` |
+
 ## Rails to bridge beams
 
 The last two 600 mm MGN12H rails (**O21**) were attached to two of the 803 mm aluminium bridge beams (**O05**, used for the X-axis). First, the MGN12H blocks (**O22**) were carefully removed from the rails.

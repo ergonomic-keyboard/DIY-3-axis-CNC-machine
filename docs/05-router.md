@@ -1,5 +1,19 @@
 # Router
 
+## Components
+
+| Code | Part | Qty | 3D assembly object |
+|------|------|-----|--------------------|
+| E20  | Makita RT0700C(J) trimming router | 1 | — |
+| P24  | Milling router bracket | 1 | — |
+| E04  | 220V power plug | 1 | — |
+| E05  | 220V power socket | 1 | — |
+| O11  | Cable ties | ~5 | — |
+| O13  | Flexible conduit | ~0.5 m | — |
+| S13  | M5×40 mm screw (router bracket) | 4 | — |
+| N02  | M5 nut | 4 | — |
+| W01  | Washer 10×5×1 mm | 4 | — |
+
 ## Attach router to carriage
 
 A Makita RT0700CJ (**E20**) trimming router was used as I was not able to get my hands on the Makita RT0700C that Ivan is using. To my knowledge, the RT0700CJ is just an upgraded European version of the RT0700C, with the same dimensions.

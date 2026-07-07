@@ -39,9 +39,10 @@ REPO   = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
 METAL  = os.path.join(REPO, "hardware_mods/metal_plates/examples")
 OUT    = os.path.join(REPO, "hardware_mods/metal_plates/assembly")
 
-FCSTD_PATH       = os.path.join(OUT, "cnc_assembly.FCStd")
-GIF_PATH         = os.path.join(OUT, "cnc_assembly_gif.gif")
-EXPLODE_GIF_PATH = os.path.join(OUT, "cnc_assembly_explode_gif.gif")
+FCSTD_PATH        = os.path.join(OUT, "cnc_assembly.FCStd")
+GIF_PATH          = os.path.join(OUT, "cnc_assembly_gif.gif")
+EXPLODE_GIF_PATH  = os.path.join(OUT, "cnc_assembly_explode_gif.gif")
+STAGED_GIF_PATH   = os.path.join(OUT, "cnc_assembly_staged_gif.gif")
 
 # ── Colors (R,G,B floats 0–1) ─────────────────────────────────────────────────
 COL_EXTRUSION = (0.70, 0.72, 0.75)
@@ -60,6 +61,9 @@ _z_slider:  list[tuple[str, float]] = []   # (name, base_z)
 # explode animation
 _explode_offsets: dict[str, tuple]                  = {}
 _explode_bases:   dict[str, "FreeCAD.Placement"]   = {}
+
+# build-stage mapping  (1=frame, 2=side plates, 3=gantry beams, 4=Z-axis, 5=fasteners)
+_STAGE: dict[str, int] = {}
 
 
 # ── Low-level geometry helpers ────────────────────────────────────────────────
@@ -209,6 +213,59 @@ def rerecord_explode_bases():
         o = doc.getObject(name)
         if o is not None:
             _explode_bases[name] = FreeCAD.Placement(o.Placement)
+
+
+def _assign_stages():
+    """
+    Populate _STAGE based on object name patterns.
+    Stages match the build guide pages:
+      1 = Main frame   (01-main-frame.md)
+      2 = Side plates  (02-y-axis.md)
+      3 = Gantry beams (03-x-axis-and-z-axis.md, X part)
+      4 = Z-axis parts (03-x-axis-and-z-axis.md, Z part)
+      5 = Fasteners    (all bolts/nuts/rods)
+    """
+    _STAGE.clear()
+    for name in _explode_offsets:
+        if (name.startswith("Frame_") or
+                name in ("Rail_Y_Left", "Rail_Y_Right")):
+            _STAGE[name] = 1
+        elif ("Side_Plate" in name or "Clip" in name):
+            _STAGE[name] = 2
+        elif (name.startswith("Gantry_Beam") or
+              name.startswith("Rail_X")):
+            _STAGE[name] = 3
+        elif any(tok in name for tok in (
+                "Engine_Holder", "Rail_Z", "MGN12H_Block",
+                "Router_Clamp", "Top_Stepper", "Engine_Sideways")):
+            _STAGE[name] = 4
+        else:
+            _STAGE[name] = 5   # all bolts, nuts, threaded rods
+
+
+def set_staged_assembly(stage_num: int, stage_frac: float):
+    """
+    Animate a staged build:  earlier stages are assembled (t=0),
+    current stage transitions from exploded (t=1) to assembled (t=0)
+    as stage_frac goes 0→1, and later stages remain exploded (t=1).
+    """
+    for name, (dx, dy, dz) in _explode_offsets.items():
+        s = _STAGE.get(name, stage_num)
+        if s < stage_num:
+            t = 0.0
+        elif s == stage_num:
+            t = 1.0 - stage_frac
+        else:
+            t = 1.0
+        o = doc.getObject(name)
+        if o is None:
+            continue
+        base = _explode_bases[name]
+        o.Placement = FreeCAD.Placement(
+            FreeCAD.Vector(base.Base.x + t * dx,
+                           base.Base.y + t * dy,
+                           base.Base.z + t * dz),
+            base.Rotation)
 
 
 # ── Fastener sub-assemblies ───────────────────────────────────────────────────
@@ -401,20 +458,20 @@ def _build_assembly(document):
 
     # ── FRAME ─────────────────────────────────────────────────────────────────
     def _frame_row(sfx, z):
-        add_box(f"Frame_{sfx}_Left_Y",   900, 30, 30,   0,   0, z)
-        add_box(f"Frame_{sfx}_Right_Y",  900, 30, 30,   0, 763, z)
-        add_box(f"Frame_{sfx}_Front_X",   30,733, 30,   0,  30, z)
-        add_box(f"Frame_{sfx}_Back_X",    30,733, 30, 870,  30, z)
+        explode_with(add_box(f"Frame_{sfx}_Left_Y",   900, 30, 30,   0,   0, z), dy=-120)
+        explode_with(add_box(f"Frame_{sfx}_Right_Y",  900, 30, 30,   0, 763, z), dy=+120)
+        explode_with(add_box(f"Frame_{sfx}_Front_X",   30,733, 30,   0,  30, z), dx=-120)
+        explode_with(add_box(f"Frame_{sfx}_Back_X",    30,733, 30, 870,  30, z), dx=+120)
 
     _frame_row("Lo", -140)
     _frame_row("Up",  -30)
 
     for vx, vy in [(0,0),(0,763),(870,0),(870,763),
                    (285,0),(285,763),(585,0),(585,763)]:
-        add_box(f"Frame_Vert_{vx}_{vy}", 30, 30, 80, vx, vy, -110)
+        explode_with(add_box(f"Frame_Vert_{vx}_{vy}", 30, 30, 80, vx, vy, -110), dz=-120)
 
-    add_box("Rail_Y_Left",  600, 9, 7, 150,  -9, -7, COL_RAIL)
-    add_box("Rail_Y_Right", 600, 9, 7, 150, 793, -7, COL_RAIL)
+    explode_with(add_box("Rail_Y_Left",  600, 9, 7, 150,  -9, -7, COL_RAIL), dy=-80)
+    explode_with(add_box("Rail_Y_Right", 600, 9, 7, 150, 793, -7, COL_RAIL), dy=+80)
 
     # ── AXIS INDICATOR ────────────────────────────────────────────────────────
     AL, AW = 160, 18
@@ -775,6 +832,88 @@ def _render_explode_inner():
                           explode_fn=explode_fn)
 
 
+# ── Staged assembly render subprocess ────────────────────────────────────────
+
+def _render_staged_inner():
+    """
+    Stage-by-stage assembly animation (5 build stages, each 8 frames):
+      Stage 1  frames  0- 7 : main frame + Y-rails assemble
+      Stage 2  frames  8-15 : side plates + clips assemble
+      Stage 3  frames 16-23 : gantry beams + X-rails assemble
+      Stage 4  frames 24-31 : Z-axis components assemble
+      Stage 5  frames 32-39 : all fasteners assemble
+      Final    frames 40-47 : fully assembled machine, camera sweep
+    Gantry fixed at mid-travel throughout.
+    """
+    import FreeCADGui
+    FRAMES, FPS, W, H = 48, 6, 960, 600
+    GANTRY_MID = 265.
+    N_STAGES   = 5
+    STAGE_FRAMES = 8    # frames per stage
+    FINAL_FRAMES = FRAMES - N_STAGES * STAGE_FRAMES   # = 8
+
+    print("[staged] Starting FreeCADGui ...", flush=True)
+    FreeCADGui.showMainWindow(); time.sleep(1.0)
+
+    doc_obj = FreeCAD.newDocument("CNC_Staged")
+    _build_assembly(doc_obj); time.sleep(0.5)
+    _apply_colours(FreeCADGui)
+
+    set_gantry_x(GANTRY_MID)
+    set_slider_z(0.)
+    doc.recompute()
+    rerecord_explode_bases()   # bake mid-travel into explode bases
+    _assign_stages()           # map object names → stage numbers
+
+    view = _get_view(FreeCADGui)
+    if view is None:
+        print("[staged] ERROR: no active view", flush=True); return
+    try: view.setCameraType("Perspective")
+    except: pass
+
+    def staged_fn(i):
+        if i >= N_STAGES * STAGE_FRAMES:
+            # final hold: all assembled
+            set_staged_assembly(N_STAGES + 1, 1.0)
+        else:
+            stage = i // STAGE_FRAMES + 1
+            frac  = (i % STAGE_FRAMES) / max(STAGE_FRAMES - 1, 1)
+            set_staged_assembly(stage, frac)
+
+    frame_paths = []
+    tmpdir = tempfile.mkdtemp(prefix="cnc_staged_")
+    _set_camera(view, 0, FRAMES)
+    staged_fn(0)
+    doc.recompute()
+    time.sleep(0.3)
+
+    for i in range(FRAMES):
+        staged_fn(i)
+        doc.recompute()
+        _set_camera(view, i, FRAMES)
+
+        png = os.path.join(tmpdir, f"frame_{i:03d}.png")
+        view.saveImage(png, W, H, "White")
+        _rotate_frame(png)
+        frame_paths.append(png)
+
+        stage = min(i // STAGE_FRAMES + 1, N_STAGES + 1)
+        frac  = (i % STAGE_FRAMES) / max(STAGE_FRAMES - 1, 1) if i < N_STAGES * STAGE_FRAMES else 1.0
+        print(f"  frame {i+1:02d}/{FRAMES}  stage={stage}  frac={frac:.2f} → {png}", flush=True)
+
+    concat = os.path.join(tmpdir, "frames.txt")
+    with open(concat, "w") as f:
+        for p in frame_paths:
+            f.write(f"file '{p}'\nduration {1/FPS:.4f}\n")
+
+    subprocess.run([
+        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat,
+        "-vf", "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
+        "-loop", "0", STAGED_GIF_PATH,
+    ], check=True)
+    print(f"[staged] GIF saved → {STAGED_GIF_PATH}", flush=True)
+
+
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 def _main():
@@ -782,14 +921,17 @@ def _main():
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--render",         action="store_true")
     parser.add_argument("--explode-render", action="store_true")
+    parser.add_argument("--staged-render",  action="store_true")
     parser.add_argument("--explode",        action="store_true",
-                        help="skip kinematic GIF, produce explode GIF only")
+                        help="skip kinematic GIF, produce explode + staged GIFs only")
     args = parser.parse_args()
 
     if args.render:
         _render_inner(); return
     if args.explode_render:
         _render_explode_inner(); return
+    if args.staged_render:
+        _render_staged_inner(); return
 
     # Phase 1: build & save FCStd (no GUI)
     print("[assemble] Building geometry ...", flush=True)
@@ -819,10 +961,15 @@ def _main():
             _subprocess("--render")
         print("[assemble] Rendering explode GIF ...", flush=True)
         _subprocess("--explode-render")
+        print("[assemble] Rendering staged assembly GIF ...", flush=True)
+        _subprocess("--staged-render")
     finally:
         xvfb.terminate(); xvfb.wait()
 
-    print(f"[assemble] Done!\n  Kinematic → {GIF_PATH}\n  Explode   → {EXPLODE_GIF_PATH}",
+    print(f"[assemble] Done!\n"
+          f"  Kinematic → {GIF_PATH}\n"
+          f"  Explode   → {EXPLODE_GIF_PATH}\n"
+          f"  Staged    → {STAGED_GIF_PATH}",
           flush=True)
 
 

@@ -1,5 +1,42 @@
 # Y-axis
 
+## Components
+
+| Code | Part | Qty | 3D assembly object |
+|------|------|-----|--------------------|
+| P20  | Left side plate | 1 | `Side_Plate_Left` |
+| P21  | Left side plate lower back clip | 1 | `Side_Plate_Back_Clip` |
+| P22  | Left side plate lower front clip | 1 | `Side_Plate_Lower_Front_Clip` |
+| P23  | Left side plate upper front clip | 1 | `Side_Plate_Upper_Front_Clip` |
+| P29  | Right side plate | 1 | `Side_Plate_Left_R` (mirrored) |
+| P30  | Right side plate lower back clip | 1 | `Side_Plate_Back_Clip_R` (mirrored) |
+| P31  | Right side plate lower front clip | 1 | `Side_Plate_Lower_Front_Clip_R` (mirrored) |
+| P32  | Right side plate upper front clip | 1 | `Side_Plate_Upper_Front_Clip_R` (mirrored) |
+| O22  | MGN12H linear rail block | 4 | — (Y-axis, ride the frame rails) |
+| E18  | Geared NEMA17 stepper motor (1:19, 8 mm shaft) | 2 | — |
+| O18  | HTD5M pulley 12T 8 mm bore 15 mm wide | 2 | — |
+| O17  | HTD5M belt 15 mm wide | ~2 m each | — |
+| O01  | 698zz bearing | 12 | — |
+| P16  | Idler block | 3 | — |
+| P17  | Left belt tension slider | 1 | — |
+| P18  | Left belt tensioner | 1 | — |
+| P19  | Left fixed belt tensioner | 1 | — |
+| P26  | Right belt tension slider | 1 | — |
+| P27  | Right belt tensioner | 2 | — |
+| P28  | Right fixed belt tensioner | 2 | — |
+| P08  | End-stop mount (ordinary) | 2 | — |
+| T01  | M5×140 mm threaded rod (beam tie rods) | 2 | `Rod_Beam_Lo`, `Rod_Beam_Up` |
+| S14  | M5×60 mm screw (top beam) | 2 | — |
+| S04  | M3×20 mm screw (side plate to blocks) | 16 | — |
+| S06  | M3×40 mm screw (motor to side plate) | 8 | — |
+| S12  | M5×20 mm screw (belt tensioners, end-stop mounts) | 12 | — |
+| S15  | M8×60 mm screw (idlers, belt tensioners) | 5 | — |
+| N02  | M5 nut | ~4 | `NutR_Beam_*` |
+| N03  | M8 nut | ~6 | — |
+| W03  | Washer 15×8.5×1.5 mm | 24 | — |
+| W04  | Washer 20×10×2 mm | 2 | — |
+| W05  | Washer 8×4×0.5 mm | 8 | — |
+
 ## Side plates to upper frame
 
 Before attaching the side plates, the MGN12H blocks (**O22**) were added back onto the rails, 2x on each side. Be careful when sliding them onto the rails, there are multiple small bearing balls that easily fall out of the blocks.
