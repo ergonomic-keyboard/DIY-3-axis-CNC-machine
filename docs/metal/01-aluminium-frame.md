@@ -2,18 +2,20 @@
 
 ## Components
 
-| Code | Part | Qty | 3D object | Metal change |
-|------|------|-----|-----------|--------------|
-| O07  | Aluminium profile 900×30×30 mm (depth beams) | 4 | `Frame_Lo/Up_Left/Right_Y` | unchanged |
-| O04  | Aluminium profile 677×30×30 mm (width cross-beams) | 4 | `Frame_Lo/Up_Front/Back_X` | unchanged |
-| O06  | Aluminium profile 80×30×30 mm (vertical spacers) | 8 | `Frame_Vert_*` | unchanged |
-| O21  | MGN12H linear rail 600 mm (Y-axis) | 2 | `Rail_Y_Left`, `Rail_Y_Right` | unchanged |
-| T03  | M8×717 mm threaded rod (frame tie rods) | 4 | — | unchanged |
-| T02  | M8×120 mm threaded rod (vertical tie rods) | 8 | — | unchanged |
-| S03  | M3×16 mm screw (rail mounting) | 48 | — | unchanged |
-| N03  | M8 lock nut | 24 | — | unchanged |
-| W04  | Washer 20×10×2 mm | 24 | — | unchanged |
-| P25  | Rail support alignment tool (3D-printed) | 3 | — | unchanged |
+All components in this section are unchanged from the plastic build.
+
+| Code | Thumbnail | Part | Qty | 3D object |
+|------|-----------|------|-----|-----------|
+| O07  | — | Aluminium profile 900×30×30 mm (depth beams) | 4 | `Frame_Lo/Up_Left/Right_Y` |
+| O04  | — | Aluminium profile 677×30×30 mm (width cross-beams) | 4 | `Frame_Lo/Up_Front/Back_X` |
+| O06  | — | Aluminium profile 80×30×30 mm (vertical spacers) | 8 | `Frame_Vert_*` |
+| O21  | — | MGN12H linear rail 600 mm (Y-axis) | 2 | `Rail_Y_Left`, `Rail_Y_Right` |
+| T03  | — | M8×717 mm threaded rod (frame tie rods) | 4 | — |
+| T02  | — | M8×120 mm threaded rod (vertical tie rods) | 8 | — |
+| S03  | — | M3×16 mm screw (rail mounting) | 48 | — |
+| N03  | — | M8 lock nut | 24 | — |
+| W04  | — | Washer 20×10×2 mm | 24 | — |
+| P25  | ![rails_support](../images/3dprinted_parts/other/rails_support.jpg){.part-thumb} `rails_support` | Rail support alignment tool (3D-printed) | 3 | — |
 
 No metal modifications in this section. Follow the plastic build instructions exactly.
 

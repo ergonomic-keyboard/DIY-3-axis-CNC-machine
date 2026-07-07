@@ -515,8 +515,9 @@ body:has(.mc-app) .md-content__inner {
 }
 
 /* --- part thumbnail (used in component plan-view tables) -------------- */
+:root { --part-thumb-size: 90px; }
+
 .part-thumb {
-  --part-thumb-size: 90px;
   width: var(--part-thumb-size);
   height: var(--part-thumb-size);
   object-fit: contain;
@@ -524,4 +525,17 @@ body:has(.mc-app) .md-content__inner {
   border-radius: 4px;
   background: var(--md-code-bg-color, rgba(0,0,0,0.03));
   vertical-align: middle;
+}
+
+.part-thumb-slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--md-default-fg-color--light);
+}
+.part-thumb-slider {
+  width: 140px;
+  accent-color: var(--md-primary-fg-color, #1976d2);
 }

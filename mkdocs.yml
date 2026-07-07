@@ -46,3 +46,4 @@ extra_javascript:
   - assets/javascripts/toc-toggle.js
   - assets/javascripts/shopping.js
   - assets/javascripts/mod_construction.js
+  - assets/javascripts/part-thumb-slider.js

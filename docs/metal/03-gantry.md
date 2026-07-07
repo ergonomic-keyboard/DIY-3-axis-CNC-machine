@@ -12,31 +12,31 @@ Three 803 mm aluminium bridge beams (**O05**) form the gantry. Two of the three 
 
 **Other components** — unchanged from the plastic build:
 
-| Code | Part | Qty | 3D object |
-|------|------|-----|-----------|
-| O05  | Aluminium profile 803×30×30 mm (bridge beams) | 3 | `Gantry_Beam_Upper1`, `Gantry_Beam_Upper2`, `Gantry_Beam_Lower` |
-| O21  | MGN12H linear rail 600 mm (X-axis) | 2 | `Rail_X_Upper`, `Rail_X_Lower` |
-| O22  | MGN12H rail block (4× X-axis) | 4 | — |
-| P07  | Carriage (3D-printed) | 1 | — |
-| O19  | KFL08 rod bearing 8 mm | 2 | — |
-| E18  | Geared NEMA17 stepper motor (1:19, 8 mm shaft, X-axis) | 1 | — |
-| O18  | HTD5M pulley 12T 8 mm bore 15 mm wide | 1 | — |
-| O17  | HTD5M belt 15 mm wide | ~2 m | — |
-| O01  | 698zz bearing | 6 | — |
-| P16  | Idler block (3D-printed) | 1 | — |
-| P28  | Right fixed belt tensioner (3D-printed) | 1 | — |
-| P27  | Right belt tensioner (3D-printed) | 1 | — |
-| P08  | End-stop mount ordinary (3D-printed) | 1 | — |
-| P38  | X-axis cable chain mount (3D-printed) | 1 | — |
-| P05  | Y-axis cable chain mount (3D-printed) | 1 | — |
-| P06  | Y-axis cable chain support (3D-printed) | 1 | — |
-| O09  | Cable chain 30×15 mm inner | 2 | — |
-| S03  | M3×16 mm screw (rail to beam) | 32 | — |
-| S05  | M3×25 mm screw (carriage to blocks) | 16 | — |
-| S12  | M5×20 mm screw (tensioner, end-stop, cable chain) | 8 | — |
-| S10  | M4×25 mm screw (cable chain mounts) | 7 | — |
-| N01  | M4 nut | 5 | — |
-| W01  | Washer 10×5×1 mm | 5 | — |
+| Code | Thumbnail | Part | Qty | 3D object |
+|------|-----------|------|-----|-----------|
+| O05  | — | Aluminium profile 803×30×30 mm (bridge beams) | 3 | `Gantry_Beam_Upper1`, `Gantry_Beam_Upper2`, `Gantry_Beam_Lower` |
+| O21  | — | MGN12H linear rail 600 mm (X-axis) | 2 | `Rail_X_Upper`, `Rail_X_Lower` |
+| O22  | — | MGN12H rail block (4× X-axis) | 4 | — |
+| P07  | ![carriage](../images/3dprinted_parts/router/carriage.jpg){.part-thumb} `carriage` | Carriage (3D-printed) | 1 | — |
+| O19  | — | KFL08 rod bearing 8 mm | 2 | — |
+| E18  | — | Geared NEMA17 stepper motor (1:19, 8 mm shaft, X-axis) | 1 | — |
+| O18  | — | HTD5M pulley 12T 8 mm bore 15 mm wide | 1 | — |
+| O17  | — | HTD5M belt 15 mm wide | ~2 m | — |
+| O01  | — | 698zz bearing | 6 | — |
+| P16  | ![idler_block](../images/3dprinted_parts/other/idler_block.jpg){.part-thumb} `idler_block` | Idler block (3D-printed) | 1 | — |
+| P28  | ![x_axis_back_clip](../images/3dprinted_parts/belt_tensioner/x_axis/x_axis_back_clip.jpg){.part-thumb} `x_axis_back_clip` | Right fixed belt tensioner (3D-printed) | 1 | — |
+| P27  | ![x_axis_front_clip](../images/3dprinted_parts/belt_tensioner/x_axis/x_axis_front_clip.jpg){.part-thumb} `x_axis_front_clip` | Right belt tensioner (3D-printed) | 1 | — |
+| P08  | ![end_stop](../images/3dprinted_parts/other/end_stop.jpg){.part-thumb} `end_stop` | End-stop mount ordinary (3D-printed) | 1 | — |
+| P38  | ![x_axis_cable_chain_mount](../images/3dprinted_parts/router/x_axis_cable_chain_mount.jpg){.part-thumb} `x_axis_cable_chain_mount` | X-axis cable chain mount (3D-printed) | 1 | — |
+| P05  | ![y_cable_chain_support_1](../images/3dprinted_parts/other/y_cable_chain_support_1.jpg){.part-thumb} `y_cable_chain_support_1` | Y-axis cable chain mount (3D-printed) | 1 | — |
+| P06  | ![y_cable_chain_support_2](../images/3dprinted_parts/other/y_cable_chain_support_2.jpg){.part-thumb} `y_cable_chain_support_2` | Y-axis cable chain support (3D-printed) | 1 | — |
+| O09  | — | Cable chain 30×15 mm inner | 2 | — |
+| S03  | — | M3×16 mm screw (rail to beam) | 32 | — |
+| S05  | — | M3×25 mm screw (carriage to blocks) | 16 | — |
+| S12  | — | M5×20 mm screw (tensioner, end-stop, cable chain) | 8 | — |
+| S10  | — | M4×25 mm screw (cable chain mounts) | 7 | — |
+| N01  | — | M4 nut | 5 | — |
+| W01  | — | Washer 10×5×1 mm | 5 | — |
 
 ## 3D view — stage 3
 
