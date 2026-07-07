@@ -22,3 +22,10 @@ http://127.0.0.1:8000/DIY-3-axis-CNC-machine/04-stepper-motors-and-end-stops/ et
 
 B.0 Use the manual designs where available.
 B.1 Include an image of the 3d render of the replacement metal part(s) in the table next to the image of the original plastic part.
+
+C.0 Ensure a 3d render of each metal part is available. 
+C.1 Ensure the connection mechanisms function. (For example m36a_plan shows 4 hexacgonal nut heads in the right position in the drawing, but actually those top 2 bolts should be rotated 90 degrees to point upwards, (instead of into the screen), and similarly the bottom ones should point downwards. The usage of bolts is weird in this design as some go into the sides of the plates instead of through the flat holes of the plates like one normally bolts ).
+C.2 Ensure all connection mechanisms, like bolts are parametererised, such that if one swaps out a M4 bolt with an M5 bolt, that it updates the accompanying holes.
+C.3 Ensure the assembly physically is possible, e.g. make sure the bolts do not go through the metal (instead of through a hole).
+C.4 Add threads into the designs, or at least a thread specification per hole where appropriate.
+
