@@ -26,12 +26,13 @@ nav:
   - Final notes: 12-final-notes.md
 - Metal - Shopping: metal/shopping.md
 - Metal - Instructions:
-  - Overview: metal/index.md
-  - Main frame: metal/01-main-frame.md
-  - Y-axis: metal/02-y-axis.md
-  - X-axis and Z-axis: metal/03-x-axis-and-z-axis.md
-  - Stepper motors and end-stops: metal/04-stepper-motors-and-end-stops.md
-  - Router: metal/05-router.md
+  - Overview & full assembly: metal/index.md
+  - I. Aluminium frame: metal/01-aluminium-frame.md
+  - II. Side plates & Y-axis: metal/02-side-plates.md
+  - III. Gantry & X-axis: metal/03-gantry.md
+  - IV. Engine plate p1of2: metal/04-engine-plate-p1of2.md
+  - V. Z-axis drive: metal/05-z-axis-drive.md
+  - VI. Engine plate p2of2 & router: metal/06-engine-plate-p2of2.md
 markdown_extensions:
   - admonition
   - pymdownx.details

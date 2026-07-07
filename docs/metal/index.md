@@ -1,31 +1,27 @@
-# Metal mod — overview
+# Metal mod — full assembly
 
-This section documents the metal plate modifications to the DIY CNC machine. The metal mod replaces key 3D-printed structural parts with laser-cut or waterjet-cut aluminium plates, improving rigidity and longevity.
+This page covers the complete CNC machine with all metal modifications. Follow the sub-assembly pages in order from I to VI.
 
-![Staged assembly](../images/metal/cnc_assembly_staged_gif.gif)
+## M-code identifier index
 
-## What changes
+| M-code | Human name | Replaces | Script object | Note |
+|--------|-----------|----------|---------------|------|
+| M20.a | side plate left — body | P20 | `Side_Plate_Left` | metal |
+| M20.b | side plate left — back clip | P21 | `Side_Plate_Back_Clip` | metal |
+| M20.c | side plate left — lower front clip | P22 | `Side_Plate_Lower_Front_Clip` | metal |
+| M20.d | side plate left — upper front clip | P23 | `Side_Plate_Upper_Front_Clip` | metal |
+| M29.a | side plate right — body | P29 | `Side_Plate_Left_R` | metal, Y-mirror of M20.a |
+| M29.b | side plate right — back clip | P30 | `Side_Plate_Back_Clip_R` | metal, Y-mirror of M20.b |
+| M29.c | side plate right — lower front clip | P31 | `Side_Plate_Lower_Front_Clip_R` | metal, Y-mirror of M20.c |
+| M29.d | side plate right — upper front clip | P32 | `Side_Plate_Upper_Front_Clip_R` | metal, Y-mirror of M20.d |
+| M36.a | vertical plate p1of2 — gantry-fixed back plate | P07 (Z-face) | `Engine_Holder_P1` | metal |
+| M36.b | vertical plate p2of2 — sliding front plate | P36 | `Engine_Holder_P2` | metal |
+| M40.a | engine holder top plate — Z stepper mount | P40 | `Top_Stepper_Holder` | metal |
+| M24.a | router clamp — bottom half | P24 (part) | `Router_Clamp_Bottom` | metal |
+| M24.b | router clamp — top half | P24 (part) | `Router_Clamp_Top` | metal |
+| MX.1  | engine sideways belt clamp | — (new) | `Engine_Sideways_Belt_Clamp` | metal, no plastic equivalent |
 
-| Plastic part | M-code | Metal replacement | Human name |
-|---|---|---|---|
-| P20 | M20.a | side_plate_left_metal | Side plate left — body |
-| P21 | M20.b | back_clip | Side plate left — back clip |
-| P22 | M20.c | lower_front_clip | Side plate left — lower front clip |
-| P23 | M20.d | upper_front_clip | Side plate left — upper front clip |
-| P29 | M29.a | side_plate_right_metal (Y-mirror of M20.a) | Side plate right — body |
-| P30 | M29.b | back_clip (Y-mirror of M20.b) | Side plate right — back clip |
-| P31 | M29.c | lower_front_clip (Y-mirror of M20.c) | Side plate right — lower front clip |
-| P32 | M29.d | upper_front_clip (Y-mirror of M20.d) | Side plate right — upper front clip |
-| P07 (Z-face) | M36.a | engine_holder_vertical_plate_p1of2 | Vertical plate p1of2 — gantry-fixed back plate |
-| P36 | M36.b | engine_holder_vertical_plate_p2of2 | Vertical plate p2of2 — sliding front plate |
-| P40 | M40.a | engine_holder_top_plate | Top stepper holder — Z motor mount |
-| P24 | M24.a | router_clamp_bottom | Router clamp — bottom half |
-| P24 | M24.b | router_clamp_top | Router clamp — top half |
-| — (new) | MX.1 | engine_sideways_belt_clamp | Sideways belt clamp |
-
-## 3D assembly
-
-The animated GIFs below show the full machine. Per-component and per-stage GIFs are planned (see Render_requirements.md RR-03/RR-04).
+## 3D assembly animations
 
 | Animation | Description |
 |---|---|
@@ -33,12 +29,13 @@ The animated GIFs below show the full machine. Per-component and per-stage GIFs 
 | ![Explode](../images/metal/cnc_assembly_explode_gif.gif) | Explode / re-assemble |
 | ![Kinematic](../images/metal/cnc_assembly_gif.gif) | Kinematic — gantry travel + Z-slider |
 
-## Build pages
+## Sub-assembly pages
 
-Follow the same sequence as the plastic build. Where a plastic part is replaced by a metal equivalent, the M-code is shown and a plan-view image of the metal part is included.
-
-- [Main frame](01-main-frame.md) — frame unchanged from plastic build
-- [Y-axis](02-y-axis.md) — side plates M20.a–d / M29.a–d replace P20–P23, P29–P32
-- [X-axis and Z-axis](03-x-axis-and-z-axis.md) — Z-axis plates M36.a/b, M40.a, M24.a/b, MX.1
-- [Stepper motors and end-stops](04-stepper-motors-and-end-stops.md) — unchanged
-- [Router](05-router.md) — router clamps M24.a/b instead of P24
+| Page | What it covers | Staged GIF frames |
+|------|---------------|-------------------|
+| [I. Aluminium frame](01-aluminium-frame.md) | Frame profiles (O07/O04/O06), Y-rails (O21) | Stage 1 (0–7) |
+| [II. Side plates & Y-axis](02-side-plates.md) | M20/M29 side plates, Y motors (E18), HTD5M belts (O17) | Stage 2 (8–15) |
+| [III. Gantry & X-axis](03-gantry.md) | Bridge beams (O05), carriage (P07), X motor (E18), HTD5M belt | Stage 3 (16–23) |
+| [IV. Engine plate p1of2](04-engine-plate-p1of2.md) | M36.a, 4× MGN12H blocks (O22) | Stage 4 (24–31) |
+| [V. Z-axis drive](05-z-axis-drive.md) | M40.a, Z stepper (E11), GT2 belt (O14), acme rod (O02) | Stage 4 (24–31) |
+| [VI. Engine plate p2of2 & router](06-engine-plate-p2of2.md) | M36.b, Z-rails (O20), router clamps M24.a/b | Stage 4 (24–31) |
