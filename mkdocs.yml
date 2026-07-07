@@ -10,6 +10,7 @@ theme:
     - navigation.tabs.sticky
 nav:
 - Plastic - Bill of materials: BILLOFMATERIAL.md
+- Plastic - Shopping: shopping.md
 - Plastic - Instructions:
   - Main frame: 01-main-frame.md
   - Y-axis: 02-y-axis.md
