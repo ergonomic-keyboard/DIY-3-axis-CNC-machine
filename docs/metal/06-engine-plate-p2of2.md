@@ -22,9 +22,9 @@
 | E20   | Makita RT0700C(J) trimming router | 1 | — |
 | E04   | 220V power plug | 1 | — |
 | E05   | 220V power socket | 1 | — |
-| S04   | M3×20 mm screw (Z-rails to M36.b back face) | 16 | `BoltM3_P2_*` |
+| S04   | M3×20 mm screw (Z-rails to M36.b back face) | 16 | `Bolt_P2_*_M3` |
 | S05   | M3×25 mm screw (M36.b carriages to M36.a blocks) | 16 | — |
-| S11   | M4×40 mm screw (router clamps) | 4 | `Bolt_RC_*` |
+| S11   | M4×40 mm screw (router clamps) | 4 | `Bolt_RC_*_M4` |
 | O11   | Cable ties | ~5 | — |
 | O13   | Flexible conduit | ~0.5 m | — |
 

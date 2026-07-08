@@ -39,10 +39,13 @@ REPO   = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
 METAL  = os.path.join(REPO, "hardware_mods/metal_plates/examples")
 OUT    = os.path.join(REPO, "hardware_mods/metal_plates/assembly")
 
-FCSTD_PATH        = os.path.join(OUT, "cnc_assembly.FCStd")
+ASSEMBLY_VERSION  = "v2"
+
+FCSTD_PATH        = os.path.join(OUT, f"cnc_assembly_{ASSEMBLY_VERSION}.FCStd")
 GIF_PATH          = os.path.join(OUT, "cnc_assembly_gif.gif")
 EXPLODE_GIF_PATH  = os.path.join(OUT, "cnc_assembly_explode_gif.gif")
 STAGED_GIF_PATH   = os.path.join(OUT, "cnc_assembly_staged_gif.gif")
+SUBCOMPONENT_DIR  = os.path.join(OUT, "subcomponents")
 
 # ── Colors (R,G,B floats 0–1) ─────────────────────────────────────────────────
 COL_EXTRUSION = (0.70, 0.72, 0.75)
@@ -51,6 +54,56 @@ COL_METAL     = (0.55, 0.60, 0.65)
 COL_BLOCK     = (0.40, 0.42, 0.45)
 COL_BOLT      = (0.18, 0.18, 0.22)   # dark steel
 COL_NUT       = (0.28, 0.24, 0.10)   # slightly warm / galvanised
+COL_PLACEHOLDER = (0.86, 0.55, 0.20) # visible orange for missing STEP fallback
+
+# ── C.2 / C.3 / C.4 — parametric fastener catalogue ───────────────────────────
+# Single source of truth. Swap a bolt size (M3→M5) and shaft_d, head_d, hole_d
+# all update together, and the hole clearance follows the bolt (ISO 273 medium
+# clearance). Each entry also carries the thread spec used as an annotation on
+# every produced hole / nut / bolt so tooling can distinguish M-through-hole
+# from M-tapped-thread.
+#
+# Fields:
+#   shaft_d   — nominal thread diameter (mm)
+#   head_d    — hex socket head diameter (mm, ISO 4762)
+#   head_h    — head height (mm)
+#   nut_af    — hex-nut across-flats (mm, ISO 4032/DIN 934)
+#   nut_thk   — hex-nut thickness    (mm, ISO 4032/DIN 934)
+#   clearance — through-hole clearance diameter, medium fit (mm, ISO 273)
+#   tap       — recommended tap-drill diameter for threaded engagement (mm)
+FASTENERS: dict[str, dict] = {
+    "M3": {"shaft_d": 3.0, "head_d": 5.5, "head_h": 3.0,
+           "nut_af": 5.5,  "nut_thk": 2.4, "clearance": 3.4, "tap": 2.5},
+    "M4": {"shaft_d": 4.0, "head_d": 7.0, "head_h": 3.5,
+           "nut_af": 7.0,  "nut_thk": 3.2, "clearance": 4.5, "tap": 3.3},
+    "M5": {"shaft_d": 5.0, "head_d": 9.0, "head_h": 4.0,
+           "nut_af": 8.0,  "nut_thk": 4.0, "clearance": 5.5, "tap": 4.2},
+    "M8": {"shaft_d": 8.0, "head_d": 13.,  "head_h": 5.5,
+           "nut_af": 13.,  "nut_thk": 6.5, "clearance": 9.0, "tap": 6.8},
+}
+
+
+def fastener(size: str) -> dict:
+    """Return the parametric spec for a bolt size (raises KeyError on unknown)."""
+    return FASTENERS[size]
+
+
+def hole_d(size: str) -> float:
+    """Through-hole clearance diameter (medium fit ISO 273) for `size`."""
+    return FASTENERS[size]["clearance"]
+
+
+def thread_spec(size: str, tapped: bool = False) -> str:
+    """Machine-readable thread spec used in annotations & object labels.
+
+    - Through-hole:  "M5 clearance Ø5.5 (ISO 273 medium)"
+    - Tapped hole:   "M5 tapped, pilot Ø4.2 (ISO 262)"
+    """
+    fs = FASTENERS[size]
+    if tapped:
+        return f"{size} tapped, pilot Ø{fs['tap']:.1f} (ISO 262)"
+    return f"{size} clearance Ø{fs['clearance']:.1f} (ISO 273 medium)"
+
 
 # ── Mutable globals ───────────────────────────────────────────────────────────
 doc: "FreeCAD.Document | None" = None
@@ -62,8 +115,14 @@ _z_slider:  list[tuple[str, float]] = []   # (name, base_z)
 _explode_offsets: dict[str, tuple]                  = {}
 _explode_bases:   dict[str, "FreeCAD.Placement"]   = {}
 
+# thread annotations: object_name → spec string (surface for BOM + auditing)
+_THREAD_SPEC: dict[str, str] = {}
+
 # build-stage mapping  (1=frame, 2=side plates, 3=gantry beams, 4=Z-axis, 5=fasteners)
 _STAGE: dict[str, int] = {}
+
+# subcomponent mapping (I..VI) — used by --subcomponent-render (C.6)
+_SUBCOMP: dict[str, str] = {}
 
 
 # ── Low-level geometry helpers ────────────────────────────────────────────────
@@ -84,7 +143,25 @@ def add_box(name, lx, ly, lz, x, y, z, color=COL_EXTRUSION):
 
 
 def add_step(name, path, x=0., y=0., z=0.,
-             yaw=0., pitch=0., roll=0., color=COL_METAL):
+             yaw=0., pitch=0., roll=0., color=COL_METAL,
+             fallback_box: tuple | None = None):
+    """Load `path` as a Part::Feature. If it is missing and `fallback_box`
+    is supplied (as (lx, ly, lz)), a labelled placeholder is added instead
+    so the assembly still builds — this satisfies C.0 (a 3D representation
+    is available for every metal part, even if the STEP export is pending).
+    """
+    if not os.path.exists(path):
+        if fallback_box is not None:
+            lx, ly, lz = fallback_box
+            obj = doc.addObject("Part::Feature", name)
+            obj.Shape = Part.makeBox(lx, ly, lz)
+            _place(obj, x, y, z, yaw, pitch, roll)
+            _color_queue.append((obj.Name, COL_PLACEHOLDER))
+            print(f"[assemble] WARNING: missing STEP {path} — using placeholder box",
+                  flush=True)
+            return obj
+        raise FileNotFoundError(
+            f"STEP file not found and no fallback_box given: {path}")
     shape = Part.Shape()
     shape.read(path)
     obj = doc.addObject("Part::Feature", name)
@@ -120,9 +197,21 @@ def _cyl(r, h, bx, by, bz, axis):
 
 
 def add_bolt(name, bx, by, bz, axis='+z',
-             shaft_d=5., shaft_l=20., head_d=9., head_h=4.,
+             size='M5', shaft_l=20.,
+             shaft_d=None, head_d=None, head_h=None,
              color=COL_BOLT):
-    """Head base at (bx,by,bz); shaft extends in `axis` direction."""
+    """Head base at (bx,by,bz); shaft extends in `axis` direction.
+
+    Parametric on `size` (e.g. 'M3', 'M5'). shaft_d/head_d/head_h can be
+    explicitly overridden but by default follow the FASTENERS catalogue —
+    so `size='M4'` (swap from M5) automatically resizes the head and shaft
+    and lets the associated hole-clearance function `hole_d(size)` return
+    the matching Ø4.5. This satisfies C.2.
+    """
+    fs = FASTENERS[size]
+    shaft_d = fs["shaft_d"] if shaft_d is None else shaft_d
+    head_d  = fs["head_d"]  if head_d  is None else head_d
+    head_h  = fs["head_h"]  if head_h  is None else head_h
     dv = _DIR[axis]
     head  = _cyl(head_d/2, head_h, bx, by, bz, axis)
     shaft = _cyl(shaft_d/2, shaft_l,
@@ -131,22 +220,32 @@ def add_bolt(name, bx, by, bz, axis='+z',
     obj = doc.addObject("Part::Feature", name)
     obj.Shape = head.fuse(shaft)
     _color_queue.append((obj.Name, color))
+    _THREAD_SPEC[obj.Name] = f"{size}×{shaft_l:.0f} bolt (ISO 4762)"
     return obj
 
 
-def add_nut(name, cx, cy, cz, axis='+z',
-            af=8., thick=4., hole_d=5., color=COL_NUT):
-    """Annular nut centred at (cx,cy,cz), axis along `axis`."""
+def add_nut(name, cx, cy, cz, axis='+z', size='M5',
+            af=None, thick=None, inner_d=None, color=COL_NUT):
+    """Annular hex-nut centred at (cx,cy,cz), axis along `axis`.
+
+    Parametric on `size`: swapping M4→M5 rescales AF/thickness and the
+    through-bore. Overrides remain available for special captive nuts.
+    """
+    fs = FASTENERS[size]
+    af      = fs["nut_af"]  if af      is None else af
+    thick   = fs["nut_thk"] if thick   is None else thick
+    inner_d = fs["shaft_d"] if inner_d is None else inner_d
     dv = _DIR[axis]
     r_out = af / math.sqrt(3)
     bx = cx - dv[0]*thick/2
     by = cy - dv[1]*thick/2
     bz = cz - dv[2]*thick/2
-    outer = _cyl(r_out,    thick, bx, by, bz, axis)
-    inner = _cyl(hole_d/2, thick, bx, by, bz, axis)
+    outer = _cyl(r_out,     thick, bx, by, bz, axis)
+    inner = _cyl(inner_d/2, thick, bx, by, bz, axis)
     obj = doc.addObject("Part::Feature", name)
     obj.Shape = outer.cut(inner)
     _color_queue.append((obj.Name, color))
+    _THREAD_SPEC[obj.Name] = f"{size} hex-nut (ISO 4032/DIN 934)"
     return obj
 
 
@@ -243,6 +342,61 @@ def _assign_stages():
             _STAGE[name] = 5   # all bolts, nuts, threaded rods
 
 
+# ── C.6 — sub-component grouping (I..VI in the metal instructions site) ──────
+
+SUBCOMP_ORDER = ["I", "II", "III", "IV", "V", "VI"]
+SUBCOMP_TITLES = {
+    "I":   "Aluminium frame",
+    "II":  "Side plates & Y-axis",
+    "III": "Gantry & X-axis",
+    "IV":  "Engine plate p1of2",
+    "V":   "Z-axis drive",
+    "VI":  "Engine plate p2of2 & router",
+}
+
+
+def _classify_subcomponent(name: str) -> str:
+    """Map an assembly object name to the sub-component (I..VI) it belongs to.
+
+    Rules mirror the docs/metal/01..06 pages so each rendered GIF matches the
+    build-guide page it accompanies.  Fasteners are attached to whichever
+    subcomponent they physically bolt.
+    """
+    # I. Aluminium frame
+    if name.startswith("Frame_") or name in ("Rail_Y_Left", "Rail_Y_Right"):
+        return "I"
+    # II. Side plates & Y-axis
+    if "Side_Plate" in name or "Clip" in name or "LClip" in name or "RClip" in name:
+        return "II"
+    # III. Gantry & X-axis (includes gantry-beam tie rods)
+    if (name.startswith("Gantry_Beam") or name.startswith("Rail_X") or
+            name.startswith("Rod_Beam") or name.startswith("NutR_Beam") or
+            "Engine_Sideways" in name):
+        return "III"
+    # IV. Engine plate p1of2 (p1 plate + MGN12H blocks + block bolts + p1 tab bolts)
+    if (name == "Engine_Holder_P1" or "MGN12H_Block" in name or
+            name.startswith("Bolt_Blk_") or "Bolt_P1_" in name or
+            "Nut_P1_" in name):
+        return "IV"
+    # V. Z-axis drive (top stepper holder + its bolts)
+    if "Top_Stepper" in name or name.startswith("Bolt_TSH_"):
+        return "V"
+    # VI. Engine plate p2of2 & router
+    if (name == "Engine_Holder_P2" or "Router_Clamp" in name or
+            name.startswith("Bolt_P2_") or name.startswith("Bolt_RC_") or
+            name.startswith("Rail_Z")):
+        return "VI"
+    # Default catch-all: axis indicator etc.
+    return "I"
+
+
+def _assign_subcomponents():
+    """Populate _SUBCOMP for every registered object (C.6)."""
+    _SUBCOMP.clear()
+    for name in _explode_offsets:
+        _SUBCOMP[name] = _classify_subcomponent(name)
+
+
 def set_staged_assembly(stage_num: int, stage_frac: float):
     """
     Animate a staged build:  earlier stages are assembled (t=0),
@@ -270,12 +424,20 @@ def set_staged_assembly(stage_num: int, stage_frac: float):
 
 # ── Fastener sub-assemblies ───────────────────────────────────────────────────
 
-def _add_p1of2_outtake_bolts():
+def _add_p1of2_outtake_bolts(bolt_size: str = 'M5'):
     """
     p1of2 has four TAB EXTENSIONS that protrude beyond the plate's top and
-    bottom edges.  Each tab captures one M5 DIN 934 nut (AF=8 mm).  The bolt
-    comes from above (top tabs) or below (bottom tabs) — this is the 'weird way'
-    the bolt/nut assembly sticks out of the plate edge.
+    bottom edges.  Each tab captures one hex nut (default M5, AF=8 mm).  The
+    bolt comes from above (top tabs) or below (bottom tabs) — this is the
+    'weird way' the bolt/nut assembly sticks out of the plate edge.
+
+    C.1 — bolt axis is vertical (±Z), so the *nut axis is also vertical*.
+    In every 2D plan view the nut must therefore appear as a rectangle
+    (side profile) rather than a hexagon (face view).  See build_model.py's
+    render_plan with orientation='z_up' / 'z_down'.
+
+    C.2 — swap `bolt_size` (e.g. 'M4' vs 'M5') and both bolt+nut+hole
+    dimensions update via the FASTENERS catalogue.
 
     p1of2 world positions after placement (x=137, y=-35, z=93, yaw=90):
         world_Y  = local_X − 35
@@ -289,41 +451,51 @@ def _add_p1of2_outtake_bolts():
         BR  local_x≈437, local_z≈−12  →  world y=402, z=81
     """
     P1_X = 140          # world X centre of plate
+    fs = fastener(bolt_size)
+    nut_thk = fs["nut_thk"]
+    head_h  = fs["head_h"]
+    gap = nut_thk + head_h + 4     # small clearance between head base and nut
 
     # Top tabs: head above, shaft pointing −Z through tab and into beam above
     for tag, wy in [("TL", 337), ("TR", 402)]:
         wz_nut  = 314
-        wz_head = wz_nut + 14
+        wz_head = wz_nut + gap
         gantry(explode_with(
-            add_bolt(f"Bolt_P1_Top_{tag}", P1_X, wy, wz_head,
-                     axis='-z', shaft_d=5, shaft_l=22, head_d=9, head_h=4),
+            add_bolt(f"Bolt_P1_Top_{tag}_{bolt_size}", P1_X, wy, wz_head,
+                     axis='-z', size=bolt_size, shaft_l=22),
             dx=80))
         gantry(explode_with(
-            add_nut(f"Nut_P1_Top_{tag}", P1_X, wy, wz_nut,
-                    axis='+z', af=8, thick=4, hole_d=5),
+            add_nut(f"Nut_P1_Top_{tag}_{bolt_size}", P1_X, wy, wz_nut,
+                    axis='+z', size=bolt_size),
             dx=80))
 
     # Bottom tabs: head below, shaft pointing +Z through tab and into beam below
     for tag, wy in [("BL", 337), ("BR", 402)]:
         wz_nut  = 81
-        wz_head = wz_nut - 14
+        wz_head = wz_nut - gap
         gantry(explode_with(
-            add_bolt(f"Bolt_P1_Bot_{tag}", P1_X, wy, wz_head,
-                     axis='+z', shaft_d=5, shaft_l=22, head_d=9, head_h=4),
+            add_bolt(f"Bolt_P1_Bot_{tag}_{bolt_size}", P1_X, wy, wz_head,
+                     axis='+z', size=bolt_size, shaft_l=22),
             dx=80))
         gantry(explode_with(
-            add_nut(f"Nut_P1_Bot_{tag}", P1_X, wy, wz_nut,
-                    axis='+z', af=8, thick=4, hole_d=5),
+            add_nut(f"Nut_P1_Bot_{tag}_{bolt_size}", P1_X, wy, wz_nut,
+                    axis='+z', size=bolt_size),
             dx=80))
 
 
-def _add_mgn12h_block_bolts():
+def _add_mgn12h_block_bolts(bolt_size: str = 'M3'):
     """
     Each MGN12H block is 13 mm deep (X) × 26 mm wide (Y) × 34 mm tall (Z).
     Blocks are bolted FIXED to p1of2 back face at world X=143 (block X: 143→156).
-    M3 hex-head bolts: head on outer block face (X≈159), shaft into p1of2.
+    Hex-head bolts (default M3): head on outer block face, shaft into p1of2.
     4 bolts per block at ±8 mm Y, ±10 mm Z from block centre.
+
+    C.3 — bolt-head base is offset from the block outer face by exactly
+    head_h(size), so the shaft enters the block hole rather than clipping
+    into solid metal, regardless of `bolt_size`.
     """
+    fs = fastener(bolt_size)
+    head_base_x = 143 + 13 + fs["head_h"]   # block outer face + head height
     for blk_y0, blk_z0 in [
         (444, 140),   # LL
         (444, 240),   # LU
@@ -334,19 +506,20 @@ def _add_mgn12h_block_bolts():
         bc_z = blk_z0 + 17
         for n, (dy, dz) in enumerate([(+8,+10),(+8,-10),(-8,+10),(-8,-10)]):
             gantry(explode_with(
-                add_bolt(f"BoltM3_Blk_{blk_y0}_{blk_z0}_{n}",
-                         159, bc_y+dy, bc_z+dz,
-                         axis='-x', shaft_d=3, shaft_l=20, head_d=5.5, head_h=3),
+                add_bolt(f"Bolt_Blk_{blk_y0}_{blk_z0}_{n}_{bolt_size}",
+                         head_base_x, bc_y+dy, bc_z+dz,
+                         axis='-x', size=bolt_size, shaft_l=20),
                 dx=130))
 
 
-def _add_p2of2_bolts():
+def _add_p2of2_bolts(bolt_size: str = 'M3'):
     """
     p2of2 (the sliding plate) rides on the four MGN12H block carriages.
-    M3 bolts through p2of2 front face into each carriage.
-    Head on p2of2 front (X≈169), shaft in −X direction.
-    These bolts travel with z_slide.
+    Default M3 bolts through p2of2 front face into each carriage.
+    Head on p2of2 front, shaft in −X direction.  These bolts travel with z_slide.
     """
+    fs = fastener(bolt_size)
+    head_base_x = 166 + fs["head_h"]     # p2of2 front face + head height
     for blk_y0, blk_z0 in [
         (444, 140), (444, 240),
         (379, 140), (379, 240),
@@ -355,55 +528,51 @@ def _add_p2of2_bolts():
         bc_z = blk_z0 + 17
         for n, (dy, dz) in enumerate([(+6,+8),(+6,-8),(-6,+8),(-6,-8)]):
             gantry(z_slide(explode_with(
-                add_bolt(f"BoltM3_P2_{blk_y0}_{blk_z0}_{n}",
-                         169, bc_y+dy, bc_z+dz,
-                         axis='-x', shaft_d=3, shaft_l=14, head_d=5.5, head_h=3),
+                add_bolt(f"Bolt_P2_{blk_y0}_{blk_z0}_{n}_{bolt_size}",
+                         head_base_x, bc_y+dy, bc_z+dz,
+                         axis='-x', size=bolt_size, shaft_l=14),
                 dx=200)))
 
 
-def _add_stepper_holder_bolts():
+def _add_stepper_holder_bolts(bolt_size: str = 'M5'):
     """
-    Top stepper holder bolts down into p1of2 via holes A and B.
-    Hole A: local x≈386 → world y=351, z=303
-    Hole B: local x≈423 → world y=388, z=303
-    Bolt head at top of holder, shaft −Z into plate.
+    Top stepper holder bolts down into p1of2 via holes A and B (M40.a).
+    Bolt head at top of holder, shaft −Z into plate.  Default M5.
     """
     P1_X = 140
     wz_head = 320
     for tag, wy in [("A", 351), ("B", 388)]:
         gantry(explode_with(
-            add_bolt(f"Bolt_TSH_{tag}", P1_X, wy, wz_head,
-                     axis='-z', shaft_d=5, shaft_l=22, head_d=9, head_h=4),
+            add_bolt(f"Bolt_TSH_{tag}_{bolt_size}", P1_X, wy, wz_head,
+                     axis='-z', size=bolt_size, shaft_l=22),
             dz=70))
 
 
-def _add_gantry_beam_rods(GZ_L, GZ_U):
+def _add_gantry_beam_rods(GZ_L, GZ_U, bolt_size: str = 'M5'):
     """
-    Two M5 threaded rods run the full Y width (0→793) through the gantry
-    beam stack, tying beams and side plates together.
-    One rod per beam level (lower and upper).
+    Two threaded rods (default M5) run the full Y width (0→793) through the
+    gantry beam stack, tying beams and side plates together.  One rod per
+    beam level (lower and upper).
     """
     for tag, rx, rz in [
         ("Lo", 85,  GZ_L + 15),
         ("Up", 123, GZ_U + 15),
     ]:
-        # Rod: head (nut style) at left end (Y=−2), tip at Y=795
         gantry(explode_with(
-            add_bolt(f"Rod_Beam_{tag}", rx, -2, rz,
-                     axis='+y', shaft_d=5, shaft_l=797, head_d=9, head_h=4),
+            add_bolt(f"Rod_Beam_{tag}_{bolt_size}", rx, -2, rz,
+                     axis='+y', size=bolt_size, shaft_l=797),
             dz=90))
-        # Right-end nut
         gantry(explode_with(
-            add_nut(f"NutR_Beam_{tag}", rx, 793, rz,
-                    axis='+y', af=8, thick=4, hole_d=5),
+            add_nut(f"NutR_Beam_{tag}_{bolt_size}", rx, 793, rz,
+                    axis='+y', size=bolt_size),
             dz=90))
 
 
-def _add_side_plate_clip_bolts():
+def _add_side_plate_clip_bolts(bolt_size: str = 'M5'):
     """
-    M5 bolts through the beam-blocker clips into the side plates (Y direction).
+    Bolts through the beam-blocker clips into the side plates (Y direction).
     Left clips: bolt head at Y≈−5, shaft going +Y into side plate.
-    Right clips: mirrored.
+    Right clips: mirrored.  Default M5.
     """
     for clip_x, clip_z, expl_y in [
         (30,  155, -60),   # left back clip
@@ -412,36 +581,35 @@ def _add_side_plate_clip_bolts():
         (10,  190, -60),   # left upper-front clip
     ]:
         gantry(explode_with(
-            add_bolt(f"Bolt_LClip_{clip_x}_{clip_z}",
+            add_bolt(f"Bolt_LClip_{clip_x}_{clip_z}_{bolt_size}",
                      clip_x, -4, clip_z,
-                     axis='+y', shaft_d=5, shaft_l=28, head_d=9, head_h=4),
+                     axis='+y', size=bolt_size, shaft_l=28),
             dy=expl_y))
         gantry(explode_with(
-            add_nut(f"Nut_LClip_{clip_x}_{clip_z}",
+            add_nut(f"Nut_LClip_{clip_x}_{clip_z}_{bolt_size}",
                     clip_x, 20, clip_z,
-                    axis='+y', af=8, thick=4, hole_d=5),
+                    axis='+y', size=bolt_size),
             dy=expl_y))
-        # Mirror for right side
         gantry(explode_with(
-            add_bolt(f"Bolt_RClip_{clip_x}_{clip_z}",
+            add_bolt(f"Bolt_RClip_{clip_x}_{clip_z}_{bolt_size}",
                      clip_x, 797, clip_z,
-                     axis='-y', shaft_d=5, shaft_l=28, head_d=9, head_h=4),
+                     axis='-y', size=bolt_size, shaft_l=28),
             dy=-expl_y))
         gantry(explode_with(
-            add_nut(f"Nut_RClip_{clip_x}_{clip_z}",
+            add_nut(f"Nut_RClip_{clip_x}_{clip_z}_{bolt_size}",
                     clip_x, 773, clip_z,
-                    axis='+y', af=8, thick=4, hole_d=5),
+                    axis='+y', size=bolt_size),
             dy=-expl_y))
 
 
-def _add_router_clamp_bolts():
-    """M4 bolts clamping the router inside the clamp pair (running in Y)."""
+def _add_router_clamp_bolts(bolt_size: str = 'M4'):
+    """Bolts clamping the router inside the clamp pair (running in Y).  Default M4."""
     for clamp_z, expl_x in [(160, 240), (195, 240)]:
         for n, cy in enumerate([415, 435]):
             gantry(z_slide(explode_with(
-                add_bolt(f"Bolt_RC_{clamp_z}_{n}",
+                add_bolt(f"Bolt_RC_{clamp_z}_{n}_{bolt_size}",
                          165, cy, clamp_z,
-                         axis='+x', shaft_d=4, shaft_l=20, head_d=7, head_h=3.5),
+                         axis='+x', size=bolt_size, shaft_l=20),
                 dx=expl_x)))
 
 
@@ -510,12 +678,16 @@ def _build_assembly(document):
     # ── Z-AXIS ────────────────────────────────────────────────────────────────
     MV = f"{METAL}/mid_vertical_movement"
 
-    # p1of2: gantry-fixed back plate
+    # p1of2: gantry-fixed back plate.  STEP is regenerated from
+    # manual_design/v16.FCStd — see export_manual_steps.py.  If missing,
+    # a 6 × 147.5 × 218.3 mm placeholder box is used so the assembly still
+    # renders (C.0).
     gantry(explode_with(
         add_step("Engine_Holder_P1",
             f"{MV}/engine_holder_vertical_plate_p1of2"
             "/5_models_and_renders/starting_point_rect_metal.step",
-            x=137, y=-35, z=93, yaw=90),
+            x=137, y=-35, z=93, yaw=90,
+            fallback_box=(6, 147.5, 218.3)),
         dx=80))
 
     # Z-rails: slide with p2of2
@@ -531,12 +703,14 @@ def _build_assembly(document):
     ]:
         gantry(explode_with(add_box(blk_name, 13, 26, 34, 143, by, bz, COL_BLOCK), dx=130))
 
-    # p2of2: sliding plate
+    # p2of2: sliding plate.  Missing STEP falls back to a 6 × 145 × 200 mm
+    # placeholder so the assembly still animates (C.0).
     P2 = (f"{MV}/engine_holder_vertical_plate_p2of2"
           "/5_models_and_renders/engine_holder_vertical_plate_p2of2.step")
     gantry(z_slide(explode_with(
         add_step("Engine_Holder_P2", P2,
-                 x=166, y=425, z=210, yaw=90, pitch=180, roll=-90),
+                 x=166, y=425, z=210, yaw=90, pitch=180, roll=-90,
+                 fallback_box=(6, 145, 200)),
         dx=190)))
 
     # Router clamps
@@ -574,6 +748,18 @@ def _build_assembly(document):
     _add_gantry_beam_rods(GZ_L, GZ_U)
     _add_side_plate_clip_bolts()
     _add_router_clamp_bolts()
+
+    # C.4 — attach the thread spec to each fastener as a FreeCAD label so the
+    # BOM export and any downstream reader can inspect it without inferring
+    # from the object name.
+    for obj_name, spec in _THREAD_SPEC.items():
+        obj = doc.getObject(obj_name)
+        if obj is None:
+            continue
+        try:
+            obj.Label = f"{obj_name} — {spec}"
+        except Exception:
+            pass
 
     doc.recompute()
 
@@ -914,6 +1100,103 @@ def _render_staged_inner():
     print(f"[staged] GIF saved → {STAGED_GIF_PATH}", flush=True)
 
 
+# ── Sub-component render subprocess (C.6) ─────────────────────────────────────
+
+def _render_subcomponent_inner(sc: str):
+    """
+    Exploded-view GIF + MP4 of a single sub-component I..VI.
+    Objects not in the requested sub-component are hidden (visibility=False).
+    Camera pans while the sub-component explodes → assembles → holds.
+
+    Outputs (into assembly/subcomponents/):
+      cnc_subcomponent_<sc>_explode.gif
+      cnc_subcomponent_<sc>_explode.mp4
+    """
+    import FreeCADGui
+    FRAMES, FPS, W, H = 36, 6, 800, 600
+    GANTRY_MID = 265.
+
+    print(f"[sub {sc}] Starting FreeCADGui ...", flush=True)
+    FreeCADGui.showMainWindow(); time.sleep(1.0)
+
+    doc_obj = FreeCAD.newDocument(f"CNC_Sub_{sc}")
+    _build_assembly(doc_obj); time.sleep(0.5)
+    _apply_colours(FreeCADGui)
+
+    set_gantry_x(GANTRY_MID); set_slider_z(0.); doc.recompute()
+    rerecord_explode_bases()
+    _assign_subcomponents()
+
+    # hide every object that is not in the requested sub-component
+    gdoc = FreeCADGui.getDocument(doc.Name)
+    for name, group in _SUBCOMP.items():
+        if group == sc:
+            continue
+        vobj = gdoc.getObject(name) if gdoc else None
+        if vobj is not None:
+            try: vobj.Visibility = False
+            except Exception: pass
+        # also hide non-registered helper objects that happen to share the group
+    # keep axis indicator visible
+    for ax in ("Axis_X", "Axis_Y", "Axis_Z"):
+        if gdoc:
+            v = gdoc.getObject(ax)
+            if v is not None:
+                try: v.Visibility = True
+                except Exception: pass
+
+    view = _get_view(FreeCADGui)
+    if view is None:
+        print(f"[sub {sc}] ERROR: no active view", flush=True); return
+    try: view.setCameraType("Perspective")
+    except Exception: pass
+
+    def explode_fn(i):
+        if i < 8:                       # hold exploded, camera rotates
+            return 1.0
+        if i < 24:                      # assemble (16 frames)
+            return 1.0 - (i - 8) / 15.0
+        return 0.0                      # hold assembled, camera rotates
+
+    os.makedirs(SUBCOMPONENT_DIR, exist_ok=True)
+    out_gif = os.path.join(SUBCOMPONENT_DIR, f"cnc_subcomponent_{sc}_explode.gif")
+    out_mp4 = os.path.join(SUBCOMPONENT_DIR, f"cnc_subcomponent_{sc}_explode.mp4")
+
+    frame_paths = []
+    tmpdir = tempfile.mkdtemp(prefix=f"cnc_sub_{sc}_")
+    _set_camera(view, 0, FRAMES)
+    doc.recompute(); time.sleep(0.3)
+
+    for i in range(FRAMES):
+        set_explode_factor(explode_fn(i))
+        doc.recompute()
+        _set_camera(view, i, FRAMES)
+        png = os.path.join(tmpdir, f"frame_{i:03d}.png")
+        view.saveImage(png, W, H, "White")
+        _rotate_frame(png)
+        frame_paths.append(png)
+        print(f"  [sub {sc}] frame {i+1:02d}/{FRAMES}  t={explode_fn(i):.2f}", flush=True)
+
+    concat = os.path.join(tmpdir, "frames.txt")
+    with open(concat, "w") as f:
+        for p in frame_paths:
+            f.write(f"file '{p}'\nduration {1/FPS:.4f}\n")
+
+    # GIF
+    subprocess.run([
+        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat,
+        "-vf", "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
+        "-loop", "0", out_gif,
+    ], check=True)
+    # MP4 (C.6.1 — same source frames, H.264 encode)
+    subprocess.run([
+        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat,
+        "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2",
+        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "22", out_mp4,
+    ], check=False)   # tolerate missing libx264
+    print(f"[sub {sc}] Saved → {out_gif}", flush=True)
+
+
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 def _main():
@@ -922,6 +1205,11 @@ def _main():
     parser.add_argument("--render",         action="store_true")
     parser.add_argument("--explode-render", action="store_true")
     parser.add_argument("--staged-render",  action="store_true")
+    parser.add_argument("--subcomponent-render", metavar="SC",
+                        choices=SUBCOMP_ORDER,
+                        help="internal subprocess mode: render one sub-component I..VI")
+    parser.add_argument("--subcomponents",  action="store_true",
+                        help="produce a GIF+MP4 per sub-component (I..VI) (C.6)")
     parser.add_argument("--explode",        action="store_true",
                         help="skip kinematic GIF, produce explode + staged GIFs only")
     args = parser.parse_args()
@@ -932,6 +1220,8 @@ def _main():
         _render_explode_inner(); return
     if args.staged_render:
         _render_staged_inner(); return
+    if args.subcomponent_render:
+        _render_subcomponent_inner(args.subcomponent_render); return
 
     # Phase 1: build & save FCStd (no GUI)
     print("[assemble] Building geometry ...", flush=True)
@@ -963,14 +1253,31 @@ def _main():
         _subprocess("--explode-render")
         print("[assemble] Rendering staged assembly GIF ...", flush=True)
         _subprocess("--staged-render")
+        if args.subcomponents:
+            for sc in SUBCOMP_ORDER:
+                print(f"[assemble] Rendering sub-component {sc} "
+                      f"({SUBCOMP_TITLES[sc]}) ...", flush=True)
+                # each sub-component runs in its own subprocess with a
+                # positional argument so FreeCAD's global state stays clean
+                r = subprocess.run(
+                    [sys.executable, os.path.abspath(__file__),
+                     "--subcomponent-render", sc],
+                    env=env, check=False)
+                if r.returncode != 0:
+                    print(f"[assemble] Sub-component {sc} exited {r.returncode}",
+                          flush=True)
     finally:
         xvfb.terminate(); xvfb.wait()
 
     print(f"[assemble] Done!\n"
+          f"  FCStd     → {FCSTD_PATH}\n"
           f"  Kinematic → {GIF_PATH}\n"
           f"  Explode   → {EXPLODE_GIF_PATH}\n"
           f"  Staged    → {STAGED_GIF_PATH}",
           flush=True)
+    if args.subcomponents:
+        print(f"  Sub-components → {SUBCOMPONENT_DIR}/cnc_subcomponent_*.gif",
+              flush=True)
 
 
 if __name__ == "__main__":

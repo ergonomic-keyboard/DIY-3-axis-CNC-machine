@@ -252,21 +252,88 @@ def _detect_slot_nut_centres(
 
 
 def _draw_m5_nuts(ax, centres: list[tuple[float, float]], *,
-                  af: float = 8.0, ac: float = 9.24,
+                  af: float = 8.0, ac: float = 9.24, thk: float = 4.0,
                   edgecolor: str = "red", lw: float = 1.4,
-                  zorder: int = 10) -> None:
-    """Draw an M5 hex nut outline (captive orientation: flats vertical) at
-    each (cx, cz). AF horizontal, AC vertical."""
+                  zorder: int = 10,
+                  orientations: list[str] | None = None) -> None:
+    """Draw hex-nut outlines at each ``(cx, cz)``.
+
+    ``orientations`` is an optional list, same length as ``centres`` (or
+    ``None`` for the plate-normal default).  Each entry is one of:
+
+    - ``"y"``  — nut axis along +Y (out of the drawing plane).  The plan
+      view is the hex FACE: regular hexagon, flats vertical (captive
+      slot orientation).  This is the default.
+    - ``"z_up"``   — nut axis along +Z.  Plan view is the SIDE PROFILE
+      (rectangle af × thk) whose head is above the ``(cx, cz)`` point,
+      i.e. the bolt enters from below (bottom tab of a plate).
+    - ``"z_down"`` — nut axis along −Z.  Plan view is the SIDE PROFILE
+      (rectangle af × thk) whose head is below the ``(cx, cz)`` point,
+      i.e. the bolt enters from above (top tab of a plate).
+
+    This is what fixes the M36.a plan: the four captive nuts inside the
+    plate's tab extensions have vertical axes, so they must be drawn as
+    rectangles, not hexagons.  See C.1 in Render_requirements.md.
+    """
     h, w, q = ac / 2, af / 2, ac / 4
-    for cx, cz in centres:
-        corners = [
-            (cx, cz + h), (cx + w, cz + q), (cx + w, cz - q),
-            (cx, cz - h), (cx - w, cz - q), (cx - w, cz + q),
-        ]
-        xs = [c[0] for c in corners] + [corners[0][0]]
-        zs = [c[1] for c in corners] + [corners[0][1]]
-        ax.plot(xs, zs, color=edgecolor, lw=lw, zorder=zorder)
+    orientations = orientations or ["y"] * len(centres)
+    for (cx, cz), ori in zip(centres, orientations):
+        if ori == "y":
+            corners = [
+                (cx, cz + h), (cx + w, cz + q), (cx + w, cz - q),
+                (cx, cz - h), (cx - w, cz - q), (cx - w, cz + q),
+            ]
+            xs = [c[0] for c in corners] + [corners[0][0]]
+            zs = [c[1] for c in corners] + [corners[0][1]]
+            ax.plot(xs, zs, color=edgecolor, lw=lw, zorder=zorder)
+        elif ori in ("z_up", "z_down"):
+            # side profile (rectangle) — head above (z_up) or below (z_down)
+            if ori == "z_up":
+                z0, z1 = cz, cz + thk
+            else:
+                z0, z1 = cz - thk, cz
+            xs = [cx - w, cx + w, cx + w, cx - w, cx - w]
+            zs = [z0,     z0,     z1,     z1,     z0    ]
+            ax.plot(xs, zs, color=edgecolor, lw=lw, zorder=zorder)
+            # small arrow on the drawing showing bolt entry direction
+            arrow_dz = -thk * 0.4 if ori == "z_up" else thk * 0.4
+            ax.annotate("", xy=(cx, cz + arrow_dz),
+                        xytext=(cx, cz + arrow_dz * 3),
+                        arrowprops=dict(arrowstyle="->",
+                                        color=edgecolor, lw=lw),
+                        zorder=zorder)
+        else:
+            raise ValueError(f"unknown nut orientation: {ori!r}")
         ax.plot([cx], [cz], "+", color=edgecolor, ms=6, zorder=zorder)
+
+
+def _classify_tab_nut_orientation(
+    centres: list[tuple[float, float]],
+    outline_xz_mm: list[tuple[float, float]],
+) -> list[str]:
+    """Return an orientation per nut centre.
+
+    Nuts sitting inside a TAB EXTENSION (protrusion above the plate top
+    edge or below the plate bottom edge) are Z-oriented — bolt enters
+    the tab vertically.  All other nuts use the default plate-normal
+    (Y) orientation.
+    """
+    zs = [p[1] for p in outline_xz_mm]
+    plate_top_z, plate_bottom_z = max(zs), min(zs)
+    plate_mid_z = (plate_top_z + plate_bottom_z) / 2
+    out = []
+    for cx, cz in centres:
+        # A nut whose centre sits above the plate mid-line is a top-tab
+        # nut → bolt enters from above (z_down).  Below → z_up.  This
+        # is only applied when the nut is close to the tab edge (within
+        # ~15 mm), so mid-plate keyhole nuts remain hex-face.
+        if abs(cz - plate_top_z) < 20:
+            out.append("z_down")
+        elif abs(cz - plate_bottom_z) < 20:
+            out.append("z_up")
+        else:
+            out.append("y")
+    return out
 
 
 def render_overlay(
@@ -319,7 +386,11 @@ def render_overlay(
         ))
 
     # --- M5 nut outlines inside each keyhole slot, resting on the ledge ---
-    _draw_m5_nuts(ax, _detect_slot_nut_centres(outline_xz_mm))
+    _centres = _detect_slot_nut_centres(outline_xz_mm)
+    _draw_m5_nuts(
+        ax, _centres,
+        orientations=_classify_tab_nut_orientation(_centres, outline_xz_mm),
+    )
 
     # --- Limits: enclose both layers ---
     all_x = list(xs) + [tris[:, :, 0].min(), tris[:, :, 0].max()]
@@ -357,7 +428,11 @@ def render_plan(
                        facecolor="white", edgecolor="black", lw=0.8)
         )
     # M5 nut outlines inside each keyhole slot, resting on the ledge.
-    _draw_m5_nuts(ax, _detect_slot_nut_centres(outline_xz_mm))
+    _centres = _detect_slot_nut_centres(outline_xz_mm)
+    _draw_m5_nuts(
+        ax, _centres,
+        orientations=_classify_tab_nut_orientation(_centres, outline_xz_mm),
+    )
     bbx0, bbx1 = min(xs), max(xs)
     bbz0, bbz1 = min(zs), max(zs)
     ax.set_xlim(bbx0 - 10, bbx1 + 10)

@@ -37,13 +37,13 @@ Left and right gantry holders: metal side plates (M20/M29) with Y-axis geared st
 | P27  | Right belt tensioner (3D-printed) | 2 | — |
 | P28  | Right fixed belt tensioner (3D-printed) | 2 | — |
 | P08  | End-stop mount ordinary (3D-printed) | 2 | — |
-| T01  | M5×140 mm threaded rod | 2 | `Rod_Beam_Lo`, `Rod_Beam_Up` |
+| T01  | M5×140 mm threaded rod | 2 | `Rod_Beam_Lo_M5`, `Rod_Beam_Up_M5` |
 | S14  | M5×60 mm screw (top beam) | 2 | — |
 | S04  | M3×20 mm screw (side plate to blocks) | 16 | — |
 | S06  | M3×40 mm screw (motor to side plate) | 8 | — |
 | S12  | M5×20 mm screw (tensioners, end-stop mounts) | 12 | — |
 | S15  | M8×60 mm fully-threaded screw (idlers, tensioners) | 5 | — |
-| N02  | M5 nut | ~4 | `NutR_Beam_*` |
+| N02  | M5 nut | ~4 | `NutR_Beam_*_M5`, `Nut_LClip_*_M5`, `Nut_RClip_*_M5` |
 | N03  | M8 nut | ~6 | — |
 | W03  | Washer 15×8.5×1.5 mm | 24 | — |
 | W04  | Washer 20×10×2 mm | 2 | — |

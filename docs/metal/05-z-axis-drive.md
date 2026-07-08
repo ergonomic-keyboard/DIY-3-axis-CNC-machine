@@ -21,7 +21,7 @@
 | O02  | Acme threaded rod 300 mm 8×8 mm | 1 | — |
 | O03  | Acme nut 8×8 mm | 1 | — (integrated in M36.b) |
 | O19  | KFL08 rod bearing 8 mm | 2 | — (top & bottom of carriage P07) |
-| S12  | M5×20 mm screw (M40.a holes A & B into M36.a) | 2 | `Bolt_TSH_*` |
+| S12  | M5×20 mm screw (M40.a holes A & B into M36.a) | 2 | `Bolt_TSH_*_M5` |
 | S08  | M3×8 mm screw (Z-motor to M40.a) | 4 | — |
 | W06  | Washer 8×4×1 mm | 4 | — |
 | S16  | M8×80 mm screw (M40.a to carriage) | 2 | — |

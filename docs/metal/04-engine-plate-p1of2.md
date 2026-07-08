@@ -13,6 +13,13 @@
 `M36a_vs_plastic`
 ![M36a_vs_plastic](../images/metal/components/M36a_vs_plastic.png)
 
+> **C.1 fix (2026-07-08)**: `M36a_plan` now shows the four captive nuts as
+> vertical side-profile rectangles rather than plate-normal hexagons.  The
+> top two bolts point **↑** (axis rotated 90° from the plate face) and the
+> bottom two point **↓** — the bolt enters the plate through the tab
+> extension, not through a face-normal hole.  See
+> `hardware_mods/metal_plates/render_m36a_plan.py` for the generator.
+
 **Other components** — unchanged:
 
 | Code | Part | Qty | 3D object |
@@ -20,7 +27,7 @@
 | O22   | MGN12H rail block (4× Z-axis, fixed to M36.a) | 4 | `MGN12H_Block_LL/LU/RL/RU` |
 | N02   | M5 DIN 934 nut (p1of2 outtake tab bolts) | 4 | `Nut_P1_Top/Bot_*` |
 | S12   | M5×20 mm screw (p1of2 tab bolts) | 4 | `Bolt_P1_Top/Bot_*` |
-| S03   | M3×16 mm screw (MGN12H blocks to M36.a) | 16 | `BoltM3_Blk_*` |
+| S03   | M3×16 mm screw (MGN12H blocks to M36.a) | 16 | `Bolt_Blk_*_M3` |
 
 ## 3D view — stage 4
 
