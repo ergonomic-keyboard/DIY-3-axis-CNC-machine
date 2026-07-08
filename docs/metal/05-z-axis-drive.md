@@ -2,6 +2,17 @@
 
 **M40.a** (engine_holder_top_plate) sits above M36.a and holds the Z-axis NEMA17 stepper motor (**E11**). The motor drives the acme rod (**O02**) via a GT2 belt with a 16T motor pulley and 60T rod pulley, giving a ~3.75:1 torque step-up. Two M5 bolts through holes A and B lock M40.a down into M36.a after belt tensioning.
 
+## 3D sub-assembly — M40.a + tie bolts
+
+Exploded → assembled animation of **M40.a** (top stepper holder) plus the two M5 bolts (S12) that lock it down into M36.a's holes A and B.
+
+`cnc_subcomponent_V_explode`
+![Sub-assembly of M40.a](../images/metal/subcomponents/cnc_subcomponent_V_explode.gif)
+
+<video width="640" controls loop muted>
+  <source src="../images/metal/subcomponents/cnc_subcomponent_V_explode.mp4" type="video/mp4">
+</video>
+
 ## Components
 
 **Metal replacement** — plastic part removed from this build:

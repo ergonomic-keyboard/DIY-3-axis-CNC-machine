@@ -1,5 +1,16 @@
 # I. Aluminium frame
 
+## 3D sub-assembly — aluminium frame + Y-rails
+
+Exploded → assembled animation of the frame profiles (O07/O04/O06) and Y-rails (O21).
+
+`cnc_subcomponent_I_explode`
+![Sub-assembly of the aluminium frame + Y-rails](../images/metal/subcomponents/cnc_subcomponent_I_explode.gif)
+
+<video width="640" controls loop muted>
+  <source src="../images/metal/subcomponents/cnc_subcomponent_I_explode.mp4" type="video/mp4">
+</video>
+
 ## Components
 
 All components in this section are unchanged from the plastic build.

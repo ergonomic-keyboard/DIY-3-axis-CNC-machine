@@ -2,6 +2,17 @@
 
 Three 803 mm aluminium bridge beams (**O05**) form the gantry. Two of the three carry MGN12H linear rails (**O21**) for the X-axis carriage. The HTD5M belt (**O17**) drives the carriage across the gantry via the X-axis stepper motor (**E18**). The engine sideways belt clamp (**MX.1**) guides the HTD5M belt along the correct path as the carriage moves.
 
+## 3D sub-assembly — gantry beams + X-rails + MX.1
+
+Exploded → assembled animation of the three gantry beams (O05), the two X-rails (O21), the beam tie-rods, and **MX.1** (engine sideways belt clamp).
+
+`cnc_subcomponent_III_explode`
+![Sub-assembly of the gantry group](../images/metal/subcomponents/cnc_subcomponent_III_explode.gif)
+
+<video width="640" controls loop muted>
+  <source src="../images/metal/subcomponents/cnc_subcomponent_III_explode.mp4" type="video/mp4">
+</video>
+
 ## Components
 
 **New metal part** — no plastic equivalent:

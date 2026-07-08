@@ -2,6 +2,17 @@
 
 **M36.a** (engine_holder_vertical_plate_p1of2) is the gantry-fixed back plate of the Z-axis sub-assembly. It bolts to the front face of the carriage (**P07**) via four TAB EXTENSIONS and provides four mounting positions for the MGN12H blocks that the Z-sliding plate (M36.b) rides on.
 
+## 3D sub-assembly — M36.a + MGN12H blocks + tab bolts
+
+Exploded → assembled animation of **M36.a** with the four MGN12H blocks (O22), their block bolts (S03) and the tab bolts (S12/N02).
+
+`cnc_subcomponent_IV_explode`
+![Sub-assembly of M36.a + blocks](../images/metal/subcomponents/cnc_subcomponent_IV_explode.gif)
+
+<video width="640" controls loop muted>
+  <source src="../images/metal/subcomponents/cnc_subcomponent_IV_explode.mp4" type="video/mp4">
+</video>
+
 ## Components
 
 **Metal replacement** — plastic part removed from this build:

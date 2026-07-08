@@ -2,6 +2,17 @@
 
 Left and right gantry holders: metal side plates (M20/M29) with Y-axis geared stepper motors, HTD5M belt drives, and tensioners — all mounted on the aluminium frame.
 
+## 3D sub-assembly — M20.a / M20.b / M20.c / M20.d
+
+Exploded → assembled animation of the left side plate group (M29 is a Y-mirror of the same parts).
+
+`cnc_subcomponent_II_explode`
+![Sub-assembly of M20.a–d (left side plate group)](../images/metal/subcomponents/cnc_subcomponent_II_explode.gif)
+
+<video width="640" controls loop muted>
+  <source src="../images/metal/subcomponents/cnc_subcomponent_II_explode.mp4" type="video/mp4">
+</video>
+
 ## Components
 
 **Metal replacements** — these plastic parts are removed and replaced:

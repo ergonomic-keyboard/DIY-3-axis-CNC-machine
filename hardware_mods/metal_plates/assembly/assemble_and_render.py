@@ -344,29 +344,36 @@ def _assign_stages():
 
 # ── C.6 — sub-component grouping (I..VI in the metal instructions site) ──────
 
-SUBCOMP_ORDER = ["I", "II", "III", "IV", "V", "VI"]
+SUBCOMP_ORDER = ["I", "II", "II_R", "III", "IV", "V", "VI"]
 SUBCOMP_TITLES = {
-    "I":   "Aluminium frame",
-    "II":  "Side plates & Y-axis",
-    "III": "Gantry & X-axis",
-    "IV":  "Engine plate p1of2",
-    "V":   "Z-axis drive",
-    "VI":  "Engine plate p2of2 & router",
+    "I":    "Aluminium frame",
+    "II":   "Side plate & Y-axis (left / M20)",
+    "II_R": "Side plate & Y-axis (right / M29)",
+    "III":  "Gantry & X-axis",
+    "IV":   "Engine plate p1of2",
+    "V":    "Z-axis drive",
+    "VI":   "Engine plate p2of2 & router",
 }
 
 
 def _classify_subcomponent(name: str) -> str:
-    """Map an assembly object name to the sub-component (I..VI) it belongs to.
+    """Map an assembly object name to the sub-component it belongs to.
 
     Rules mirror the docs/metal/01..06 pages so each rendered GIF matches the
-    build-guide page it accompanies.  Fasteners are attached to whichever
-    subcomponent they physically bolt.
+    build-guide page it accompanies.  The side-plate group is split into
+    II (left / M20) and II_R (right / M29) so a docs page dedicated to
+    M20.a–d frames tightly around just the left assembly.
     """
     # I. Aluminium frame
     if name.startswith("Frame_") or name in ("Rail_Y_Left", "Rail_Y_Right"):
         return "I"
-    # II. Side plates & Y-axis
-    if "Side_Plate" in name or "Clip" in name or "LClip" in name or "RClip" in name:
+    # II_R. Right side plate & Y-axis (mirrored plates + right-clip bolts)
+    if (name.endswith("_R") and "Side_Plate" in name) or \
+       name.startswith("Bolt_RClip_") or name.startswith("Nut_RClip_"):
+        return "II_R"
+    # II. Left side plate & Y-axis (M20 series)
+    if "Side_Plate" in name or "LClip" in name or name.startswith("Bolt_LClip_") \
+       or name.startswith("Nut_LClip_"):
         return "II"
     # III. Gantry & X-axis (includes gantry-beam tie rods)
     if (name.startswith("Gantry_Beam") or name.startswith("Rail_X") or
@@ -878,13 +885,22 @@ def _camera_theta(frame, total_frames):
     return START_A + frac * SWEEP
 
 
-def _set_camera(view, frame, total_frames):
+def _set_camera(view, frame, total_frames, bbox=None):
+    """Rotate the camera each frame.  If `bbox` is given, fit the view to that
+    fixed box (sub-component render uses this so the camera does not zoom out
+    to include hidden objects); otherwise call fitAll()."""
     ELEV = math.radians(35)
     theta = _camera_theta(frame, total_frames)
     ce = math.cos(ELEV)
     try:
         view.setViewDirection((ce*math.cos(theta), ce*math.sin(theta), -math.sin(ELEV)))
-        view.fitAll()
+        if bbox is not None:
+            try:
+                view.viewBoundBox(bbox)
+            except Exception:
+                view.fitAll()
+        else:
+            view.fitAll()
     except: pass
 
 
@@ -1129,20 +1145,26 @@ def _render_subcomponent_inner(sc: str):
 
     # hide every object that is not in the requested sub-component
     gdoc = FreeCADGui.getDocument(doc.Name)
+    hidden_names: list[str] = []
     for name, group in _SUBCOMP.items():
         if group == sc:
             continue
         vobj = gdoc.getObject(name) if gdoc else None
         if vobj is not None:
-            try: vobj.Visibility = False
+            try:
+                vobj.Visibility = False
+                hidden_names.append(name)
             except Exception: pass
-        # also hide non-registered helper objects that happen to share the group
-    # keep axis indicator visible
-    for ax in ("Axis_X", "Axis_Y", "Axis_Z"):
+    # hide non-registered helper objects too (axis indicator + labels), so the
+    # camera can tightly frame just this sub-component
+    for ax in ("Axis_X", "Axis_Y", "Axis_Z",
+               "AxisLabel_X", "AxisLabel_Y", "AxisLabel_Z"):
         if gdoc:
             v = gdoc.getObject(ax)
             if v is not None:
-                try: v.Visibility = True
+                try:
+                    v.Visibility = False
+                    hidden_names.append(ax)
                 except Exception: pass
 
     view = _get_view(FreeCADGui)
@@ -1150,6 +1172,36 @@ def _render_subcomponent_inner(sc: str):
         print(f"[sub {sc}] ERROR: no active view", flush=True); return
     try: view.setCameraType("Perspective")
     except Exception: pass
+
+    # Compute the bounding box of visible objects at explode-factor t=1
+    # (fully exploded — the widest state the animation reaches), so the
+    # camera never has to pan/zoom mid-clip.
+    set_explode_factor(1.0)
+    doc.recompute()
+    visible_bbox = None
+    visible_objs = [o for o in doc.Objects
+                    if getattr(o, "Shape", None) is not None
+                    and o.Name not in hidden_names]
+    if visible_objs:
+        import FreeCAD as _FC
+        bb = None
+        for o in visible_objs:
+            try:
+                sbb = o.Shape.BoundBox
+                if bb is None:
+                    bb = _FC.BoundBox(sbb)
+                else:
+                    bb.add(sbb)
+            except Exception:
+                pass
+        if bb is not None:
+            try:
+                pad = max(bb.XLength, bb.YLength, bb.ZLength) * 0.15
+                bb.enlarge(pad)
+                visible_bbox = bb
+            except Exception:
+                pass
+    set_explode_factor(1.0)  # start of animation is fully exploded
 
     def explode_fn(i):
         if i < 8:                       # hold exploded, camera rotates
@@ -1164,13 +1216,13 @@ def _render_subcomponent_inner(sc: str):
 
     frame_paths = []
     tmpdir = tempfile.mkdtemp(prefix=f"cnc_sub_{sc}_")
-    _set_camera(view, 0, FRAMES)
+    _set_camera(view, 0, FRAMES, bbox=visible_bbox)
     doc.recompute(); time.sleep(0.3)
 
     for i in range(FRAMES):
         set_explode_factor(explode_fn(i))
         doc.recompute()
-        _set_camera(view, i, FRAMES)
+        _set_camera(view, i, FRAMES, bbox=visible_bbox)
         png = os.path.join(tmpdir, f"frame_{i:03d}.png")
         view.saveImage(png, W, H, "White")
         _rotate_frame(png)

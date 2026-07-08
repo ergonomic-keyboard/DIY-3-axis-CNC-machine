@@ -2,6 +2,17 @@
 
 **M36.b** (engine_holder_vertical_plate_p2of2) is the sliding front plate. It carries two 200 mm Z-axis MGN12H rails (**O20**) on its back face — these rails ride on the four blocks fixed to M36.a. On its front face, M36.b carries the Makita router via metal clamps (**M24.a/b**). The acme nut (**O03**) is integrated into M36.b, converting acme rod rotation into vertical travel.
 
+## 3D sub-assembly — M36.b + Z-rails + M24.a/b router clamps
+
+Exploded → assembled animation of **M36.b** with its Z-rails (O20), the two router clamps (**M24.a/b**), and their fasteners.
+
+`cnc_subcomponent_VI_explode`
+![Sub-assembly of M36.b + router clamps](../images/metal/subcomponents/cnc_subcomponent_VI_explode.gif)
+
+<video width="640" controls loop muted>
+  <source src="../images/metal/subcomponents/cnc_subcomponent_VI_explode.mp4" type="video/mp4">
+</video>
+
 ## Components
 
 **Metal replacements** — plastic parts removed from this build:
