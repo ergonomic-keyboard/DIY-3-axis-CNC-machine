@@ -1,6 +1,6 @@
 # VI. Engine plate p2of2 & router clamps
 
-**M36.b** (engine_holder_vertical_plate_p2of2) is the sliding front plate. It carries two 200 mm Z-axis MGN12H rails (**O20**) on its back face — these rails ride on the four blocks fixed to M36.a. On its front face, M36.b carries the Makita router via metal clamps (**M24.a/b**). The acme nut (**O03**) is integrated into M36.b, converting acme rod rotation into vertical travel.
+**M36.b** (`M36b_vertical_plate` — was `engine_holder_vertical_plate_p2of2`) is the sliding front plate. It carries two 200 mm Z-axis MGN12H rails (**O20**) on its back face — these rails ride on the four blocks fixed to M36.a. On its front face, M36.b carries the Makita router via metal clamps (**M24.a/b**). The acme nut (**O03**) is integrated into M36.b, converting acme rod rotation into vertical travel.
 
 ## 3D sub-assembly — M36.b + Z-rails + M24.a/b router clamps
 

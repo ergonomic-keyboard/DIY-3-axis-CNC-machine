@@ -34,19 +34,19 @@ EXAMPLES = REPO / "hardware_mods/metal_plates/examples"
 # script expects, human name).  Add new metal parts here.
 PARTS: list[dict] = [
     dict(
-        folder="mid_vertical_movement/engine_holder_vertical_plate_p1of2",
+        folder="IV_engine_plate_p1of2/M36a_vertical_plate",
         step_name="starting_point_rect_metal.step",
         label="M36.a (Engine_Holder_P1)",
     ),
     dict(
-        folder="mid_vertical_movement/engine_holder_vertical_plate_p2of2",
+        folder="VI_engine_plate_p2of2_and_router/M36b_vertical_plate",
         step_name="engine_holder_vertical_plate_p2of2.step",
         label="M36.b (Engine_Holder_P2)",
     ),
     dict(
-        folder="mid_vertical_movement/threaded_rod_clamper",
+        folder="V_z_axis_drive/_threaded_rod_clamper_experiment",
         step_name="threaded_rod_clamper.step",
-        label="threaded rod clamper (O03 housing)",
+        label="threaded rod clamper (O03 housing, no M-code — WIP)",
     ),
 ]
 

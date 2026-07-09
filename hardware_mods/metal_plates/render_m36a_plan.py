@@ -1,9 +1,9 @@
 """render_m36a_plan.py — regenerate docs/images/metal/components/M36a_plan.png
 with the C.1-corrected nut orientation.
 
-The upstream 4_outline polygon.json for engine_holder_vertical_plate_p1of2 was
-removed in commit 7e2a68a, so we cannot re-run build_model.py end-to-end.  This
-script rebuilds only the plan-view PNG from the still-present hole data
+The upstream 4_outline polygon.json for M36a_vertical_plate was removed in
+commit 7e2a68a, so we cannot re-run build_model.py end-to-end.  This script
+rebuilds only the plan-view PNG from the still-present hole data
 (2_flattened_image/holes_from_stl.json) plus a plate outline hand-derived from
 the STL bounding rectangle plus the four tab extensions.
 
@@ -24,8 +24,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt   # noqa: E402
 
 
-PLATE = (REPO / "hardware_mods/metal_plates/examples/mid_vertical_movement"
-              / "engine_holder_vertical_plate_p1of2")
+PLATE = (REPO / "hardware_mods/metal_plates/examples"
+              / "IV_engine_plate_p1of2" / "M36a_vertical_plate")
 HOLES_JSON = PLATE / "2_flattened_image/holes_from_stl.json"
 OUT_PNG    = REPO / "docs/images/metal/components/M36a_plan.png"
 

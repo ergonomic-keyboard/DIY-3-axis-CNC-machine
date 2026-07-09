@@ -22,7 +22,7 @@ Reproducible — same STL in, same drawing out.
 Usage (inside nix-shell):
 
   python annotate_stl.py --stl docs/stl_files/router/Z_MOTOR_MOUNT.stl
-  python annotate_stl.py --example examples/.../engine_holder_top_plate
+  python annotate_stl.py --example examples/V_z_axis_drive/M40a_top_stepper_holder
 
   # Batch — annotate every STL in the project:
   find docs/stl_files -name '*.stl' -print0 | sort -z | \\

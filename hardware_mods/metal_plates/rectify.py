@@ -32,7 +32,7 @@ Usage:
 
   nix-shell hardware_mods/metal_plates/shell.nix --run \\
     "python hardware_mods/metal_plates/rectify.py \\
-       --example hardware_mods/metal_plates/examples/.../P20_left_side_plate_p1of3 \\
+       --example hardware_mods/metal_plates/examples/II_side_plates/M20a_left_body \\
        --stl docs/stl_files/side_plates/left/LEFT_PLATE.stl"
 
   Pass --exclude N,N,... to skip Y-axis hole indices (use this if the

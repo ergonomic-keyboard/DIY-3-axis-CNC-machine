@@ -6,10 +6,15 @@ recovered from the plastic STLs and silhouettes traced from the build
 video screenshots.
 
 ## Structure
-The structure that the design of the metal components follows is shown in /home/a8/git/personal/DIY-3-axis-CNC-machine/hardware_mods/metal_plates/examples/side_movement/P20_left_side_plate_p1of3
 
-the components are structured in:
-/home/a8/git/personal/DIY-3-axis-CNC-machine/hardware_mods/metal_plates/examples
+Metal-plate designs live under
+`hardware_mods/metal_plates/examples/`, grouped by sub-assembly (I–VI,
+matching `docs/metal/01-…06-…md`) and named by their M-code
+(`M20a_left_body`, `M36a_vertical_plate`, `MX1_engine_sideways_belt_clamp`,
+…).  See `examples/README.md` for the full mapping.
+
+A canonical example of the numbered-stage layout inside one part folder is
+`hardware_mods/metal_plates/examples/II_side_plates/M20a_left_body/`.
 
 ## Procedure
 and for each component, 
@@ -34,7 +39,7 @@ and for each component,
 ## Commands
 
 `<EX>` = your example folder (e.g.
-`hardware_mods/metal_plates/examples/side_movement/P20_left_side_plate_p1of3`).
+`hardware_mods/metal_plates/examples/II_side_plates/M20a_left_body`).
 All commands run inside the project's nix-shell.
 
 ```sh
@@ -55,7 +60,7 @@ nix-shell hardware_mods/metal_plates/shell.nix --run \
 Run any script with `--help` to see flags and interactive controls.
 
 ```sh
-EX=hardware_mods/metal_plates/examples/mid_vertical_movement/engine_holder_vertical_p1of2
+EX=hardware_mods/metal_plates/examples/IV_engine_plate_p1of2/M36a_vertical_plate
 PHOTO="$EX/0_raw_screenshots/starting_point.png"
 STL=docs/stl_files/router/CARRIAGE.stl
 nix-shell hardware_mods/metal_plates/shell.nix --run \

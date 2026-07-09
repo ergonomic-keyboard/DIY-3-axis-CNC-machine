@@ -1,6 +1,6 @@
 # IV. Engine plate p1of2
 
-**M36.a** (engine_holder_vertical_plate_p1of2) is the gantry-fixed back plate of the Z-axis sub-assembly. It bolts to the front face of the carriage (**P07**) via four TAB EXTENSIONS and provides four mounting positions for the MGN12H blocks that the Z-sliding plate (M36.b) rides on.
+**M36.a** (`M36a_vertical_plate` — was `engine_holder_vertical_plate_p1of2`) is the gantry-fixed back plate of the Z-axis sub-assembly. It bolts to the front face of the carriage (**P07**) via four TAB EXTENSIONS and provides four mounting positions for the MGN12H blocks that the Z-sliding plate (M36.b) rides on.
 
 ## 3D sub-assembly — M36.a + MGN12H blocks + tab bolts
 

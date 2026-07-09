@@ -670,28 +670,27 @@ def _build_assembly(document):
     gantry(explode_with(add_box("Rail_X_Upper", 9, 600, 7, GX+21,      110, GZ_U +30, COL_RAIL), dz=100))
     gantry(explode_with(add_box("Rail_X_Lower", 9, 600, 7, GX+30+21,   110, GZ_U2+30, COL_RAIL), dz=100))
 
-    # ── SIDE PLATES ───────────────────────────────────────────────────────────
-    SP = f"{METAL}/side_movement"
+    # ── SIDE PLATES (II) ──────────────────────────────────────────────────────
+    SP = f"{METAL}/II_side_plates"
     _sp_files = [
-        ("Side_Plate_Left",              f"{SP}/P20_left_side_plate/side_plate_left_metal.step"),
-        ("Side_Plate_Back_Clip",         f"{SP}/P20_left_side_plate_p2of3/5_models_and_renders/back_clip.step"),
-        ("Side_Plate_Lower_Front_Clip",  f"{SP}/P20_left_side_plate_p3of3/5_models_and_renders/lower_front_clip.step"),
-        ("Side_Plate_Upper_Front_Clip",  f"{SP}/P20_left_side_plate_p3of3/5_models_and_renders/upper_front_clip.step"),
+        # (object name, path, M-code)
+        ("Side_Plate_Left",              f"{SP}/M20a_left_body/5_models_and_renders/source_rect_metal.step"),
+        ("Side_Plate_Back_Clip",         f"{SP}/M20b_back_clip/5_models_and_renders/back_clip.step"),
+        ("Side_Plate_Lower_Front_Clip",  f"{SP}/M20cd_front_clips/5_models_and_renders/lower_front_clip.step"),
+        ("Side_Plate_Upper_Front_Clip",  f"{SP}/M20cd_front_clips/5_models_and_renders/upper_front_clip.step"),
     ]
     for nm, path in _sp_files:
         gantry(explode_with(add_step(nm, path, x=0, y=0, z=93),       dy=-90))
         gantry(explode_with(add_step_mirror_y(nm+"_R", path, x=0, y=0, z=93), dy=+90))
 
     # ── Z-AXIS ────────────────────────────────────────────────────────────────
-    MV = f"{METAL}/mid_vertical_movement"
-
-    # p1of2: gantry-fixed back plate.  STEP is regenerated from
-    # manual_design/v16.FCStd — see export_manual_steps.py.  If missing,
+    # p1of2 (M36.a): gantry-fixed back plate.  STEP is regenerated from
+    # manual_design/vN.FCStd — see export_manual_steps.py.  If missing,
     # a 6 × 147.5 × 218.3 mm placeholder box is used so the assembly still
     # renders (C.0).
     gantry(explode_with(
         add_step("Engine_Holder_P1",
-            f"{MV}/engine_holder_vertical_plate_p1of2"
+            f"{METAL}/IV_engine_plate_p1of2/M36a_vertical_plate"
             "/5_models_and_renders/starting_point_rect_metal.step",
             x=137, y=-35, z=93, yaw=90,
             fallback_box=(6, 147.5, 218.3)),
@@ -710,9 +709,10 @@ def _build_assembly(document):
     ]:
         gantry(explode_with(add_box(blk_name, 13, 26, 34, 143, by, bz, COL_BLOCK), dx=130))
 
-    # p2of2: sliding plate.  Missing STEP falls back to a 6 × 145 × 200 mm
-    # placeholder so the assembly still animates (C.0).
-    P2 = (f"{MV}/engine_holder_vertical_plate_p2of2"
+    # p2of2 (M36.b): sliding plate.  Missing STEP falls back to a placeholder
+    # so the assembly still animates (C.0).
+    VI = f"{METAL}/VI_engine_plate_p2of2_and_router"
+    P2 = (f"{VI}/M36b_vertical_plate"
           "/5_models_and_renders/engine_holder_vertical_plate_p2of2.step")
     gantry(z_slide(explode_with(
         add_step("Engine_Holder_P2", P2,
@@ -720,29 +720,30 @@ def _build_assembly(document):
                  fallback_box=(6, 145, 200)),
         dx=190)))
 
-    # Router clamps
+    # Router clamps (M24.a bottom, M24.b top)
     gantry(z_slide(explode_with(
         add_step("Router_Clamp_Bottom",
-            f"{MV}/router_clamp_bottom/5_models_and_renders/router_clamp.step",
+            f"{VI}/M24a_router_clamp_bottom/5_models_and_renders/router_clamp.step",
             x=170, y=425, z=160),
         dx=240)))
     gantry(z_slide(explode_with(
         add_step("Router_Clamp_Top",
-            f"{MV}/router_clamp_top/5_models_and_renders/router_clamp.step",
+            f"{VI}/M24b_router_clamp_top/5_models_and_renders/router_clamp.step",
             x=170, y=425, z=185),
         dx=240)))
 
-    # ── TOP STEPPER HOLDER ────────────────────────────────────────────────────
+    # ── TOP STEPPER HOLDER (M40.a) ────────────────────────────────────────────
     gantry(explode_with(
         add_step("Top_Stepper_Holder",
-            f"{MV}/top_stepper_holder/5_models_and_renders/engine_holder_top_plate.step",
+            f"{METAL}/V_z_axis_drive/M40a_top_stepper_holder"
+            "/5_models_and_renders/engine_holder_top_plate.step",
             x=137, y=490-363.5, z=93+212),
         dz=70))
 
-    # ── ENGINE SIDEWAYS BELT CLAMP ────────────────────────────────────────────
+    # ── ENGINE SIDEWAYS BELT CLAMP (MX.1) ─────────────────────────────────────
     gantry(explode_with(
         add_step("Engine_Sideways_Belt_Clamp",
-            f"{METAL}/mid_horizontal_movement/engine_sideways_belt_clamp"
+            f"{METAL}/III_gantry/MX1_engine_sideways_belt_clamp"
             "/5_models_and_renders/engine_sideways_belt_clamp.step",
             x=137, y=-10, z=93+50),
         dy=-80))

@@ -27,14 +27,14 @@ In the assembly script, any object wrapped in `gantry(…)` has its X position a
 
 | Your name           | Script object name (`assemble_and_render.py`) | Physical part |
 |---------------------|-----------------------------------------------|---------------|
-| p1of2               | `Engine_Holder_P1`                            | `engine_holder_vertical_plate_p1of2` — static back plate, travels with gantry only |
+| p1of2               | `Engine_Holder_P1`                            | `M36a_vertical_plate (p1of2)` — static back plate, travels with gantry only |
 | `left_rails_YZ`     | `Rail_Z_Left`                                 | Left MGN12 linear rail, runs in Z (vertical) |
 | `right_rails_YZ`    | `Rail_Z_Right`                                | Right MGN12 linear rail, runs in Z (vertical) |
 | `top_left_YZ`       | `MGN12H_Block_LU`                             | MGN12H carriage block, upper-left |
 | `bottom_left_YZ`    | `MGN12H_Block_LL`                             | MGN12H carriage block, lower-left |
 | `top_right_YZ`      | `MGN12H_Block_RU`                             | MGN12H carriage block, upper-right |
 | `bottom_right_YZ`   | `MGN12H_Block_RL`                             | MGN12H carriage block, lower-right |
-| p2of2               | `Engine_Holder_P2`                            | `engine_holder_vertical_plate_p2of2` — sliding plate, carries router |
+| p2of2               | `Engine_Holder_P2`                            | `M36b_vertical_plate (p2of2)` — sliding plate, carries router |
 | —                   | `Router_Clamp_Bottom/Top`                     | Router clamps, attached to p2of2 |
 
 ### Kinematics (desired)
@@ -79,7 +79,7 @@ The rails (`left_rails_YZ` and `right_rails_YZ`) run vertically (Z direction) th
 
 ### p2of2 orientation (desired)
 
-`engine_holder_vertical_plate_p2of2` v6.FCStd.  
+`M36b_vertical_plate (p2of2)` v6.FCStd.  
 Desired assembly position: plate is vertical in the YZ plane (same orientation family as p1of2), centred at Y ≈ 370 (midpoint of the two rail centres: (337+402)/2), with its back face resting against the block fronts at X ≈ 124.
 
 Current script: `yaw=90, pitch=90` → local_Z→worldX, local_X→worldY, local_Y→worldZ.  
@@ -91,7 +91,7 @@ Verify by inspecting the render — the plate must stand vertical in YZ with its
 
 ## Top stepper holder
 
-**Part**: `top_stepper_holder/5_models_and_renders/engine_holder_top_plate.step`  
+**Part**: `V_z_axis_drive/M40a_top_stepper_holder/5_models_and_renders/engine_holder_top_plate.step`  
 **Script object**: `Top_Stepper_Holder`
 
 ### Placement (assembly-script level)
