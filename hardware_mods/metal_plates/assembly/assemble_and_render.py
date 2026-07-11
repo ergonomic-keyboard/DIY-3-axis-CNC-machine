@@ -975,30 +975,55 @@ def _build_assembly(document):
     LOF  = f"{SP}/M20cd_front_clips/5_models_and_renders/lower_front_clip.step"
     UPF  = f"{SP}/M20cd_front_clips/5_models_and_renders/upper_front_clip.step"
 
-    # (a) main body — unchanged
-    gantry(explode_with(add_step("Side_Plate_Left", BODY, x=0, y=0, z=93), dy=-90))
-    gantry(explode_with(add_step_mirror_y("Side_Plate_Left_R", BODY, x=0, y=0, z=93), dy=+90))
+    # Tie thread: an M8 stud in X at Y=20 (the clamps' Y) and world Z≈147 (≈ middle
+    # of the two upper gantry beams).  It passes through the front clamp's U-floor
+    # and the merged clamp, washer + nut behind each.  Clamp/plate shapes are in
+    # LOCAL coords (add_* adds z=93), so world Z147 → local Z54.
+    TIE_Y, TIE_ZW, TIE_ZL = 20.0, 147.0, 54.0
 
-    # (b) the two upper-beam clamps (furthest +X, stacked in Z) → ONE fused U-bridge,
-    #     trimmed to 10 mm Y ("cut off the sides")
-    front = _thin_axis(_read_shape(LOF).fuse(_read_shape(UPF)), 'y', 10.0)
+    def _xbore(shape, x0, x1, y, zl, d=9.0):
+        return shape.cut(Part.makeCylinder(d / 2, x1 - x0,
+                         FreeCAD.Vector(x0, y, zl), FreeCAD.Vector(1, 0, 0)))
+
+    def _ybore(shape, x, y0, y1, zl, d=9.0):
+        return shape.cut(Part.makeCylinder(d / 2, y1 - y0,
+                         FreeCAD.Vector(x, y0, zl), FreeCAD.Vector(0, 1, 0)))
+
+    # (a) main body ("mid plate") — bored with the tie hole at the middle of the two
+    #     upper beams (world X≈137, Z≈147 → local X137, Z54), through its Y face
+    _body = _ybore(_read_shape(BODY), 137.0, -8.0, 2.0, TIE_ZL)
+    gantry(explode_with(add_shape_obj("Side_Plate_Left", _body, z=93), dy=-90))
+    gantry(explode_with(add_shape_obj("Side_Plate_Left_R", _body, z=93, mirror_y=396.5), dy=+90))
+
+    # (b) the two upper-beam clamps → ONE fused U-bridge, 10 mm Y, bored for the tie
+    front = _xbore(_thin_axis(_read_shape(LOF).fuse(_read_shape(UPF)), 'y', 10.0),
+                   165.0, 192.0, TIE_Y, TIE_ZL)
     gantry(explode_with(add_shape_obj("Side_Plate_Front_Clamp", front, z=93), dy=-90))
     gantry(explode_with(add_shape_obj("Side_Plate_Front_Clamp_R", front, z=93, mirror_y=396.5), dy=+90))
 
-    # (c) front clamp (closest to −X): the imported clip's U-outtake didn't survive
-    #     the 10 mm Y-trim (its U-arms were on the Y faces), so model it as a clean
-    #     thin-Y U-fork — thicker in X, with the U-outtake opening +X toward the
-    #     beam.  Built in local coords (add_shape_obj adds the z=93 offset).
-    _CX, _CY, _CZ = 25.0, 10.0, 72.0                 # thicker X, 10 mm Y, tall Z
-    _cx0, _cy0, _cz0 = 54.0, 15.0, 18.0              # origin ≈ original clip location
+    # (c) front U-fork clamp (U-outtake opening +X) with a hole through the middle of
+    #     the U-floor for the tie thread
+    _CX, _CY, _CZ = 25.0, 10.0, 72.0
+    _cx0, _cy0, _cz0 = 54.0, 15.0, 18.0
     _clamp = Part.makeBox(_CX, _CY, _CZ, FreeCAD.Vector(_cx0, _cy0, _cz0))
-    _nd, _nh = 18.0, 32.0                            # notch depth (X) and height (Z, fits 30 mm beam)
+    _nd, _nh = 18.0, 32.0                            # notch depth (X), height (Z, fits 30 mm beam)
     _notch = Part.makeBox(_nd + 1, _CY + 2, _nh,
-                          FreeCAD.Vector(_cx0 + _CX - _nd, _cy0 - 1,
-                                         _cz0 + (_CZ - _nh) / 2.0))
-    beam_clamp = _clamp.cut(_notch)                  # U opening toward +X
+                          FreeCAD.Vector(_cx0 + _CX - _nd, _cy0 - 1, _cz0 + (_CZ - _nh) / 2.0))
+    beam_clamp = _xbore(_clamp.cut(_notch), 50.0, 82.0, TIE_Y, TIE_ZL)
     gantry(explode_with(add_shape_obj("Side_Plate_Beam_Clamp", beam_clamp, z=93), dy=-90))
     gantry(explode_with(add_shape_obj("Side_Plate_Beam_Clamp_R", beam_clamp, z=93, mirror_y=396.5), dy=+90))
+
+    # (d) the tie thread: M8 stud in X through both clamps, washer + nut behind each
+    for _nm, _ex, _ty in [("", -90.0, TIE_Y), ("_R", +90.0, 793.0 - TIE_Y)]:
+        _rod = doc.addObject("Part::Feature", f"Side_Plate_TieRod{_nm}")
+        _rod.Shape = Part.makeCylinder(4.0, 168.0, FreeCAD.Vector(36.0, _ty, TIE_ZW),
+                                       FreeCAD.Vector(1, 0, 0))
+        _color_queue.append((_rod.Name, COL_BOLT))
+        gantry(explode_with(_rod, dy=_ex))
+        gantry(explode_with(add_nut(f"Side_Plate_TieNa{_nm}",    38.0,  _ty, TIE_ZW, axis='+x', size='M8'), dy=_ex))
+        gantry(explode_with(add_washer(f"Side_Plate_TieWa{_nm}", 45.0,  _ty, TIE_ZW, axis='+x', size='M8'), dy=_ex))
+        gantry(explode_with(add_washer(f"Side_Plate_TieWb{_nm}", 195.0, _ty, TIE_ZW, axis='+x', size='M8'), dy=_ex))
+        gantry(explode_with(add_nut(f"Side_Plate_TieNb{_nm}",    202.0, _ty, TIE_ZW, axis='+x', size='M8'), dy=_ex))
 
     # ── Z-AXIS ────────────────────────────────────────────────────────────────
     # p1of2 (M36.a): gantry-fixed back plate.  STEP is regenerated from
