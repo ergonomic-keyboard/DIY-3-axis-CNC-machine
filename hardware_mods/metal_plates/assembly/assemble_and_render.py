@@ -155,6 +155,63 @@ def add_box(name, lx, ly, lz, x, y, z, color=COL_EXTRUSION):
     return obj
 
 
+# Cross-axis (u,v) convention for a hole through a local box:
+#   axis 'z' → (u,v) = (x,y)   axis 'y' → (u,v) = (x,z)   axis 'x' → (u,v) = (y,z)
+def _hole_through(axis, u, v, d, lx, ly, lz):
+    r = d / 2.0
+    if axis == 'z':
+        return Part.makeCylinder(r, lz + 2, FreeCAD.Vector(u, v, -1), FreeCAD.Vector(0, 0, 1))
+    if axis == 'y':
+        return Part.makeCylinder(r, ly + 2, FreeCAD.Vector(u, -1, v), FreeCAD.Vector(0, 1, 0))
+    return Part.makeCylinder(r, lx + 2, FreeCAD.Vector(-1, u, v), FreeCAD.Vector(1, 0, 0))
+
+
+def _hole_blind(axis, u, v, d, depth, lx, ly, lz):
+    """Counterbore of `depth` mm drilled inward from the box's HIGH face."""
+    r = d / 2.0
+    if axis == 'z':
+        return Part.makeCylinder(r, depth + 1, FreeCAD.Vector(u, v, lz - depth), FreeCAD.Vector(0, 0, 1))
+    if axis == 'y':
+        return Part.makeCylinder(r, depth + 1, FreeCAD.Vector(u, ly - depth, v), FreeCAD.Vector(0, 1, 0))
+    return Part.makeCylinder(r, depth + 1, FreeCAD.Vector(lx - depth, u, v), FreeCAD.Vector(1, 0, 0))
+
+
+def add_beam(name, lx, ly, lz, x, y, z, wall=2.0, holes=(), color=COL_EXTRUSION):
+    """Like add_box, but models a real aluminium extrusion: a hollow tube with
+    `wall` mm walls (open along its longest axis) optionally drilled with `holes`.
+
+    All geometry is computed in the box's LOCAL frame (corner at origin, spanning
+    0..lx × 0..ly × 0..lz) then placed at (x,y,z) — matching add_box.
+
+    holes: iterable of dicts {axis, u, v, d[, depth]}.  `axis` is the drilling
+    direction ('x'/'y'/'z'); (u,v) is the hole centre in the two cross-axis local
+    coords (see _hole_through); `d` is the diameter.  With `depth`, the hole is a
+    blind counterbore from the high face (used for wrench/socket access); without
+    it, the hole goes all the way through.  Pass wall=0 to keep the box solid.
+    """
+    solid = Part.makeBox(lx, ly, lz)
+    if wall and wall > 0.0:
+        la = max((('x', lx), ('y', ly), ('z', lz)), key=lambda kv: kv[1])[0]
+        if la == 'x':
+            inner = Part.makeBox(lx + 2, ly - 2 * wall, lz - 2 * wall, FreeCAD.Vector(-1, wall, wall))
+        elif la == 'y':
+            inner = Part.makeBox(lx - 2 * wall, ly + 2, lz - 2 * wall, FreeCAD.Vector(wall, -1, wall))
+        else:
+            inner = Part.makeBox(lx - 2 * wall, ly - 2 * wall, lz + 2, FreeCAD.Vector(wall, wall, -1))
+        solid = solid.cut(inner)
+    for h in holes:
+        depth = h.get("depth")
+        cut = (_hole_blind(h["axis"], h["u"], h["v"], h["d"], depth, lx, ly, lz)
+               if depth is not None else
+               _hole_through(h["axis"], h["u"], h["v"], h["d"], lx, ly, lz))
+        solid = solid.cut(cut)
+    obj = doc.addObject("Part::Feature", name)
+    obj.Shape = solid
+    _place(obj, x, y, z)
+    _color_queue.append((obj.Name, color))
+    return obj
+
+
 def add_step(name, path, x=0., y=0., z=0.,
              yaw=0., pitch=0., roll=0., color=COL_METAL,
              fallback_box: tuple | None = None):
@@ -259,6 +316,26 @@ def add_nut(name, cx, cy, cz, axis='+z', size='M5',
     obj.Shape = outer.cut(inner)
     _color_queue.append((obj.Name, color))
     _THREAD_SPEC[obj.Name] = f"{size} hex-nut (ISO 4032/DIN 934)"
+    return obj
+
+
+def add_washer(name, cx, cy, cz, axis='+z', size='M5', color=COL_NUT):
+    """Flat annular washer centred at (cx,cy,cz), axis along `axis`.  Outer Ø a
+    little wider than the bolt head, bore just over the shaft.  (Complaint I-2 —
+    the rings that go around each thread.)"""
+    fs = FASTENERS[size]
+    outer_d = fs["head_d"] + 2.0
+    inner_d = fs["shaft_d"] + 1.0
+    thick = 1.6
+    dv = _DIR[axis]
+    bx = cx - dv[0]*thick/2
+    by = cy - dv[1]*thick/2
+    bz = cz - dv[2]*thick/2
+    ring = _cyl(outer_d/2, thick, bx, by, bz, axis).cut(
+           _cyl(inner_d/2, thick, bx, by, bz, axis))
+    obj = doc.addObject("Part::Feature", name)
+    obj.Shape = ring
+    _color_queue.append((obj.Name, color))
     return obj
 
 
@@ -379,7 +456,7 @@ def _classify_subcomponent(name: str) -> str:
     """
     # I. Aluminium frame
     if (name.startswith("Frame_") or name in ("Rail_Y_Left", "Rail_Y_Right")
-            or name.startswith("Bolt_RailY_")):
+            or name.startswith("Bolt_RailY_") or "_Tie_" in name):
         return "I"
     # II_R. Right side plate & Y-axis (mirrored plates + right-clip bolts)
     if (name.endswith("_R") and "Side_Plate" in name) or \
@@ -688,6 +765,27 @@ def _add_p2of2_rail_bolts(bolt_size: str = 'M3'):
                 dy=expl_y, dx=130)))
 
 
+def _add_frame_tie_rods(rod_size: str = 'M8'):
+    """
+    Complaint I-1/I-2/I-3: vertical M8 tie rods clamp the upper & lower beam rows
+    to the eight corner/mid posts.  Each stud runs +Z through the drilled holes:
+    head (bottom stop) below the lower beam with a washer, then a washer + nut on
+    top (reached through the Ø16 wrench-access counterbore).  Frame-static (no
+    gantry wrap); the rod + washers + nut lift clear (dz) in the explode view.
+    """
+    posts = [(0,0),(0,763),(870,0),(870,763),(285,0),(285,763),(585,0),(585,763)]
+    for vx, vy in posts:
+        cx, cy, tag = vx + 15, vy + 15, f"{vx}_{vy}"
+        explode_with(add_bolt(f"Rod_Tie_{tag}_{rod_size}", cx, cy, -148,
+                              axis='+z', size=rod_size, shaft_l=160), dz=180)
+        explode_with(add_washer(f"WasherB_Tie_{tag}_{rod_size}", cx, cy, -141.0,
+                                axis='+z', size=rod_size), dz=180)
+        explode_with(add_washer(f"WasherT_Tie_{tag}_{rod_size}", cx, cy, 0.8,
+                                axis='+z', size=rod_size), dz=180)
+        explode_with(add_nut(f"NutT_Tie_{tag}_{rod_size}", cx, cy, 4.75,
+                             axis='+z', size=rod_size), dz=180)
+
+
 # ── Main assembly builder ─────────────────────────────────────────────────────
 
 def _build_assembly(document):
@@ -700,21 +798,39 @@ def _build_assembly(document):
     _explode_bases.clear()
 
     # ── FRAME ─────────────────────────────────────────────────────────────────
-    def _frame_row(sfx, z):
-        explode_with(add_box(f"Frame_{sfx}_Left_Y",   900, 30, 30,   0,   0, z), dy=-120)
-        explode_with(add_box(f"Frame_{sfx}_Right_Y",  900, 30, 30,   0, 763, z), dy=+120)
-        explode_with(add_box(f"Frame_{sfx}_Front_X",   30,733, 30,   0,  30, z), dx=-120)
-        explode_with(add_box(f"Frame_{sfx}_Back_X",    30,733, 30, 870,  30, z), dx=+120)
+    # Complaint I: the frame extrusions were solid blocks with no holes.  They are
+    # now hollow 2 mm-wall beams (add_beam) drilled with:
+    #   • vertical M8 tie-rod holes (Ø8.5) on the post centre-lines that clamp the
+    #     upper/lower beam rows to the corner/mid posts;
+    #   • wrench/socket-access counterbores (Ø16, top row) coaxial with each tie
+    #     rod so the nut inside the hollow beam can be reached and tightened;
+    #   • MGN12H rail mounting holes (Ø3.5) drilled in the rails themselves.
+    POST_UX = (15, 300, 600, 885)      # post centre-lines in the long beams' local X
+    RAIL_UX = (200, 350, 500, 650)     # rail-screw world-X (matches _add_frame_rail_bolts)
+
+    def _frame_row(sfx, z, top=False):
+        tie = [{'axis': 'z', 'u': ux, 'v': 15, 'd': hole_d('M8')} for ux in POST_UX]
+        yh = list(tie)
+        if top:                        # wrench/socket access from the top face
+            yh += [{'axis': 'z', 'u': ux, 'v': 15, 'd': 16, 'depth': 4} for ux in POST_UX]
+        explode_with(add_beam(f"Frame_{sfx}_Left_Y",  900, 30, 30,   0,   0, z, holes=yh), dy=-120)
+        explode_with(add_beam(f"Frame_{sfx}_Right_Y", 900, 30, 30,   0, 763, z, holes=yh), dy=+120)
+        explode_with(add_beam(f"Frame_{sfx}_Front_X",  30, 733, 30,   0,  30, z), dx=-120)
+        explode_with(add_beam(f"Frame_{sfx}_Back_X",   30, 733, 30, 870,  30, z), dx=+120)
 
     _frame_row("Lo", -140)
-    _frame_row("Up",  -30)
+    _frame_row("Up",  -30, top=True)
 
     for vx, vy in [(0,0),(0,763),(870,0),(870,763),
                    (285,0),(285,763),(585,0),(585,763)]:
-        explode_with(add_box(f"Frame_Vert_{vx}_{vy}", 30, 30, 80, vx, vy, -110), dz=-120)
+        explode_with(add_beam(f"Frame_Vert_{vx}_{vy}", 30, 30, 80, vx, vy, -110,
+                              holes=[{'axis': 'z', 'u': 15, 'v': 15, 'd': hole_d('M8')}]), dz=-120)
 
-    explode_with(add_box("Rail_Y_Left",  600, 9, 7, 150,  -9, -7, COL_RAIL), dy=-80)
-    explode_with(add_box("Rail_Y_Right", 600, 9, 7, 150, 793, -7, COL_RAIL), dy=+80)
+    _rail_holes = [{'axis': 'z', 'u': rx - 150, 'v': 4.5, 'd': hole_d('M3')} for rx in RAIL_UX]
+    explode_with(add_beam("Rail_Y_Left",  600, 9, 7, 150,  -9, -7,
+                          wall=0, holes=_rail_holes, color=COL_RAIL), dy=-80)
+    explode_with(add_beam("Rail_Y_Right", 600, 9, 7, 150, 793, -7,
+                          wall=0, holes=_rail_holes, color=COL_RAIL), dy=+80)
 
     # ── AXIS INDICATOR ────────────────────────────────────────────────────────
     AL, AW = 160, 18
@@ -732,9 +848,16 @@ def _build_assembly(document):
     GZ_U, GZ_U2, GZ_L = 148, 118, 78
     GX = 107
 
-    gantry(explode_with(add_box("Gantry_Beam_Upper1", 30, 803, 30, GX,      -10, GZ_U),  dz=100))
-    gantry(explode_with(add_box("Gantry_Beam_Upper2", 30, 803, 30, GX+30,   -10, GZ_U2), dz=100))
-    gantry(explode_with(add_box("Gantry_Beam_Lower",  30, 803, 30, GX-30,   -10, GZ_L),  dz=100))
+    # (c) Same fix as the frame: the three gantry beams were solid blocks — now
+    # hollow 2 mm-wall extrusions.  The two rail-carrying beams (Upper1, Upper2)
+    # are drilled with the MGN12H X-rail mounting holes (Ø3.4) that pair with the
+    # rail screws from _add_gantry_rail_bolts.  The two Y-tie rods run the full
+    # width inside the now-hollow beams (open ends), so they need no cross-holes.
+    _grail = [{'axis': 'z', 'u': 25.5, 'v': ry + 10, 'd': hole_d('M3')}
+              for ry in (160, 290, 420, 550, 660)]
+    gantry(explode_with(add_beam("Gantry_Beam_Upper1", 30, 803, 30, GX,    -10, GZ_U,  holes=_grail), dz=100))
+    gantry(explode_with(add_beam("Gantry_Beam_Upper2", 30, 803, 30, GX+30, -10, GZ_U2, holes=_grail), dz=100))
+    gantry(explode_with(add_beam("Gantry_Beam_Lower",  30, 803, 30, GX-30, -10, GZ_L),  dz=100))
     gantry(explode_with(add_box("Rail_X_Upper", 9, 600, 7, GX+21,      110, GZ_U +30, COL_RAIL), dz=100))
     gantry(explode_with(add_box("Rail_X_Lower", 9, 600, 7, GX+30+21,   110, GZ_U2+30, COL_RAIL), dz=100))
 
@@ -835,6 +958,7 @@ def _build_assembly(document):
     _add_frame_rail_bolts()      # I-7:   MGN12H frame-rail screws
     _add_gantry_rail_bolts()     # III-1/2: X-rail → gantry-beam screws
     _add_p2of2_rail_bolts()      # VI:    Z-rail → p2of2 mounting bolts
+    _add_frame_tie_rods()        # I-1/2/3: vertical tie rods + washers + nuts
 
     # C.4 — attach the thread spec to each fastener as a FreeCAD label so the
     # BOM export and any downstream reader can inspect it without inferring
