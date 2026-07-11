@@ -378,7 +378,8 @@ def _classify_subcomponent(name: str) -> str:
     M20.a–d frames tightly around just the left assembly.
     """
     # I. Aluminium frame
-    if name.startswith("Frame_") or name in ("Rail_Y_Left", "Rail_Y_Right"):
+    if (name.startswith("Frame_") or name in ("Rail_Y_Left", "Rail_Y_Right")
+            or name.startswith("Bolt_RailY_")):
         return "I"
     # II_R. Right side plate & Y-axis (mirrored plates + right-clip bolts)
     if (name.endswith("_R") and "Side_Plate" in name) or \
@@ -390,6 +391,7 @@ def _classify_subcomponent(name: str) -> str:
         return "II"
     # III. Gantry & X-axis (includes gantry-beam tie rods)
     if (name.startswith("Gantry_Beam") or name.startswith("Rail_X") or
+            name.startswith("Bolt_RailX_") or
             name.startswith("Rod_Beam") or name.startswith("NutR_Beam") or
             "Engine_Sideways" in name):
         return "III"
@@ -404,7 +406,7 @@ def _classify_subcomponent(name: str) -> str:
     # VI. Engine plate p2of2 & router
     if (name == "Engine_Holder_P2" or "Router_Clamp" in name or
             name.startswith("Bolt_P2_") or name.startswith("Bolt_RC_") or
-            name.startswith("Rail_Z")):
+            name.startswith("Rail_Z") or name.startswith("Bolt_RailZ_")):
         return "VI"
     # Default catch-all: axis indicator etc.
     return "I"
@@ -631,6 +633,61 @@ def _add_router_clamp_bolts(bolt_size: str = 'M4'):
                 dx=expl_x)))
 
 
+def _add_frame_rail_bolts(bolt_size: str = 'M3'):
+    """
+    Complaint I-7: the MGN12H rails on the frame (Rail_Y_Left / _Right) are
+    screwed down along their length into the frame top rail, but those screws
+    were missing from the render.  Head sits on top of the rail (z ≈ 0), shaft
+    runs −Z through the 7 mm rail and into the frame beneath.  Bolts travel with
+    their rail's explode offset (dy ±80).  (The matching through-holes are part
+    of the rail/frame geometry and are tracked as a FreeCAD design task.)
+    """
+    fs = fastener(bolt_size)
+    for side, ry, expl in [("L", -4.5, -80), ("R", 797.5, +80)]:
+        for rx in (200, 350, 500, 650):
+            explode_with(
+                add_bolt(f"Bolt_RailY_{side}_{rx}_{bolt_size}",
+                         rx, ry, fs["head_h"], axis='-z',
+                         size=bolt_size, shaft_l=15),
+                dy=expl)
+
+
+def _add_gantry_rail_bolts(bolt_size: str = 'M3'):
+    """
+    Complaint III-1/2: the screws/bolts that attach the two X-axis rails
+    (Rail_X_Upper on beam Upper1, Rail_X_Lower on beam Upper2) to the steel
+    gantry beams were missing.  Head on top of each rail, shaft −Z through the
+    7 mm rail and into the beam below.  Bolts move with the gantry (X) and share
+    the rails' explode lift (dz=100).
+    """
+    fs = fastener(bolt_size)
+    # (tag, rail centre-X, rail top-Z)
+    for tag, rcx, rtop in [("U", 132.5, 185), ("L", 162.5, 155)]:
+        for ry in (160, 290, 420, 550, 660):
+            gantry(explode_with(
+                add_bolt(f"Bolt_RailX_{tag}_{ry}_{bolt_size}",
+                         rcx, ry, rtop + fs["head_h"], axis='-z',
+                         size=bolt_size, shaft_l=22),
+                dz=100))
+
+
+def _add_p2of2_rail_bolts(bolt_size: str = 'M3'):
+    """
+    Complaint VI (plate rails): the two Z-rails (Rail_Z_Left / _Right) bolt onto
+    the p2of2 sliding plate, but the rail bolts themselves were missing.  Head on
+    the rail front face (low X), shaft +X through the rail and into p2of2 behind
+    it.  Bolts slide with p2of2 (z_slide) and share each rail's explode offsets.
+    """
+    fs = fastener(bolt_size)
+    for side, rcy, expl_y in [("L", 457, +40), ("R", 392, -40)]:
+        for rz in (140, 200, 260):
+            gantry(z_slide(explode_with(
+                add_bolt(f"Bolt_RailZ_{side}_{rz}_{bolt_size}",
+                         147 - fs["head_h"], rcy, rz, axis='+x',
+                         size=bolt_size, shaft_l=25),
+                dy=expl_y, dx=130)))
+
+
 # ── Main assembly builder ─────────────────────────────────────────────────────
 
 def _build_assembly(document):
@@ -775,6 +832,9 @@ def _build_assembly(document):
     _add_gantry_beam_rods(GZ_L, GZ_U)
     _add_side_plate_clip_bolts()
     _add_router_clamp_bolts()
+    _add_frame_rail_bolts()      # I-7:   MGN12H frame-rail screws
+    _add_gantry_rail_bolts()     # III-1/2: X-rail → gantry-beam screws
+    _add_p2of2_rail_bolts()      # VI:    Z-rail → p2of2 mounting bolts
 
     # C.4 — attach the thread spec to each fastener as a FreeCAD label so the
     # BOM export and any downstream reader can inspect it without inferring
