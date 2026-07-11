@@ -26,8 +26,58 @@ import sys
 import tempfile
 import time
 
-FREECAD_LIB = "/nix/store/k7487nfjqcild0rvq6nmsqp250c2lvbk-freecad-1.1.1/lib"
+# ── FreeCAD discovery ──────────────────────────────────────────────────────────
+# This machine runs FreeCAD from an extracted AppImage (the snap is broken and the
+# old Nix store path no longer exists). Resolve the library dir from, in order:
+#   1. $FREECAD_LIB env var
+#   2. the extracted AppImage under ~/.local/opt/FreeCAD-*/usr/lib
+#   3. the legacy Nix store path (kept for other machines)
+# The chosen dir is exported so the re-invoked render subprocesses inherit it.
+def _find_freecad_lib() -> str:
+    import glob
+    cands = []
+    if os.environ.get("FREECAD_LIB"):
+        cands.append(os.environ["FREECAD_LIB"])
+    cands += sorted(glob.glob(os.path.expanduser("~/.local/opt/FreeCAD-*/usr/lib")),
+                    reverse=True)
+    cands.append("/nix/store/k7487nfjqcild0rvq6nmsqp250c2lvbk-freecad-1.1.1/lib")
+    for c in cands:
+        if os.path.exists(os.path.join(c, "FreeCAD.so")) or \
+           os.path.exists(os.path.join(c, "FreeCAD.pyd")):
+            return c
+    return cands[-1]
+
+FREECAD_LIB = _find_freecad_lib()
+os.environ["FREECAD_LIB"] = FREECAD_LIB
 sys.path.insert(0, FREECAD_LIB)
+
+# The Qt build in the AppImage defaults to the Wayland platform plugin and
+# segfaults in fitAll(); force the xcb (X11 / XWayland) backend. Also strip the
+# GTK/pixbuf/locale vars that the VS Code snap leaks into its terminal (they point
+# GUI apps at /snap/code/... runtimes and break GL/pixbuf module loading).
+os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
+for _leak in ("GTK_PATH", "LOCPATH", "GDK_PIXBUF_MODULE_FILE", "GDK_PIXBUF_MODULEDIR",
+              "GSETTINGS_SCHEMA_DIR", "GTK_IM_MODULE_FILE", "GIO_MODULE_DIR"):
+    os.environ.pop(_leak, None)
+
+# Locally-installed render deps (imageio-ffmpeg ships a static ffmpeg binary so we
+# do not need a system ffmpeg / Xvfb). Installed once via:
+#   <appimage>/usr/bin/python -m pip install --target .render_deps imageio imageio-ffmpeg
+_RENDER_DEPS = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".render_deps")
+if os.path.isdir(_RENDER_DEPS) and _RENDER_DEPS not in sys.path:
+    sys.path.insert(0, _RENDER_DEPS)
+
+
+def _find_ffmpeg() -> str:
+    """Return a usable ffmpeg binary path (imageio-ffmpeg's static build, or PATH)."""
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        import shutil
+        return shutil.which("ffmpeg") or "ffmpeg"
+
+FFMPEG = _find_ffmpeg()
 
 import FreeCAD
 import Mesh          # noqa: F401 – keep import so FreeCAD mesh module is loaded
@@ -41,7 +91,10 @@ OUT    = os.path.join(REPO, "hardware_mods/metal_plates/assembly")
 
 ASSEMBLY_VERSION  = "v2"
 
-FCSTD_PATH        = os.path.join(OUT, f"cnc_assembly_{ASSEMBLY_VERSION}.FCStd")
+# Canonical name the `freecad` launcher wrapper auto-opens; a versioned copy is
+# also written next to it for history (C.5).
+FCSTD_PATH        = os.path.join(OUT, "cnc_assembly.FCStd")
+FCSTD_VERSIONED   = os.path.join(OUT, f"cnc_assembly_{ASSEMBLY_VERSION}.FCStd")
 GIF_PATH          = os.path.join(OUT, "cnc_assembly_gif.gif")
 EXPLODE_GIF_PATH  = os.path.join(OUT, "cnc_assembly_explode_gif.gif")
 STAGED_GIF_PATH   = os.path.join(OUT, "cnc_assembly_staged_gif.gif")
@@ -446,16 +499,14 @@ def _add_p1of2_outtake_bolts(bolt_size: str = 'M5'):
     C.2 — swap `bolt_size` (e.g. 'M4' vs 'M5') and both bolt+nut+hole
     dimensions update via the FASTENERS catalogue.
 
-    p1of2 world positions after placement (x=137, y=-35, z=93, yaw=90):
-        world_Y  = local_X − 35
-        world_Z  = local_Z + 93
-        world_X  ≈ 140  (centre of 6 mm plate thickness)
+    p1of2 world position after placement (x=133, y=369, z=224, yaw=0):
+        plate body spans world X[133,143] Y[310,497] Z[88,306]; the front face
+        at x=143 carries the four MGN12H blocks, and P1_X=140 is the mid-plane
+        of the 10 mm plate thickness (bolt shafts run through it).
 
-    Tab centres (from nut_check image, local → world):
-        TL  local_x≈372, local_z≈221  →  world y=337, z=314
-        TR  local_x≈437, local_z≈221  →  world y=402, z=314
-        BL  local_x≈372, local_z≈−12  →  world y=337, z=81
-        BR  local_x≈437, local_z≈−12  →  world y=402, z=81
+    Tab centres (the four nut-carrying tab extensions, local → world):
+        TL  world y=337, z=314   TR  world y=402, z=314
+        BL  world y=337, z=81    BR  world y=402, z=81
     """
     P1_X = 140          # world X centre of plate
     fs = fastener(bolt_size)
@@ -688,12 +739,20 @@ def _build_assembly(document):
     # manual_design/vN.FCStd — see export_manual_steps.py.  If missing,
     # a 6 × 147.5 × 218.3 mm placeholder box is used so the assembly still
     # renders (C.0).
+    # The real M36a STEP is authored thin-in-X (10 mm) already, spanning Y (187 mm)
+    # and Z (217 mm). Placing it with yaw=0 at (133, 369, 224) lands its front face
+    # exactly at x=143 — flush with the four MGN12H blocks (x 143→156) — and makes
+    # it span the full block footprint in Y (310→497 ⊇ 379→470) and Z (88→306 ⊇
+    # 140→274), with the tab bolts (z 81 / 314) sitting on its top/bottom edges.
+    # (The old yaw=90 rotated it thin-in-Y and parked it at the machine's far left,
+    # so the blocks/rails/p2of2 — which were always placed for the plate to be here
+    # — floated in space. See assembly_description.md "p1of2 orientation (desired)".)
     gantry(explode_with(
         add_step("Engine_Holder_P1",
             f"{METAL}/IV_engine_plate_p1of2/M36a_vertical_plate"
             "/5_models_and_renders/starting_point_rect_metal.step",
-            x=137, y=-35, z=93, yaw=90,
-            fallback_box=(6, 147.5, 218.3)),
+            x=133, y=369, z=224, yaw=0,
+            fallback_box=(10, 187, 218)),
         dx=80))
 
     # Z-rails: slide with p2of2
@@ -776,10 +835,6 @@ def _build_assembly(document):
 
 def _rotate_frame(png_path):
     """Rotate 90° CW and draw X/Y/Z labels next to the coloured axis rods."""
-    import sys as _sys
-    _venv_sp = os.path.join(REPO, ".venv/lib/python3.13/site-packages")
-    if _venv_sp not in _sys.path:
-        _sys.path.insert(0, _venv_sp)
     try:
         from PIL import Image, ImageDraw, ImageChops, ImageFont
     except ImportError:
@@ -789,10 +844,14 @@ def _rotate_frame(png_path):
     r_ch, g_ch, b_ch = img.split()
     draw = ImageDraw.Draw(img)
 
-    try:
-        font = ImageFont.truetype(
-            "/run/current-system/sw/share/fonts/truetype/DejaVuSans-Bold.ttf", 36)
-    except Exception:
+    font = None
+    for _fp in ("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+                "/run/current-system/sw/share/fonts/truetype/DejaVuSans-Bold.ttf"):
+        try:
+            font = ImageFont.truetype(_fp, 36); break
+        except Exception:
+            continue
+    if font is None:
         try:    font = ImageFont.load_default(size=36)
         except: font = ImageFont.load_default()
 
@@ -938,7 +997,7 @@ def _render_frames_to_gif(view, out_gif, frames, fps, W, H,
             f.write(f"file '{p}'\nduration {1/fps:.4f}\n")
 
     subprocess.run([
-        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat,
+        FFMPEG, "-y", "-f", "concat", "-safe", "0", "-i", concat,
         "-vf", "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
         "-loop", "0", out_gif,
     ], check=True)
@@ -1110,7 +1169,7 @@ def _render_staged_inner():
             f.write(f"file '{p}'\nduration {1/FPS:.4f}\n")
 
     subprocess.run([
-        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat,
+        FFMPEG, "-y", "-f", "concat", "-safe", "0", "-i", concat,
         "-vf", "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
         "-loop", "0", STAGED_GIF_PATH,
     ], check=True)
@@ -1237,13 +1296,13 @@ def _render_subcomponent_inner(sc: str):
 
     # GIF
     subprocess.run([
-        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat,
+        FFMPEG, "-y", "-f", "concat", "-safe", "0", "-i", concat,
         "-vf", "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
         "-loop", "0", out_gif,
     ], check=True)
     # MP4 (C.6.1 — same source frames, H.264 encode)
     subprocess.run([
-        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat,
+        FFMPEG, "-y", "-f", "concat", "-safe", "0", "-i", concat,
         "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2",
         "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "22", out_mp4,
     ], check=False)   # tolerate missing libx264
@@ -1251,6 +1310,11 @@ def _render_subcomponent_inner(sc: str):
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
+
+def _sh_which(name):
+    import shutil
+    return shutil.which(name)
+
 
 def _main():
     parser = argparse.ArgumentParser(description=__doc__,
@@ -1282,13 +1346,30 @@ def _main():
     _build_assembly(doc_obj)
     doc_obj.saveAs(FCSTD_PATH)
     print(f"[assemble] Saved → {FCSTD_PATH}", flush=True)
+    try:
+        import shutil as _sh
+        _sh.copyfile(FCSTD_PATH, FCSTD_VERSIONED)
+        print(f"[assemble] Versioned copy → {FCSTD_VERSIONED}", flush=True)
+    except Exception as _e:
+        print(f"[assemble] warning: could not write versioned copy: {_e}", flush=True)
 
-    # Phase 2: render GIFs inside Xvfb subprocesses
-    display = ":98"
-    print(f"[assemble] Starting Xvfb on {display} ...", flush=True)
-    xvfb = subprocess.Popen(["Xvfb", display, "-screen", "0", "1280x720x24"],
-                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    time.sleep(1.5)
+    # Phase 2: render GIFs.  Prefer an existing X display (the AppImage renders
+    # fine on the live :0 via XWayland); only spin up an Xvfb if none is present
+    # and the binary is available.
+    xvfb = None
+    display = os.environ.get("DISPLAY")
+    if display:
+        print(f"[assemble] Rendering on existing DISPLAY={display}", flush=True)
+    elif _sh_which("Xvfb"):
+        display = ":98"
+        print(f"[assemble] No DISPLAY — starting Xvfb on {display} ...", flush=True)
+        xvfb = subprocess.Popen(["Xvfb", display, "-screen", "0", "1280x720x24"],
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(1.5)
+    else:
+        print("[assemble] ERROR: no DISPLAY and no Xvfb available — cannot render",
+              flush=True)
+        sys.exit(1)
     env = dict(os.environ, DISPLAY=display)
 
     def _subprocess(flag):
@@ -1320,7 +1401,8 @@ def _main():
                     print(f"[assemble] Sub-component {sc} exited {r.returncode}",
                           flush=True)
     finally:
-        xvfb.terminate(); xvfb.wait()
+        if xvfb is not None:
+            xvfb.terminate(); xvfb.wait()
 
     print(f"[assemble] Done!\n"
           f"  FCStd     → {FCSTD_PATH}\n"

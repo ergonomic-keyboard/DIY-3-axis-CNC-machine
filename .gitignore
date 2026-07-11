@@ -16,3 +16,6 @@ claude/local/
 
 # FreeCAD backup files
 *.FCBak
+
+# local render deps (imageio-ffmpeg static binary) — regenerated, not committed
+hardware_mods/metal_plates/assembly/.render_deps/
