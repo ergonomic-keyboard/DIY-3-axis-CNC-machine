@@ -137,6 +137,15 @@ _STAGE: dict[str, int] = {}
 # subcomponent mapping (I..VI) — used by --subcomponent-render (C.6)
 _SUBCOMP: dict[str, str] = {}
 
+# ── Frame post / tie-rod layout (complaint I) ─────────────────────────────────
+# The eight vertical tie rods pass through posts at these X positions on the two
+# machine edges (Y = 0 and Y = 763).  The outer pair is inset from the extreme
+# corners (CORNER_INSET) so the corners stay clear for the four long HORIZONTAL
+# tie rods that run the length of the Left/Right beams and their end hardware.
+CORNER_INSET = 60
+POST_X = (CORNER_INSET, 285, 585, 900 - 30 - CORNER_INSET)   # (60, 285, 585, 810)
+POST_Y = (0, 763)
+
 
 # ── Low-level geometry helpers ────────────────────────────────────────────────
 
@@ -767,23 +776,50 @@ def _add_p2of2_rail_bolts(bolt_size: str = 'M3'):
 
 def _add_frame_tie_rods(rod_size: str = 'M8'):
     """
-    Complaint I-1/I-2/I-3: vertical M8 tie rods clamp the upper & lower beam rows
-    to the eight corner/mid posts.  Each stud runs +Z through the drilled holes:
-    head (bottom stop) below the lower beam with a washer, then a washer + nut on
-    top (reached through the Ø16 wrench-access counterbore).  Frame-static (no
-    gantry wrap); the rod + washers + nut lift clear (dz) in the explode view.
+    Complaint I-1/2/3 + recess follow-up: vertical M8 tie rods clamp the upper &
+    lower beam rows to the eight posts (POST_X × POST_Y).  Hardware is RECESSED so
+    the thread never protrudes past the bars: the head sits inside the lower beam
+    (above z=-140) and the top washer + nut sink into the upper beam (below z=0),
+    reached through the Ø16 wrench hole.  The washers don't fit through that hole,
+    so they slide in from the beam end — modelled by exploding them along X toward
+    the nearest open end while the rod + nut lift (dz).  Frame-static (no gantry).
     """
-    posts = [(0,0),(0,763),(870,0),(870,763),(285,0),(285,763),(585,0),(585,763)]
-    for vx, vy in posts:
-        cx, cy, tag = vx + 15, vy + 15, f"{vx}_{vy}"
-        explode_with(add_bolt(f"Rod_Tie_{tag}_{rod_size}", cx, cy, -148,
-                              axis='+z', size=rod_size, shaft_l=160), dz=180)
-        explode_with(add_washer(f"WasherB_Tie_{tag}_{rod_size}", cx, cy, -141.0,
-                                axis='+z', size=rod_size), dz=180)
-        explode_with(add_washer(f"WasherT_Tie_{tag}_{rod_size}", cx, cy, 0.8,
-                                axis='+z', size=rod_size), dz=180)
-        explode_with(add_nut(f"NutT_Tie_{tag}_{rod_size}", cx, cy, 4.75,
-                             axis='+z', size=rod_size), dz=180)
+    for vx in POST_X:
+        for vy in POST_Y:
+            cx, cy, tag = vx + 15, vy + 15, f"{vx}_{vy}"
+            wdx = -110 if cx < 450 else 110          # washers slide out the nearest end
+            explode_with(add_bolt(f"Rod_Tie_{tag}_{rod_size}", cx, cy, -137,
+                                  axis='+z', size=rod_size, shaft_l=128), dz=180)
+            explode_with(add_washer(f"WasherB_Tie_{tag}_{rod_size}", cx, cy, -130,
+                                    axis='+z', size=rod_size), dx=wdx)
+            explode_with(add_washer(f"WasherT_Tie_{tag}_{rod_size}", cx, cy, -2.9,
+                                    axis='+z', size=rod_size), dx=wdx)
+            explode_with(add_nut(f"NutT_Tie_{tag}_{rod_size}", cx, cy, -7.2,
+                                 axis='+z', size=rod_size), dz=180)
+
+
+def _add_frame_side_rods(rod_size: str = 'M8'):
+    """
+    Complaint A.1–A.4: four long HORIZONTAL tie rods run the length of the Left
+    and Right beams (both rows) — the ones previously missing.  Each rod is offset
+    in Y (HROD_DY) so its shaft clears the vertical rods on the beam centre-line;
+    at the crossings the two Ø8 shafts nominally overlap ~2 mm (a detailed design
+    would stagger them).  A washer + nut are recessed just inside each end, reached
+    through the Ø16 corner wrench holes; the head anchors the other end.  Nothing
+    protrudes past the beam ends.  Frame-static; lifts clear (dz) in the explode.
+    """
+    for rsfx, bz in [("Lo", -140), ("Up", -30)]:
+        rz = bz + 15
+        for side, ry in [("Left", 21), ("Right", 763 + 9)]:
+            tag = f"{rsfx}_{side}"
+            explode_with(add_bolt(f"RodH_Tie_{tag}_{rod_size}", 6, ry, rz,
+                                  axis='+x', size=rod_size, shaft_l=878), dz=200)
+            explode_with(add_washer(f"WasherHA_Tie_{tag}_{rod_size}", 13,  ry, rz,
+                                    axis='+x', size=rod_size), dz=200)
+            explode_with(add_washer(f"WasherHB_Tie_{tag}_{rod_size}", 881, ry, rz,
+                                    axis='+x', size=rod_size), dz=200)
+            explode_with(add_nut(f"NutH_Tie_{tag}_{rod_size}", 887, ry, rz,
+                                 axis='+x', size=rod_size), dz=200)
 
 
 # ── Main assembly builder ─────────────────────────────────────────────────────
@@ -798,33 +834,39 @@ def _build_assembly(document):
     _explode_bases.clear()
 
     # ── FRAME ─────────────────────────────────────────────────────────────────
-    # Complaint I: the frame extrusions were solid blocks with no holes.  They are
-    # now hollow 2 mm-wall beams (add_beam) drilled with:
-    #   • vertical M8 tie-rod holes (Ø8.5) on the post centre-lines that clamp the
-    #     upper/lower beam rows to the corner/mid posts;
-    #   • wrench/socket-access counterbores (Ø16, top row) coaxial with each tie
-    #     rod so the nut inside the hollow beam can be reached and tightened;
-    #   • MGN12H rail mounting holes (Ø3.5) drilled in the rails themselves.
-    POST_UX = (15, 300, 600, 885)      # post centre-lines in the long beams' local X
-    RAIL_UX = (200, 350, 500, 650)     # rail-screw world-X (matches _add_frame_rail_bolts)
+    # Complaint I + follow-ups.  Hollow 2 mm-wall extrusions drilled with:
+    #   (a) VERTICAL M8 tie-rod holes (Ø9) on the post centre-lines — the outer
+    #       pair inset from the corners (POST_X) so the corners stay free;
+    #   (b) HORIZONTAL M8 side-rod bores running the full length of the Left/Right
+    #       beams (open hollow ends, offset in Y to clear the verticals);
+    #   (c) Ø16 wrench/socket-access holes over every recessed nut — the vertical
+    #       nuts (top row) and the horizontal end nuts (both rows, at the corners);
+    #   (d) MGN12H rail mounting holes (Ø3.4) drilled in the rails themselves.
+    POST_UX = tuple(vx + 15 for vx in POST_X)     # vertical-rod centre-lines (local X)
+    RAIL_UX = (200, 350, 500, 650)                # rail-screw world-X
+    HROD_DY = {"Left": 21, "Right": 9}            # horizontal-rod local Y (clears verticals @15)
+    HROD_END_U = (13, 887)                        # local X of the horizontal-rod end nuts
 
-    def _frame_row(sfx, z, top=False):
-        tie = [{'axis': 'z', 'u': ux, 'v': 15, 'd': hole_d('M8')} for ux in POST_UX]
-        yh = list(tie)
-        if top:                        # wrench/socket access from the top face
-            yh += [{'axis': 'z', 'u': ux, 'v': 15, 'd': 16, 'depth': 4} for ux in POST_UX]
-        explode_with(add_beam(f"Frame_{sfx}_Left_Y",  900, 30, 30,   0,   0, z, holes=yh), dy=-120)
-        explode_with(add_beam(f"Frame_{sfx}_Right_Y", 900, 30, 30,   0, 763, z, holes=yh), dy=+120)
+    def _frame_row(sfx, z, vtop=False):
+        tie   = [{'axis': 'z', 'u': ux, 'v': 15, 'd': hole_d('M8')} for ux in POST_UX]
+        haccL = [{'axis': 'z', 'u': u, 'v': HROD_DY["Left"],  'd': 16, 'depth': 4} for u in HROD_END_U]
+        haccR = [{'axis': 'z', 'u': u, 'v': HROD_DY["Right"], 'd': 16, 'depth': 4} for u in HROD_END_U]
+        lyh, ryh = tie + haccL, tie + haccR
+        if vtop:                                   # vertical-nut access (top row only)
+            vacc = [{'axis': 'z', 'u': ux, 'v': 15, 'd': 16, 'depth': 4} for ux in POST_UX]
+            lyh += vacc; ryh += vacc
+        explode_with(add_beam(f"Frame_{sfx}_Left_Y",  900, 30, 30,   0,   0, z, holes=lyh), dy=-120)
+        explode_with(add_beam(f"Frame_{sfx}_Right_Y", 900, 30, 30,   0, 763, z, holes=ryh), dy=+120)
         explode_with(add_beam(f"Frame_{sfx}_Front_X",  30, 733, 30,   0,  30, z), dx=-120)
         explode_with(add_beam(f"Frame_{sfx}_Back_X",   30, 733, 30, 870,  30, z), dx=+120)
 
     _frame_row("Lo", -140)
-    _frame_row("Up",  -30, top=True)
+    _frame_row("Up",  -30, vtop=True)
 
-    for vx, vy in [(0,0),(0,763),(870,0),(870,763),
-                   (285,0),(285,763),(585,0),(585,763)]:
-        explode_with(add_beam(f"Frame_Vert_{vx}_{vy}", 30, 30, 80, vx, vy, -110,
-                              holes=[{'axis': 'z', 'u': 15, 'v': 15, 'd': hole_d('M8')}]), dz=-120)
+    for vx in POST_X:
+        for vy in POST_Y:
+            explode_with(add_beam(f"Frame_Vert_{vx}_{vy}", 30, 30, 80, vx, vy, -110,
+                                  holes=[{'axis': 'z', 'u': 15, 'v': 15, 'd': hole_d('M8')}]), dz=-120)
 
     _rail_holes = [{'axis': 'z', 'u': rx - 150, 'v': 4.5, 'd': hole_d('M3')} for rx in RAIL_UX]
     explode_with(add_beam("Rail_Y_Left",  600, 9, 7, 150,  -9, -7,
@@ -958,7 +1000,8 @@ def _build_assembly(document):
     _add_frame_rail_bolts()      # I-7:   MGN12H frame-rail screws
     _add_gantry_rail_bolts()     # III-1/2: X-rail → gantry-beam screws
     _add_p2of2_rail_bolts()      # VI:    Z-rail → p2of2 mounting bolts
-    _add_frame_tie_rods()        # I-1/2/3: vertical tie rods + washers + nuts
+    _add_frame_tie_rods()        # I-1/2/3: vertical tie rods + washers + nuts (recessed)
+    _add_frame_side_rods()       # A.1-A.4: 4 long horizontal tie rods + washers + nuts
 
     # C.4 — attach the thread spec to each fastener as a FreeCAD label so the
     # BOM export and any downstream reader can inspect it without inferring
