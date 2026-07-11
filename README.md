@@ -39,3 +39,30 @@ python3 tools/dev.py
 
 Then open <http://127.0.0.1:8000/DIY-3-axis-CNC-machine/shopping/>. See
 [`developers.md`](./developers.md) for everything else.
+
+---
+
+Generate the assembly rendering:
+```sh
+## Set the Python (Ubuntu): use FreeCAD's bundled Python 3.11, NOT system python
+## (system python has no compatible FreeCAD ABI)
+py=~/.local/opt/FreeCAD-1.1.1/usr/bin/python
+
+## Generate environment — one-time build123d .venv for the part scripts
+./hardware_mods/metal_plates/setup_env.sh
+
+## One-time: static ffmpeg (imageio-ffmpeg) for MP4 encoding — .render_deps is
+## currently missing, so this is required, not optional. Gitignored, installs locally.
+"$py" -m pip install --target hardware_mods/metal_plates/assembly/.render_deps \
+    imageio imageio-ffmpeg
+
+## (Only if part STEPs are missing) regenerate them headlessly — freecadcmd needs no display
+FREECADCMD=~/.local/opt/FreeCAD-1.1.1/usr/bin/freecadcmd \
+    python3 hardware_mods/metal_plates/assembly/export_manual_steps.py
+
+
+## Build assembly FCStd + render every GIF and MP4
+## (kinematic, explode, staged, and all sub-components I…VI)
+"$py" hardware_mods/metal_plates/assembly/assemble_and_render.py --subcomponents
+
+```
