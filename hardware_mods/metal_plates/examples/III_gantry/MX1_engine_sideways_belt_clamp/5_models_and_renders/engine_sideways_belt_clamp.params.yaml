@@ -1,0 +1,16 @@
+# Parameters for MX1_engine_sideways_belt_clamp (engine_sideways_belt_clamp.py).
+# Editing a value here overrides the same-named constant in the script
+# (values below equal the script defaults). Numbers are millimetres unless
+# the script comment says otherwise. Derived values (e.g. a midpoint) are
+# snapshots — if you change what they depend on, update them here too.
+
+BODY_X: 41   # along belt travel
+BODY_Y: 23   # vertical, bolt axis
+BODY_Z: 27   # belt width direction (HTD5M belt is 9-15 mm wide; fits)
+BOLT_DIAM: 5.5   # M5 clearance
+BOLT_PITCH_X: 26   # spacing along the belt-travel axis
+PIN_DIAM: 5
+PIN_PITCH_X: 8   # close to HTD5M 5 mm + tooth ≈ 8 mm interlock
+PIN_COUNT: 3
+PIN_Y: -11.5   # centre at the bottom face (half-buried tooth)
+PIN_LEN: 29   # span the full belt width

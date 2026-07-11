@@ -1,0 +1,57 @@
+# ============================================================================
+#  M20a  —  LEFT SIDE PLATE  ·  OUTLINE (silhouette) specification
+# ============================================================================
+#  Human source of truth for the plate's outline. Edit this, then run:
+#     python hardware_mods/metal_plates/expand_outline.py --example <part folder>
+#  to compile it into outline.json, which build_model.py reads (preferred over
+#  the raw/edited *_polygon.json traces). Companion to holes.yaml.
+#
+#  The outline lies in the X-Z plane (X = across the plate, Z = up); build_model
+#  extrudes it along +Y to the plate thickness. Vertices are listed IN ORDER
+#  around the polygon (it auto-closes: last -> first).
+#
+#  Each vertex owns the EDGE that LEAVES it toward the next vertex:
+#     edge.constraint :  free | horizontal | vertical
+#        (used by align_outline.py to snap nearly-H/V edges perfectly straight;
+#         'free' = a true diagonal, e.g. a chamfer)
+#     edge.group      :  integer; edges sharing a group are treated together.
+#  Add a `comment:` to any vertex to label a corner / chamfer / notch.
+#
+#  HOW TO edit the shape:
+#     * move a corner        -> change its x / z
+#     * make an edge straight -> set the leaving edge's constraint to
+#                                horizontal or vertical (then re-run expand)
+#     * keep a chamfer/diagonal -> leave constraint: free
+# ============================================================================
+
+meta:
+  part: M20a_left_body
+  coords: mm
+  closed: true
+  plane: XZ            # outline in X-Z; extruded along +Y by build_model
+
+vertices:
+  - { id: v00, x: 92.63163885006685, z: -7.074872421267383, edge: { constraint: free, group: 1 }, comment: "" }
+  - { id: v01, x: 80.39360591098468, z: 6.756621809361396, edge: { constraint: vertical, group: 0 }, comment: "" }
+  - { id: v02, x: 80.39360591098468, z: 35.30974916862385, edge: { constraint: horizontal, group: 4 }, comment: "" }
+  - { id: v03, x: 94.93389071476685, z: 35.30974916862385, edge: { constraint: vertical, group: 0 }, comment: "" }
+  - { id: v04, x: 94.93389071476685, z: 65.3819587855667, edge: { constraint: horizontal, group: 5 }, comment: "" }
+  - { id: v05, x: 80.26731412781106, z: 65.3819587855667, edge: { constraint: vertical, group: 0 }, comment: "" }
+  - { id: v06, x: 80.26731412781106, z: 105.57158784027567, edge: { constraint: free, group: 0 }, comment: "" }
+  - { id: v07, x: 117.81542601255752, z: 149.5, edge: { constraint: horizontal, group: 6 }, comment: "" }
+  - { id: v08, x: 127.26467095866423, z: 149.5, edge: { constraint: vertical, group: 0 }, comment: "" }
+  - { id: v09, x: 127.26467095866423, z: 159.99950340255742, edge: { constraint: free, group: 0 }, comment: "" }
+  - { id: v10, x: 142.39060553452418, z: 190.0, edge: { constraint: horizontal, group: 0 }, comment: "" }
+  - { id: v11, x: 164.8806915283203, z: 190.0, edge: { constraint: vertical, group: 2 }, comment: "" }
+  - { id: v12, x: 164.8806915283203, z: 179.75, edge: { constraint: horizontal, group: 0 }, comment: "" }
+  - { id: v13, x: 149.0, z: 179.75, edge: { constraint: vertical, group: 3 }, comment: "" }
+  - { id: v14, x: 149.0, z: 149.5, edge: { constraint: horizontal, group: 6 }, comment: "" }
+  - { id: v15, x: 164.8806915283203, z: 149.5, edge: { constraint: vertical, group: 2 }, comment: "" }
+  - { id: v16, x: 164.8806915283203, z: 65.3819587855667, edge: { constraint: horizontal, group: 5 }, comment: "" }
+  - { id: v17, x: 149.0, z: 65.3819587855667, edge: { constraint: vertical, group: 3 }, comment: "" }
+  - { id: v18, x: 149.0, z: 35.30974916862385, edge: { constraint: horizontal, group: 4 }, comment: "" }
+  - { id: v19, x: 164.8806915283203, z: 35.30974916862385, edge: { constraint: vertical, group: 2 }, comment: "" }
+  - { id: v20, x: 164.8806915283203, z: 30.0, edge: { constraint: horizontal, group: 0 }, comment: "" }
+  - { id: v21, x: 189.53063468671064, z: 30.0, edge: { constraint: free, group: 0 }, comment: "" }
+  - { id: v22, x: 190.46936531328936, z: -0.7735773016977987, edge: { constraint: free, group: 0 }, comment: "" }
+  - { id: v23, x: 183.3137558087422, z: -8.13359811319047, edge: { constraint: free, group: 0 }, comment: "" }

@@ -110,5 +110,33 @@ def main() -> None:
     print(f"wrote {plan_path.name}")
 
 
+# -- YAML parameter override (optional) --------------------------------------
+# If a sibling "<thisfile>.params.yaml" exists, its UPPER_CASE keys replace the
+# module constants above, so the geometry can be tuned without editing code.
+# The shipped params.yaml equals these defaults (no behaviour change until you
+# edit it). Guarded so a missing PyYAML / file can never break the build.
+def _apply_yaml_param_overrides():
+    try:
+        import yaml
+        from pathlib import Path
+        pf = Path(__file__).with_suffix(".params.yaml")
+        if not pf.exists():
+            return
+        data = yaml.safe_load(pf.read_text()) or {}
+        g = globals()
+        applied = []
+        for k, v in data.items():
+            if isinstance(k, str) and k.isupper() and k in g:
+                g[k] = v
+                applied.append(k)
+        if applied:
+            print(f"[params] {pf.name}: overrode {len(applied)} constant(s)")
+    except Exception as exc:
+        print(f"[params] YAML override skipped ({exc})")
+
+
+_apply_yaml_param_overrides()
+
+
 if __name__ == "__main__":
     main()

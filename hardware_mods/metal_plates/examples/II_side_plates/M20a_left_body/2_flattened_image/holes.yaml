@@ -1,0 +1,148 @@
+# ============================================================================
+#  M20a  —  LEFT SIDE PLATE  ·  hole & feature specification
+# ============================================================================
+#  This YAML is the HUMAN source of truth for the plate's holes. You edit it;
+#  `expand_holes.py` compiles it into `holes.json`, and `build_model.py` reads
+#  that JSON to punch the holes and (re)export the STEP. The right side plate
+#  is generated as a mirror of this one, so you only ever edit the left.
+#
+#  Pipeline:
+#     edit this file
+#       -> python hardware_mods/metal_plates/expand_holes.py --example <this folder's parent-parent> ... (see expand_holes.py header)
+#       -> python hardware_mods/metal_plates/build_model.py   --example ...
+#       -> python .../assembly/assemble_and_render.py         (updates assembly + mirrors to right)
+#
+#  COORDINATE FRAME  (same as the plan view / the standalone STEP you open):
+#     * The plate lies in the X–Z plane; holes are drilled along +Y (through
+#       the face). X runs left->right across the plate, Z runs bottom->top.
+#     * All values are millimetres.
+#     * "z_from_bottom" is measured up from the plate's BOTTOM EDGE (the datum
+#       below) — so you can move a whole hole group by changing one number.
+#
+#  HOW TO ... :
+#     * change a hole diameter        -> edit its `d:` (millimetres, diameter).
+#     * let the THREAD drive the size  -> delete `d:` and set `thread:` + `fit:`
+#                                        (clearance|tapped); size comes from the
+#                                        `threads:` table below. Swap M3->M4 there
+#                                        and every hole using it resizes.
+#     * move a block up/down          -> edit the group's `anchor.z_from_bottom`.
+#     * add another block             -> copy a whole `- id:` group block and
+#                                        rename its id + anchor.
+# ============================================================================
+
+meta:
+  plate: M20a_left_body
+  units: mm
+  hole_axis: Y            # every through-hole runs along +Y (out of the face)
+
+# ---------------------------------------------------------------------------
+# DATUMS you can reference from any position below.
+# Read once from the traced outline (4_outline/*_polygon.json) and pinned here
+# so edits stay explicit. If you re-trace the outline and the extents move,
+# update these two numbers.
+# ---------------------------------------------------------------------------
+datums:
+  plate_bottom_edge_z: -8.13    # lowest point of the plate outline (Z min)
+  plate_left_edge_x:   80.27    # leftmost point of the plate outline (X min)
+
+# ---------------------------------------------------------------------------
+# THREAD / hole-type table. Only used when a hole omits `d:` and gives a
+# `thread:` instead — then the diameter comes from here (clearance or tapped).
+# Values are ISO medium-clearance / tap-drill diameters in mm.
+# ---------------------------------------------------------------------------
+threads:
+  M3: { nom_d: 3.0, clearance_d: 3.5, tap_d: 2.5 }
+  M4: { nom_d: 4.0, clearance_d: 4.5, tap_d: 3.3 }
+  M5: { nom_d: 5.0, clearance_d: 5.5, tap_d: 4.2 }
+  M6: { nom_d: 6.0, clearance_d: 6.6, tap_d: 5.0 }
+  M8: { nom_d: 8.0, clearance_d: 9.0, tap_d: 6.8 }
+
+# ---------------------------------------------------------------------------
+# GROUPS. Each group = one comment + one thread annotation + EITHER a
+# parametric `pattern:` OR an explicit `holes:` list.
+#
+# rect4 pattern — 4 holes numbered CLOCKWISE FROM TOP-LEFT:
+#       1 ── dx ── 2          1 = top-left      2 = top-right
+#       │          │          3 = bottom-right  4 = bottom-left
+#      dy         dy          dx = spacing 1<->2 and 4<->3   (horizontal, X)
+#       │          │          dy = spacing 1<->4 and 2<->3   (vertical,   Z)
+#       4 ── dx ── 3
+#   anchor = the BOTTOM-LEFT hole (#4): its X, and its height above the
+#   plate bottom edge (z_from_bottom).
+# ---------------------------------------------------------------------------
+groups:
+
+  # ---- WORKED EXAMPLE: exactly the MGN12H-style block you described --------
+  - id: mgn12h_block_A
+    comment: >
+      Bottom MGN12H-style carriage block, right of the two. Four screws in a
+      20 x 20 mm square. This is the fully-parametric template: give it the two
+      spacings, one shared diameter, a thread, and the height above the bottom
+      edge, and all four holes follow. Copy this group to add more blocks.
+    thread: M8            # annotation; set fit + drop `d` below to let it drive size
+    fit: clearance
+    pattern:
+      type: rect4
+      numbering: clockwise_from_top_left   # 1=TL 2=TR 3=BR 4=BL
+      dx: 20.0            # distance between holes 1&2 and 4&3  (X / horizontal)
+      dy: 20.0            # distance between holes 1&4 and 2&3  (Z / vertical)
+      d:  8.0             # ONE shared diameter for all 4 holes  <-- "group the radius"
+      anchor:
+        x: 158.0          # X of the left column (holes 1 & 4)
+        z_from_bottom: 9.13   # height of the BOTTOM row (holes 3 & 4) above the plate bottom edge
+      # Optional: per-hole tweaks keyed by the clockwise number. e.g. make hole 4
+      # a different size, or add a note. Leave empty to keep all four identical.
+      holes:
+        1: { note: "top-left" }
+        2: { note: "top-right" }
+        3: { note: "bottom-right" }
+        4: { note: "bottom-left" }
+
+  # ---- Second bottom block: kept EXPLICIT because the extracted data is -----
+  # ---- asymmetric (hole at x=103,z=1 came out Ø3.5, the other three Ø8). ----
+  # ---- If it should be a clean block, delete these four and copy the -------
+  # ---- rect4 template above with anchor.x: 103.                       -------
+  - id: mgn12h_block_B
+    comment: >
+      Bottom MGN12H-style block, left of the two (20 x 20 mm nominal). NOTE the
+      asymmetry below — one hole extracted smaller than the others; verify
+      against the real part and clean up if desired.
+    thread: M8
+    holes:
+      - { id: B.1, x: 103.0, z_from_bottom: 29.13, d: 8.0, note: "top-left" }
+      - { id: B.2, x: 123.0, z_from_bottom: 29.13, d: 8.0, note: "top-right" }
+      - { id: B.3, x: 123.0, z_from_bottom:  9.13, d: 8.0, note: "bottom-right" }
+      - { id: B.4, x: 103.0, z_from_bottom:  9.13, d: 3.5, note: "bottom-left — extracted smaller (Ø3.5); check part" }
+
+  # ---- Upper 4-hole pattern (31 x 31 mm), Ø6.5. Likely a bracket/motor -----
+  # ---- mount — rename once you confirm what bolts here. --------------------
+  - id: upper_4hole_pattern
+    comment: >
+      Upper square 4-hole pattern, 31 x 31 mm, Ø6.5 (≈ M6 clearance). Purpose
+      to be confirmed — rename to the part it mounts.
+    thread: M6
+    pattern:
+      type: rect4
+      numbering: clockwise_from_top_left
+      dx: 31.0
+      dy: 31.0
+      d:  6.5
+      anchor:
+        x: 106.8
+        z_from_bottom: 68.93
+
+  # ---- Two large bores, Ø15 (bearing / boss seats) -------------------------
+  - id: bearing_bores
+    comment: >
+      Pair of Ø15 bores on the centre band (bearing / boss seats — NOT threaded
+      fastener holes, so sized by explicit `d`, no thread).
+    holes:
+      - { id: bore.L, x: 107.7, z_from_bottom: 51.33, d: 15.0 }
+      - { id: bore.R, x: 136.8, z_from_bottom: 51.33, d: 15.0 }
+
+  # ---- Single remaining hole, Ø8.5 (≈ M8 clearance) ------------------------
+  - id: misc
+    comment: Lone Ø8.5 hole on the upper-right — identify and regroup as needed.
+    thread: M8
+    holes:
+      - { id: misc.1, x: 176.9, z_from_bottom: 87.13, d: 8.5 }

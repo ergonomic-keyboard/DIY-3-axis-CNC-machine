@@ -1,0 +1,17 @@
+# Parameters for M20cd_front_clips (lower_front_clip.py).
+# Editing a value here overrides the same-named constant in the script
+# (values below equal the script defaults). Numbers are millimetres unless
+# the script comment says otherwise. Derived values (e.g. a midpoint) are
+# snapshots — if you change what they depend on, update them here too.
+
+X_MIN: 167
+X_MAX: 190
+Y_MIN: 10
+Y_MAX: 30
+Z_MIN: 30.5
+Z_MAX: 70.5
+NECK_Z_MIN: 47.5
+NECK_Z_MAX: 65.5
+NECK_X_START: 180
+BOLT_DIAM: 8.4   # M8 clearance
+BOLT_CZ: 50.5   # bolt at the body midpoint

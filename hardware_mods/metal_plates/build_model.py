@@ -95,17 +95,30 @@ def load_stage_inputs(example: Path) -> dict:
     stage2 = example / "2_flattened_image"
     stage4 = example / "4_outline"
     rect_json = _single_file(stage2, "*_rect.json", "rectification metadata")
-    holes_cache = stage2 / "holes_from_stl.json"
+    # Prefer the human-authored, YAML-derived holes.json (grouped/commented/
+    # parametric — see holes.yaml + expand_holes.py) over the raw STL-extraction
+    # cache. holes.json survives rectify.py re-runs; holes_from_stl.json is the
+    # fallback for parts not yet converted to a holes.yaml.
+    authored = stage2 / "holes.json"
+    holes_cache = authored if authored.exists() else (stage2 / "holes_from_stl.json")
     if not holes_cache.exists():
         raise SystemExit(
-            f"missing {holes_cache} — re-run rectify.py to populate the hole cache."
+            f"missing {holes_cache} — run expand_holes.py (from holes.yaml) or "
+            "re-run rectify.py to populate the hole cache."
         )
+    if authored.exists():
+        print(f"using authored holes: {authored.name} (compiled from holes.yaml)")
 
-    # Prefer an edited polygon (from align_outline.py) over the raw trace.
+    # Prefer the human-authored, YAML-derived outline.json (see outline.yaml +
+    # expand_outline.py) over the raw/edited polygon traces.
+    authored_outline = stage4 / "outline.json"
     edited = sorted(stage4.glob("*_polygon_edited.json"))
     raw = [p for p in sorted(stage4.glob("*_polygon.json"))
            if not p.name.endswith("_edited.json")]
-    if edited:
+    if authored_outline.exists():
+        poly_json = authored_outline
+        print(f"using authored outline: {authored_outline.name} (compiled from outline.yaml)")
+    elif edited:
         if len(edited) > 1:
             raise SystemExit(
                 f"multiple edited polygons in {stage4}; remove the stale ones."

@@ -36,6 +36,33 @@ and for each component,
 
 8. Ideally you show the transparent overlay of the plastic part mapped on the exactly the same position based on the hole positions so I can easily verify the parts align well/are compatible.
 
+## Authoring geometry in YAML
+
+Part geometry can be edited as **commented, grouped, parametric YAML** instead
+of raw JSON / bare Python constants. Each authoring file has an "expand" step
+that compiles it into what the builders already consume; the builders prefer the
+compiled artifact and fall back to the legacy inputs when it is absent, so
+nothing breaks for parts that have not been converted.
+
+| Part type | Author in | Compile with | Builder reads |
+|-----------|-----------|--------------|---------------|
+| `build_model` plates (holes) | `2_flattened_image/holes.yaml` | `expand_holes.py --example <EX>` | `holes.json` |
+| `build_model` plates (outline) | `4_outline/outline.yaml` | `expand_outline.py --example <EX>` | `outline.json` |
+| script-built parts (clips, clamps, belt clamp, stepper holder) | `<script>.params.yaml` | *(none — the script loads it on run)* | its `<script>.py` |
+
+`holes.yaml` groups holes (shared radius, `rect4` bolt patterns numbered
+clockwise-from-top-left with `dx`/`dy`, thread table, datum-relative `z_from_bottom`);
+`outline.yaml` lists vertices with per-edge `constraint`/`group` and comments;
+`<script>.params.yaml` overrides the script's UPPER_CASE constants (shipped equal
+to the defaults, so behaviour is unchanged until edited).
+
+Converted so far: **M20a** (holes + outline) and every script-built part. The two
+manual-design plates (**M36a**, **M36b**) come from `manual_design/*.FCStd` and are
+edited in FreeCAD, not YAML.
+
+The expanders need PyYAML — run them with the FreeCAD AppImage python
+(`~/.local/opt/FreeCAD-1.1.1/usr/bin/python`) or any python with `pip install pyyaml`.
+
 ## Commands
 
 `<EX>` = your example folder (e.g.
