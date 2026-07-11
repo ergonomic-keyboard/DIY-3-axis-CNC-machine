@@ -840,25 +840,28 @@ def _build_assembly(document):
     #       beams in Y (open hollow ends; these beams carry no verticals, so there
     #       is no crossing and the rods sit dead-centre — no offset needed);
     #   (c) Ø16 wrench/socket-access holes over every recessed nut — the vertical
-    #       nuts (top row, Left/Right beams) and the horizontal end nuts (Front/Back);
+    #       nuts (top row, Left/Right beams); horizontal-rod ends via SIDE holes
+    #       (axis Y) in the Left/Right beams, one near each corner (90deg from the
+    #       top holes, at a different X, coaxial with the thread reaching it);
     #   (d) MGN12H rail mounting holes (Ø3.4) drilled in the rails themselves.
     POST_UX = tuple(vx + 15 for vx in POST_X)     # vertical-rod centre-lines (local X)
     RAIL_UX = (200, 350, 500, 650)                # rail-screw world-X
-    HROD_END_V = (6, 727)                         # local Y of the horizontal-rod end nuts (Front/Back)
+    HCORNER_UX = (15, 885)                        # local X of the horizontal-rod ends (corners)
 
     def _frame_row(sfx, z, vtop=False):
         tie = [{'axis': 'z', 'u': ux, 'v': 15, 'd': hole_d('M8')} for ux in POST_UX]
-        lyh, ryh = list(tie), list(tie)
+        # Horizontal side-rod wrench holes: on the SIDE of the long Left/Right beams
+        # (axis Y, 90deg from the top vertical-rod holes), one near each corner,
+        # coaxial with the horizontal thread end that reaches into that corner.
+        side = [{'axis': 'y', 'u': ux, 'v': 15, 'd': 16} for ux in HCORNER_UX]
+        lyh, ryh = list(tie) + side, list(tie) + side
         if vtop:                                   # vertical-nut access (top row only)
             vacc = [{'axis': 'z', 'u': ux, 'v': 15, 'd': 16, 'depth': 4} for ux in POST_UX]
             lyh += vacc; ryh += vacc
-        # horizontal side-rod wrench holes live in the Front/Back beams (both rows),
-        # over each recessed end nut on the beam centre-line (local X = 15).
-        fbh = [{'axis': 'z', 'u': 15, 'v': vv, 'd': 16, 'depth': 4} for vv in HROD_END_V]
         explode_with(add_beam(f"Frame_{sfx}_Left_Y",  900, 30, 30,   0,   0, z, holes=lyh), dy=-120)
         explode_with(add_beam(f"Frame_{sfx}_Right_Y", 900, 30, 30,   0, 763, z, holes=ryh), dy=+120)
-        explode_with(add_beam(f"Frame_{sfx}_Front_X",  30, 733, 30,   0,  30, z, holes=fbh), dx=-120)
-        explode_with(add_beam(f"Frame_{sfx}_Back_X",   30, 733, 30, 870,  30, z, holes=fbh), dx=+120)
+        explode_with(add_beam(f"Frame_{sfx}_Front_X",  30, 733, 30,   0,  30, z), dx=-120)
+        explode_with(add_beam(f"Frame_{sfx}_Back_X",   30, 733, 30, 870,  30, z), dx=+120)
 
     _frame_row("Lo", -140)
     _frame_row("Up",  -30, vtop=True)
