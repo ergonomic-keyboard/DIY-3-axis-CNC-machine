@@ -264,6 +264,61 @@ def add_step_mirror_y(name, path, x=0., y=0., z=0.,
     return obj
 
 
+# ── Imported-shape editing (merge / thin / rotate STEP parts in-place) ─────────
+
+def _read_shape(path):
+    s = Part.Shape()
+    s.read(path)
+    return s
+
+
+def _xform_about_center(shape, core_matrix):
+    """Apply `core_matrix` about the shape's own bounding-box centre."""
+    c = shape.BoundBox.Center
+    m1 = FreeCAD.Matrix(); m1.move(FreeCAD.Vector(-c.x, -c.y, -c.z))
+    m2 = FreeCAD.Matrix(); m2.move(FreeCAD.Vector(c.x, c.y, c.z))
+    return shape.transformGeometry(m1).transformGeometry(core_matrix).transformGeometry(m2)
+
+
+def _scale_about_center(shape, sx, sy, sz):
+    mm = FreeCAD.Matrix(); mm.scale(sx, sy, sz)
+    return _xform_about_center(shape, mm)
+
+
+def _rotate_about_center(shape, axis, deg):
+    mm = FreeCAD.Matrix()
+    getattr(mm, {'x': 'rotateX', 'y': 'rotateY', 'z': 'rotateZ'}[axis])(math.radians(deg))
+    return _xform_about_center(shape, mm)
+
+
+def _thin_axis(shape, axis, thickness):
+    """Trim a shape to `thickness` mm along `axis`, centred on its mid-plane
+    ('cut off the sides').  Best applied while the shape is still axis-aligned
+    (before any bake-in rotation), so the slab cut is clean."""
+    bb = shape.BoundBox
+    dims = [bb.XLength + 2, bb.YLength + 2, bb.ZLength + 2]
+    base = [bb.XMin - 1, bb.YMin - 1, bb.ZMin - 1]
+    ctr  = [bb.Center.x, bb.Center.y, bb.Center.z]
+    i = {'x': 0, 'y': 1, 'z': 2}[axis]
+    dims[i] = thickness
+    base[i] = ctr[i] - thickness / 2
+    slab = Part.makeBox(dims[0], dims[1], dims[2], FreeCAD.Vector(*base))
+    return shape.common(slab)
+
+
+def add_shape_obj(name, shape, x=0., y=0., z=0., yaw=0., pitch=0., roll=0.,
+                  mirror_y=None, color=COL_METAL):
+    """Register a pre-built Part.Shape (already merged/thinned/rotated) as an
+    object, optionally mirrored about world Y=`mirror_y` (for the right side)."""
+    s = (shape.mirror(FreeCAD.Vector(0, mirror_y, 0), FreeCAD.Vector(0, 1, 0))
+         if mirror_y is not None else shape)
+    obj = doc.addObject("Part::Feature", name)
+    obj.Shape = s
+    _place(obj, x, y, z, yaw, pitch, roll)
+    _color_queue.append((obj.Name, color))
+    return obj
+
+
 # ── Fastener geometry ─────────────────────────────────────────────────────────
 
 _DIR = {'+x': (1,0,0), '-x': (-1,0,0),
@@ -907,17 +962,43 @@ def _build_assembly(document):
     gantry(explode_with(add_box("Rail_X_Lower", 9, 600, 7, GX+30+21,   110, GZ_U2+30, COL_RAIL), dz=100))
 
     # ── SIDE PLATES (II) ──────────────────────────────────────────────────────
-    SP = f"{METAL}/II_side_plates"
-    _sp_files = [
-        # (object name, path, M-code)
-        ("Side_Plate_Left",              f"{SP}/M20a_left_body/5_models_and_renders/source_rect_metal.step"),
-        ("Side_Plate_Back_Clip",         f"{SP}/M20b_back_clip/5_models_and_renders/back_clip.step"),
-        ("Side_Plate_Lower_Front_Clip",  f"{SP}/M20cd_front_clips/5_models_and_renders/lower_front_clip.step"),
-        ("Side_Plate_Upper_Front_Clip",  f"{SP}/M20cd_front_clips/5_models_and_renders/upper_front_clip.step"),
-    ]
-    for nm, path in _sp_files:
-        gantry(explode_with(add_step(nm, path, x=0, y=0, z=93),       dy=-90))
-        gantry(explode_with(add_step_mirror_y(nm+"_R", path, x=0, y=0, z=93), dy=+90))
+    # Complaint II: the side plate had FOUR parts (body + back clip + 2 front clips)
+    # but should have THREE.  Fixes applied here to the imported STEP geometry:
+    #   1-3. the two outer front clips are fused into ONE U-bridge and thinned in Y
+    #        from 20 mm to 10 mm;
+    #   4.   the beam clamp (back clip) is rotated 90° so its U-outtake grips the beam.
+    # (Item 5 — extend it into a taller trapezoid stiffener — follows once the clamp
+    #  orientation is confirmed against the reference photo.)
+    SP   = f"{METAL}/II_side_plates"
+    BODY = f"{SP}/M20a_left_body/5_models_and_renders/source_rect_metal.step"
+    BACK = f"{SP}/M20b_back_clip/5_models_and_renders/back_clip.step"
+    LOF  = f"{SP}/M20cd_front_clips/5_models_and_renders/lower_front_clip.step"
+    UPF  = f"{SP}/M20cd_front_clips/5_models_and_renders/upper_front_clip.step"
+
+    # (a) main body — unchanged
+    gantry(explode_with(add_step("Side_Plate_Left", BODY, x=0, y=0, z=93), dy=-90))
+    gantry(explode_with(add_step_mirror_y("Side_Plate_Left_R", BODY, x=0, y=0, z=93), dy=+90))
+
+    # (b) the two upper-beam clamps (furthest +X, stacked in Z) → ONE fused U-bridge,
+    #     trimmed to 10 mm Y ("cut off the sides")
+    front = _thin_axis(_read_shape(LOF).fuse(_read_shape(UPF)), 'y', 10.0)
+    gantry(explode_with(add_shape_obj("Side_Plate_Front_Clamp", front, z=93), dy=-90))
+    gantry(explode_with(add_shape_obj("Side_Plate_Front_Clamp_R", front, z=93, mirror_y=396.5), dy=+90))
+
+    # (c) front clamp (closest to −X): the imported clip's U-outtake didn't survive
+    #     the 10 mm Y-trim (its U-arms were on the Y faces), so model it as a clean
+    #     thin-Y U-fork — thicker in X, with the U-outtake opening +X toward the
+    #     beam.  Built in local coords (add_shape_obj adds the z=93 offset).
+    _CX, _CY, _CZ = 25.0, 10.0, 72.0                 # thicker X, 10 mm Y, tall Z
+    _cx0, _cy0, _cz0 = 54.0, 15.0, 18.0              # origin ≈ original clip location
+    _clamp = Part.makeBox(_CX, _CY, _CZ, FreeCAD.Vector(_cx0, _cy0, _cz0))
+    _nd, _nh = 18.0, 32.0                            # notch depth (X) and height (Z, fits 30 mm beam)
+    _notch = Part.makeBox(_nd + 1, _CY + 2, _nh,
+                          FreeCAD.Vector(_cx0 + _CX - _nd, _cy0 - 1,
+                                         _cz0 + (_CZ - _nh) / 2.0))
+    beam_clamp = _clamp.cut(_notch)                  # U opening toward +X
+    gantry(explode_with(add_shape_obj("Side_Plate_Beam_Clamp", beam_clamp, z=93), dy=-90))
+    gantry(explode_with(add_shape_obj("Side_Plate_Beam_Clamp_R", beam_clamp, z=93, mirror_y=396.5), dy=+90))
 
     # ── Z-AXIS ────────────────────────────────────────────────────────────────
     # p1of2 (M36.a): gantry-fixed back plate.  STEP is regenerated from
@@ -1368,6 +1449,61 @@ def _render_staged_inner():
 
 # ── Sub-component render subprocess (C.6) ─────────────────────────────────────
 
+def _place_reference_triad(gdoc, bb):
+    """Resize + move the Axis_* triad (X=red, Y=green, Z=blue) and its labels to a
+    corner just outside bounding box `bb`, world-oriented, and make it visible.
+
+    The sub-component render calls this so every GIF carries an X/Y/Z reference
+    that turns with the orbiting camera (the triad is world-fixed; as the camera
+    sweeps, it shows the current viewing orientation).  Returns the triad's own
+    BoundBox so the caller can widen the camera framing to include it.
+    """
+    L  = max(bb.XLength, bb.YLength, bb.ZLength) * 0.35
+    AW = max(3.0, L * 0.08)
+    # origin at the min corner, pushed out so the arrows point toward (not into)
+    # the part without overlapping it
+    ox = bb.XMin - 1.15 * L
+    oy = bb.YMin - 1.15 * L
+    oz = bb.ZMin
+    COLS  = {"Axis_X": (0.95, 0.10, 0.05),
+             "Axis_Y": (0.05, 0.85, 0.10),
+             "Axis_Z": (0.05, 0.20, 0.95)}
+    boxes = {
+        "Axis_X": (Part.makeBox(L, AW, AW), FreeCAD.Vector(ox,          oy - AW / 2, oz - AW / 2)),
+        "Axis_Y": (Part.makeBox(AW, L, AW), FreeCAD.Vector(ox - AW / 2, oy,          oz - AW / 2)),
+        "Axis_Z": (Part.makeBox(AW, AW, L), FreeCAD.Vector(ox - AW / 2, oy - AW / 2, oz)),
+    }
+    for name, (shp, base) in boxes.items():
+        o = doc.getObject(name)
+        if o is None:
+            continue
+        o.Shape = shp
+        o.Placement = FreeCAD.Placement(base, FreeCAD.Rotation())
+        v = gdoc.getObject(name) if gdoc else None
+        if v is not None:
+            try:
+                v.Visibility = True
+                v.ShapeColor = COLS[name]
+            except Exception:
+                pass
+    tips = {"X": FreeCAD.Vector(ox + L + AW, oy, oz),
+            "Y": FreeCAD.Vector(ox, oy + L + AW, oz),
+            "Z": FreeCAD.Vector(ox, oy, oz + L + AW)}
+    for lbl, pos in tips.items():
+        a = doc.getObject(f"AxisLabel_{lbl}")
+        if a is not None:
+            a.Position = pos
+        v = gdoc.getObject(f"AxisLabel_{lbl}") if gdoc else None
+        if v is not None:
+            try:
+                v.Visibility = True
+                v.FontSize = max(20.0, L * 0.55)
+            except Exception:
+                pass
+    return FreeCAD.BoundBox(ox - AW, oy - AW, oz - AW,
+                            ox + L + 2 * AW, oy + L + 2 * AW, oz + L + 2 * AW)
+
+
 def _render_subcomponent_inner(sc: str):
     """
     Exploded-view GIF + MP4 of a single sub-component I..VI.
@@ -1405,17 +1541,16 @@ def _render_subcomponent_inner(sc: str):
                 vobj.Visibility = False
                 hidden_names.append(name)
             except Exception: pass
-    # hide non-registered helper objects too (axis indicator + labels), so the
-    # camera can tightly frame just this sub-component
-    for ax in ("Axis_X", "Axis_Y", "Axis_Z",
-               "AxisLabel_X", "AxisLabel_Y", "AxisLabel_Z"):
-        if gdoc:
-            v = gdoc.getObject(ax)
-            if v is not None:
-                try:
-                    v.Visibility = False
-                    hidden_names.append(ax)
-                except Exception: pass
+    # The X/Y/Z reference triad (Axis_* + labels) is KEPT but resized/moved to this
+    # sub-component (done below, once its bbox is known).  Exclude it from the bbox
+    # math so it doesn't blow up the framing; hide it for now.
+    axis_names = ["Axis_X", "Axis_Y", "Axis_Z",
+                  "AxisLabel_X", "AxisLabel_Y", "AxisLabel_Z"]
+    for ax in axis_names:
+        v = gdoc.getObject(ax) if gdoc else None
+        if v is not None:
+            try: v.Visibility = False
+            except Exception: pass
 
     view = _get_view(FreeCADGui)
     if view is None:
@@ -1431,7 +1566,8 @@ def _render_subcomponent_inner(sc: str):
     visible_bbox = None
     visible_objs = [o for o in doc.Objects
                     if getattr(o, "Shape", None) is not None
-                    and o.Name not in hidden_names]
+                    and o.Name not in hidden_names
+                    and o.Name not in axis_names]
     if visible_objs:
         import FreeCAD as _FC
         bb = None
@@ -1451,6 +1587,18 @@ def _render_subcomponent_inner(sc: str):
                 visible_bbox = bb
             except Exception:
                 pass
+    # Place the world-oriented reference triad at a corner of this sub-component
+    # and widen the framing to include it.
+    if visible_bbox is not None:
+        try:
+            tb = _place_reference_triad(gdoc, visible_bbox)
+            vb = visible_bbox
+            visible_bbox = FreeCAD.BoundBox(
+                min(vb.XMin, tb.XMin), min(vb.YMin, tb.YMin), min(vb.ZMin, tb.ZMin),
+                max(vb.XMax, tb.XMax), max(vb.YMax, tb.YMax), max(vb.ZMax, tb.ZMax))
+        except Exception as _e:
+            print(f"[sub {sc}] reference triad skipped: {_e}", flush=True)
+
     set_explode_factor(1.0)  # start of animation is fully exploded
 
     def explode_fn(i):
