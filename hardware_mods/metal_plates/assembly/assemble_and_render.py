@@ -975,36 +975,33 @@ def _build_assembly(document):
     LOF  = f"{SP}/M20cd_front_clips/5_models_and_renders/lower_front_clip.step"
     UPF  = f"{SP}/M20cd_front_clips/5_models_and_renders/upper_front_clip.step"
 
-    # Tie thread: an M8 stud in X at Y=20 (the clamps' Y) and world Z≈147 (≈ middle
-    # of the two upper gantry beams).  It passes through the front clamp's U-floor
-    # and the merged clamp, washer + nut behind each.  Clamp/plate shapes are in
-    # LOCAL coords (add_* adds z=93), so world Z147 → local Z54.
-    TIE_Y, TIE_ZW, TIE_ZL = 20.0, 147.0, 54.0
+    # Tie thread: an M8 stud in X at the mid plate's Y (Y=-3) and world Z≈147 (≈
+    # middle of the two upper gantry beams).  It runs in X through the front clamp's
+    # U-floor AND the mid plate (whose hole is now bored in X too) — so the clamp is
+    # seated to the plate's Y.  Clamp/plate shapes are in LOCAL coords (add_* adds
+    # z=93), so world Z147 → local Z54.
+    TIE_Y, TIE_ZW, TIE_ZL = -3.0, 147.0, 54.0
 
     def _xbore(shape, x0, x1, y, zl, d=9.0):
         return shape.cut(Part.makeCylinder(d / 2, x1 - x0,
                          FreeCAD.Vector(x0, y, zl), FreeCAD.Vector(1, 0, 0)))
 
-    def _ybore(shape, x, y0, y1, zl, d=9.0):
-        return shape.cut(Part.makeCylinder(d / 2, y1 - y0,
-                         FreeCAD.Vector(x, y0, zl), FreeCAD.Vector(0, 1, 0)))
-
-    # (a) main body ("mid plate") — bored with the tie hole at the middle of the two
-    #     upper beams (world X≈137, Z≈147 → local X137, Z54), through its Y face
-    _body = _ybore(_read_shape(BODY), 137.0, -8.0, 2.0, TIE_ZL)
+    # (a) main body ("mid plate") — the tie hole is bored in X (through the plate's
+    #     depth) at Y=-3, world Z147 → local X78→192, Z54, so the X thread runs through it
+    _body = _xbore(_read_shape(BODY), 78.0, 192.0, TIE_Y, TIE_ZL)
     gantry(explode_with(add_shape_obj("Side_Plate_Left", _body, z=93), dy=-90))
     gantry(explode_with(add_shape_obj("Side_Plate_Left_R", _body, z=93, mirror_y=396.5), dy=+90))
 
-    # (b) the two upper-beam clamps → ONE fused U-bridge, 10 mm Y, bored for the tie
-    front = _xbore(_thin_axis(_read_shape(LOF).fuse(_read_shape(UPF)), 'y', 10.0),
-                   165.0, 192.0, TIE_Y, TIE_ZL)
+    # (b) two upper-beam clamps → ONE fused U-bridge, 10 mm Y (mounts on the plate
+    #     face; held by its own fasteners, not this X thread)
+    front = _thin_axis(_read_shape(LOF).fuse(_read_shape(UPF)), 'y', 10.0)
     gantry(explode_with(add_shape_obj("Side_Plate_Front_Clamp", front, z=93), dy=-90))
     gantry(explode_with(add_shape_obj("Side_Plate_Front_Clamp_R", front, z=93, mirror_y=396.5), dy=+90))
 
-    # (c) front U-fork clamp (U-outtake opening +X) with a hole through the middle of
-    #     the U-floor for the tie thread
+    # (c) front U-fork clamp (U-outtake opening +X), seated at the plate's Y so its
+    #     U-floor hole lines up with the plate's X bore for the tie thread
     _CX, _CY, _CZ = 25.0, 10.0, 72.0
-    _cx0, _cy0, _cz0 = 54.0, 15.0, 18.0
+    _cx0, _cy0, _cz0 = 54.0, TIE_Y - _CY / 2.0, 18.0
     _clamp = Part.makeBox(_CX, _CY, _CZ, FreeCAD.Vector(_cx0, _cy0, _cz0))
     _nd, _nh = 18.0, 32.0                            # notch depth (X), height (Z, fits 30 mm beam)
     _notch = Part.makeBox(_nd + 1, _CY + 2, _nh,
@@ -1013,7 +1010,8 @@ def _build_assembly(document):
     gantry(explode_with(add_shape_obj("Side_Plate_Beam_Clamp", beam_clamp, z=93), dy=-90))
     gantry(explode_with(add_shape_obj("Side_Plate_Beam_Clamp_R", beam_clamp, z=93, mirror_y=396.5), dy=+90))
 
-    # (d) the tie thread: M8 stud in X through both clamps, washer + nut behind each
+    # (d) the tie thread: M8 stud in X through the U-floor and the mid plate, with a
+    #     washer + nut at each end
     for _nm, _ex, _ty in [("", -90.0, TIE_Y), ("_R", +90.0, 793.0 - TIE_Y)]:
         _rod = doc.addObject("Part::Feature", f"Side_Plate_TieRod{_nm}")
         _rod.Shape = Part.makeCylinder(4.0, 168.0, FreeCAD.Vector(36.0, _ty, TIE_ZW),
