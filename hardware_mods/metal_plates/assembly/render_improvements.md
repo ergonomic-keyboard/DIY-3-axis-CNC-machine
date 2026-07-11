@@ -30,12 +30,12 @@ Render: `subcomponents/cnc_subcomponent_II_explode.gif`
 ### Side plate / U-bridges
 1. It currently consists of **four** metal components but should consist of **three**.
 2. The outer two should be a **single** component instead of two separate U-bridges
-   (otherwise they are okay).
+   (otherwise they are okay). (See Screenshot From 2026-06-27 00-24-02.png left side clamp)
 3. Their width/thickness is too large (~2–3 cm) — it should be only ~1 cm.
 4. The clamp that holds the front gantry beam should be **rotated 90°** so the U-outtake
    actually clamps the beam; as-is it would not clamp the beam.
-5. That clamp should also be **thicker** for stiffness, so it can really clamp and hold the
-   beam in place. (Its hole is correct.)
+5. That clamp should also be higher and lower than it is now, you can see its trapezoid/triangle in the image:Screenshot From 2026-06-27 00-24-02.png (right side clamp) for stiffness, so it can really clamp and hold the
+   beam in place. (Its hole is correct as it currenlty is (position wise, I don't know diameter wise).)
 
 ### Mid-plate
 1. The bottom four holes that hold the MGN12H blocks (which ride over the central-frame rails)
@@ -44,7 +44,7 @@ Render: `subcomponents/cnc_subcomponent_II_explode.gif`
 2. The two large holes above them are too high — they would intersect the thread that runs
    through the gantry beams holding the plate in place. They should **move down**.
 3. The hole for that thread (through the gantry beams) is **missing**.
-4. Those two large holes are for the spacers that hold / guide the HTM beam over the stepper
+4. Those two large holes are for the spacers that hold / guide the HTMD5 belt over the stepper
    motor.
 5. The large hole for the stepper motor itself is **missing**.
 6. On top, the thread is **missing** for the clamp that goes through the gantry beam.
