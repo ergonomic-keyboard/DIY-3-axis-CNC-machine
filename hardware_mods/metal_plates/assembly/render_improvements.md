@@ -16,7 +16,7 @@ Where the metal frame is composed, the following are all missing:
 2. The rings (washers) that go around each thread.
 3. The bolts themselves.
 4. The holes in the beam.
-5. The holes for the wrench/winch head to reach through and tighten the bolts — missing for
+5. The wrench/socket access holes to reach through and tighten the bolts — missing for
    both the vertical rods and the side rods.
 6. The holes for the MGN12H rails.
 7. The screws for the MGN12H rails.
@@ -30,12 +30,16 @@ Render: `subcomponents/cnc_subcomponent_II_explode.gif`
 ### Side plate / U-bridges
 1. It currently consists of **four** metal components but should consist of **three**.
 2. The outer two should be a **single** component instead of two separate U-bridges
-   (otherwise they are okay). (See Screenshot From 2026-06-27 00-24-02.png left side clamp)
+   (otherwise they are okay). See the *left-side clamp* in the reference photo below.
 3. Their width/thickness is too large (~2–3 cm) — it should be only ~1 cm.
 4. The clamp that holds the front gantry beam should be **rotated 90°** so the U-outtake
    actually clamps the beam; as-is it would not clamp the beam.
-5. That clamp should also be higher and lower than it is now, you can see its trapezoid/triangle in the image:Screenshot From 2026-06-27 00-24-02.png (right side clamp) for stiffness, so it can really clamp and hold the
-   beam in place. (Its hole is correct as it currenlty is (position wise, I don't know diameter wise).)
+5. That clamp should also extend further **up and down** than it currently does — giving it
+   the trapezoid/triangle profile of the *right-side clamp* in the reference photo below — so
+   it has the stiffness to really clamp and hold the beam in place. (Its hole is correct
+   position-wise; the diameter is unverified.)
+
+![Physical reference — left- and right-side plate clamps holding the gantry beams (M20cd front clips)](../examples/II_side_plates/M20cd_front_clips/Screenshot%20From%202026-06-27%2000-24-02.png)
 
 ### Mid-plate
 1. The bottom four holes that hold the MGN12H blocks (which ride over the central-frame rails)
@@ -44,7 +48,7 @@ Render: `subcomponents/cnc_subcomponent_II_explode.gif`
 2. The two large holes above them are too high — they would intersect the thread that runs
    through the gantry beams holding the plate in place. They should **move down**.
 3. The hole for that thread (through the gantry beams) is **missing**.
-4. Those two large holes are for the spacers that hold / guide the HTMD5 belt over the stepper
+4. Those two large holes are for the spacers that hold / guide the HTD5M belt over the stepper
    motor.
 5. The large hole for the stepper motor itself is **missing**.
 6. On top, the thread is **missing** for the clamp that goes through the gantry beam.
@@ -88,7 +92,7 @@ Render: `subcomponents/cnc_subcomponent_IV_explode.gif`
 5. The MGN12 blocks clamped on the **front** are in the wrong position: too high, too far
    right, too far above. (The bolts do appear present in those blocks.)
 6. The big hole appears correct.
-7. The two large holes below the big hole (for HTM belt guidance) appear correct.
+7. The two large holes below the big hole (for HTD5M belt guidance) appear correct.
 
 ---
 
