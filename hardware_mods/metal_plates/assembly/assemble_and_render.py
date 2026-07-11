@@ -26,58 +26,18 @@ import sys
 import tempfile
 import time
 
-# ── FreeCAD discovery ──────────────────────────────────────────────────────────
-# This machine runs FreeCAD from an extracted AppImage (the snap is broken and the
-# old Nix store path no longer exists). Resolve the library dir from, in order:
-#   1. $FREECAD_LIB env var
-#   2. the extracted AppImage under ~/.local/opt/FreeCAD-*/usr/lib
-#   3. the legacy Nix store path (kept for other machines)
-# The chosen dir is exported so the re-invoked render subprocesses inherit it.
-def _find_freecad_lib() -> str:
-    import glob
-    cands = []
-    if os.environ.get("FREECAD_LIB"):
-        cands.append(os.environ["FREECAD_LIB"])
-    cands += sorted(glob.glob(os.path.expanduser("~/.local/opt/FreeCAD-*/usr/lib")),
-                    reverse=True)
-    cands.append("/nix/store/k7487nfjqcild0rvq6nmsqp250c2lvbk-freecad-1.1.1/lib")
-    for c in cands:
-        if os.path.exists(os.path.join(c, "FreeCAD.so")) or \
-           os.path.exists(os.path.join(c, "FreeCAD.pyd")):
-            return c
-    return cands[-1]
+# ── FreeCAD / render-dep discovery ──────────────────────────────────────────────
+# FreeCAD is a compiled app located differently per machine (extracted AppImage on
+# Ubuntu, nixpkgs on NixOS). env_bootstrap.ensure_freecad() auto-detects it, puts
+# its lib dir on sys.path (exporting $FREECAD_LIB so re-invoked render subprocesses
+# inherit it), forces the xcb Qt backend, strips the VS Code snap env leak, and adds
+# the local pip-installed .render_deps (static imageio-ffmpeg). See env_bootstrap.py.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import env_bootstrap  # noqa: E402  (hardware_mods/metal_plates/env_bootstrap.py)
 
-FREECAD_LIB = _find_freecad_lib()
-os.environ["FREECAD_LIB"] = FREECAD_LIB
-sys.path.insert(0, FREECAD_LIB)
-
-# The Qt build in the AppImage defaults to the Wayland platform plugin and
-# segfaults in fitAll(); force the xcb (X11 / XWayland) backend. Also strip the
-# GTK/pixbuf/locale vars that the VS Code snap leaks into its terminal (they point
-# GUI apps at /snap/code/... runtimes and break GL/pixbuf module loading).
-os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
-for _leak in ("GTK_PATH", "LOCPATH", "GDK_PIXBUF_MODULE_FILE", "GDK_PIXBUF_MODULEDIR",
-              "GSETTINGS_SCHEMA_DIR", "GTK_IM_MODULE_FILE", "GIO_MODULE_DIR"):
-    os.environ.pop(_leak, None)
-
-# Locally-installed render deps (imageio-ffmpeg ships a static ffmpeg binary so we
-# do not need a system ffmpeg / Xvfb). Installed once via:
-#   <appimage>/usr/bin/python -m pip install --target .render_deps imageio imageio-ffmpeg
 _RENDER_DEPS = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".render_deps")
-if os.path.isdir(_RENDER_DEPS) and _RENDER_DEPS not in sys.path:
-    sys.path.insert(0, _RENDER_DEPS)
-
-
-def _find_ffmpeg() -> str:
-    """Return a usable ffmpeg binary path (imageio-ffmpeg's static build, or PATH)."""
-    try:
-        import imageio_ffmpeg
-        return imageio_ffmpeg.get_ffmpeg_exe()
-    except Exception:
-        import shutil
-        return shutil.which("ffmpeg") or "ffmpeg"
-
-FFMPEG = _find_ffmpeg()
+FREECAD_LIB = env_bootstrap.ensure_freecad(render_deps_dir=_RENDER_DEPS)
+FFMPEG = env_bootstrap.find_ffmpeg()
 
 import FreeCAD
 import Mesh          # noqa: F401 – keep import so FreeCAD mesh module is loaded

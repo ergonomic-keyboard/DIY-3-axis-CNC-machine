@@ -67,7 +67,31 @@ The expanders need PyYAML — run them with the FreeCAD AppImage python
 
 `<EX>` = your example folder (e.g.
 `hardware_mods/metal_plates/examples/II_side_plates/M20a_left_body`).
-All commands run inside the project's nix-shell.
+
+### Running on Nix or Ubuntu (auto-detected)
+
+The scripts detect their environment automatically (`env_bootstrap.py`), so you
+do **not** have to remember which machine you are on:
+
+- **NixOS** — run inside the project shell as before; its `shellHook` creates and
+  populates a repo-root `.venv` from `requirements.txt` on first entry:
+  ```sh
+  nix-shell hardware_mods/metal_plates/shell.nix --run \
+    "python hardware_mods/metal_plates/build_model.py --example <EX>"
+  ```
+- **Ubuntu (no Nix)** — set up the toolchain once, then run the scripts with any
+  `python3`; they re-exec into the `.venv` themselves:
+  ```sh
+  bash hardware_mods/metal_plates/setup_env.sh          # once: creates .venv
+  python3 hardware_mods/metal_plates/build_model.py --example <EX>
+  ```
+
+If `build123d` is not importable and no environment is set up, the script prints
+the exact setup command and exits — it never installs anything behind your back.
+The FreeCAD render pipeline (`assembly/`) locates FreeCAD the same way (extracted
+AppImage on Ubuntu, `nixpkgs` on NixOS); no configuration needed.
+
+The nix-shell command form below still works on NixOS.
 
 ```sh
 # 1. Flatten the photo + trace the outline (stages 2 + 5).

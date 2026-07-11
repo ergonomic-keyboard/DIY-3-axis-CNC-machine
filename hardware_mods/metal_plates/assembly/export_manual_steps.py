@@ -29,6 +29,10 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[3]
 EXAMPLES = REPO / "hardware_mods/metal_plates/examples"
 
+# Locate FreeCADCmd cross-platform (AppImage on Ubuntu / nixpkgs on NixOS).
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # metal_plates dir
+import env_bootstrap  # noqa: E402
+
 
 # For each part we know: (manual_design folder, output filename the assembly
 # script expects, human name).  Add new metal parts here.
@@ -90,7 +94,7 @@ Part.export([o for o in doc.Objects if getattr(o, "Shape", None) is not None
              and o.Shape.Solids], {str(step_out)!r})
 print("wrote", {str(step_out)!r})
 '''
-    fc = os.environ.get("FREECADCMD", "FreeCADCmd")
+    fc = env_bootstrap.find_freecadcmd()
     r = subprocess.run([fc, "-c", script], check=False)
     return r.returncode == 0
 

@@ -1,0 +1,19 @@
+# Python dependencies for the metal_plates build123d part-modelling scripts
+# (build_model.py + the per-part scripts + rectify/trace/annotate helpers).
+#
+# Ubuntu:  python3 -m venv .venv && .venv/bin/pip install -r <this file>
+#          (or run  bash hardware_mods/metal_plates/setup_env.sh )
+# NixOS:   nix-shell hardware_mods/metal_plates/shell.nix  — the shellHook
+#          creates/populates a repo-root .venv from this same file.
+#
+# env_bootstrap.py auto-detects which of the two is set up and re-execs into it.
+# The FreeCAD render pipeline (assembly/) does NOT use this file — FreeCAD is a
+# compiled app located separately (AppImage on Ubuntu / nixpkgs on NixOS).
+
+build123d          # parametric CAD kernel (pulls in cadquery-ocp / OpenCASCADE)
+numpy
+numpy-stl          # `stl` — reads the flattened-net STLs
+matplotlib         # outline/hole preview plots
+opencv-python      # `cv2` — image tracing in trace_polygon.py / rectify.py
+scikit-learn       # `sklearn` — contour clustering in rectify.py
+pyyaml             # holes.yaml / outline.yaml / *.params.yaml authoring

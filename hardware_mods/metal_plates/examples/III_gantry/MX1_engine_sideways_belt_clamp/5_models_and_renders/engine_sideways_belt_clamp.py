@@ -19,6 +19,19 @@ Run from inside nix-shell:
 """
 from __future__ import annotations
 
+# ── cross-env bootstrap: make the build123d toolchain importable on Nix or Ubuntu ─
+# Walks up to hardware_mods/metal_plates/env_bootstrap.py, then re-execs this script
+# into a set-up env (.venv on Ubuntu / nix-shell on NixOS) when build123d is not
+# already importable. No-op when already inside the right environment.
+import os as _os, sys as _sys  # noqa: E402
+_d = _os.path.dirname(_os.path.abspath(__file__))
+while _d != _os.path.dirname(_d) and not _os.path.exists(_os.path.join(_d, "env_bootstrap.py")):
+    _d = _os.path.dirname(_d)
+if _d not in _sys.path:
+    _sys.path.insert(0, _d)
+import env_bootstrap as _env  # noqa: E402
+_env.ensure_build123d(__file__)
+
 from pathlib import Path
 
 import matplotlib
