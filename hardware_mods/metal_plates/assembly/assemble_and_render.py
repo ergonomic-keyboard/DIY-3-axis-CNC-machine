@@ -986,15 +986,41 @@ def _build_assembly(document):
         return shape.cut(Part.makeCylinder(d / 2, x1 - x0,
                          FreeCAD.Vector(x0, y, zl), FreeCAD.Vector(1, 0, 0)))
 
+    def _ybore(shape, y0, y1, x, zl, d=9.0):
+        return shape.cut(Part.makeCylinder(d / 2, y1 - y0,
+                         FreeCAD.Vector(x, y0, zl), FreeCAD.Vector(0, 1, 0)))
+
+    # Clamp bolt: a perpendicular (Y) M8 stud that fastens the bottom lobe of the
+    # front clamp to the mid plate.  World (X178, Z130) — kept low in the bottom
+    # lobe so it clears the X tie rod at Z147.  The shapes are in LOCAL coords
+    # (z=93 added at placement) so its local Z is 130-93 = 37.
+    CB_X, CB_ZW, CB_ZL = 178.0, 130.0, 37.0
+
     # (a) main body ("mid plate") — the tie hole is bored in X (through the plate's
-    #     depth) at Y=-3, world Z147 → local X78→192, Z54, so the X thread runs through it
+    #     depth) at Y=-3, world Z147 → local X78→192, Z54, so the X thread runs through it.
+    #     Second bore in Y (through the 6 mm plate thickness) at world (X178,Z143) for
+    #     the new clamp bolt (e) that ties the front clamp's bottom lobe to the plate.
     _body = _xbore(_read_shape(BODY), 78.0, 192.0, TIE_Y, TIE_ZL)
+    _body = _ybore(_body, -7.0, 1.0, CB_X, CB_ZL)
     gantry(explode_with(add_shape_obj("Side_Plate_Left", _body, z=93), dy=-90))
     gantry(explode_with(add_shape_obj("Side_Plate_Left_R", _body, z=93, mirror_y=396.5), dy=+90))
 
-    # (b) two upper-beam clamps → ONE fused U-bridge, 10 mm Y (mounts on the plate
-    #     face; held by its own fasteners, not this X thread)
+    # (b) two upper-beam clamps → ONE fused U-bridge, 10 mm Y, mounted on the plate
+    #     face and fastened by the perpendicular clamp bolt (e).
     front = _thin_axis(_read_shape(LOF).fuse(_read_shape(UPF)), 'y', 10.0)
+    # The fused clips leave a Z-gap between the two lobes (2 separate rectangles).
+    # Fill that gap so they become ONE rectangle; the U-outtakes live inside the
+    # lobes and are untouched by the gap fill.
+    _lobes = sorted(front.Solids, key=lambda s: s.BoundBox.ZMin)
+    if len(_lobes) >= 2:
+        _fb = front.BoundBox
+        _gz0 = _lobes[0].BoundBox.ZMax
+        _gz1 = _lobes[-1].BoundBox.ZMin
+        if _gz1 > _gz0:
+            front = front.fuse(Part.makeBox(_fb.XLength, _fb.YLength, _gz1 - _gz0,
+                                            FreeCAD.Vector(_fb.XMin, _fb.YMin, _gz0)))
+    # Hole for the perpendicular (Y) clamp bolt (e) through the bottom lobe.
+    front = _ybore(front, 14.0, 26.0, CB_X, CB_ZL)
     gantry(explode_with(add_shape_obj("Side_Plate_Front_Clamp", front, z=93), dy=-90))
     gantry(explode_with(add_shape_obj("Side_Plate_Front_Clamp_R", front, z=93, mirror_y=396.5), dy=+90))
 
@@ -1022,6 +1048,22 @@ def _build_assembly(document):
         gantry(explode_with(add_washer(f"Side_Plate_TieWa{_nm}", 45.0,  _ty, TIE_ZW, axis='+x', size='M8'), dy=_ex))
         gantry(explode_with(add_washer(f"Side_Plate_TieWb{_nm}", 195.0, _ty, TIE_ZW, axis='+x', size='M8'), dy=_ex))
         gantry(explode_with(add_nut(f"Side_Plate_TieNb{_nm}",    202.0, _ty, TIE_ZW, axis='+x', size='M8'), dy=_ex))
+
+    # (e) clamp bolt: a perpendicular M8 stud fastening the bottom lobe of the
+    #     front clamp to the mid plate.  Runs in Y through the plate bore (a) and
+    #     the clamp hole (b), washer + nut on the far (inner) side.  This puts the
+    #     bottom of the 2-bar front clamp "on a thread".  It runs in Y (not X like
+    #     the tie rod) because the clamp sits ~18 mm off the plate face in Y, so a
+    #     straight X thread could not pass through both without relocating the clamp.
+    for _nm, _hb, _ax, _nu, _wa, _ex in [
+            ("",   -22.0, '+y',  31.0, 26.5, -120.0),
+            ("_R", 815.0, '-y', 762.0, 766.5, +120.0)]:
+        gantry(explode_with(add_bolt(f"Side_Plate_ClampBolt{_nm}", CB_X, _hb, CB_ZW,
+                                     axis=_ax, size='M8', shaft_l=52.0), dy=_ex))
+        gantry(explode_with(add_washer(f"Side_Plate_ClampWa{_nm}", CB_X, _wa, CB_ZW,
+                                       axis='+y', size='M8'), dy=_ex))
+        gantry(explode_with(add_nut(f"Side_Plate_ClampNut{_nm}", CB_X, _nu, CB_ZW,
+                                    axis='+y', size='M8'), dy=_ex))
 
     # ── Z-AXIS ────────────────────────────────────────────────────────────────
     # p1of2 (M36.a): gantry-fixed back plate.  STEP is regenerated from
