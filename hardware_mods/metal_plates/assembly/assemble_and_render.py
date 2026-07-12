@@ -673,6 +673,66 @@ def _add_mgn12h_block_bolts(bolt_size: str = 'M3'):
                 dx=130))
 
 
+# Component-VI p2of2 plate rail parameters (WORLD coords, as placed).  The two
+# Z-rails run vertically on the plate's front face (X156); shared by the plate
+# builder (rail grooves + mounting holes), the rail placement, and the rail
+# bolts so the groove, the holes, and the bolts all line up.
+_P2_XF, _P2_XB = 156.0, 166.0        # plate front / back face (world X)
+_P2_RAIL_YC    = (457.0, 392.0)      # rail centre Y (Left, Right)
+_P2_RAIL_Z     = (120.0, 160.0, 200.0, 240.0, 280.0)   # rail-bolt Z positions
+_P2_RAIL_W     = 12.0                # rail width (Y)
+_P2_GROOVE_D   = 3.0                 # rail-groove depth into the front face (X)
+_P2_RAIL_X     = 151.0               # rail front X once bedded in its 3 mm groove
+
+
+def _build_p2of2_plate(path):
+    """Load the M36.b p2of2 vertical plate STEP and apply the component-VI plate
+    fixes (render_improvements VI, plate items 1-6), returning the shape in WORLD
+    coordinates (placement baked in):
+      1-4. rebuild the central outtake as a top-to-bottom stack — a shallow (~3 cm)
+           rectangular outtake OPEN at the top edge, then a thin thread slot, then a
+           wider bolt-head outtake below;
+      5.   CNC a rail groove ("rail river") for each Z-rail on the front face;
+      6.   drill the rail mounting holes through the plate (threads = item 7; the
+           rail bolts themselves are added by _add_p2of2_rail_bolts, item 8).
+    """
+    shape = Part.Shape(); shape.read(path)
+    pl = FreeCAD.Placement(FreeCAD.Vector(166.0, 425.0, 210.0),
+                           FreeCAD.Rotation(90.0, 180.0, -90.0))
+    shape = shape.transformShape(pl.Matrix, True)     # bake add_step's placement
+    if len(shape.Solids) > 1:
+        shape = shape.Solids[0]                        # STEP ships a duplicate solid
+
+    XF, XB = _P2_XF, _P2_XB
+    def _xcut(y0, y1, z0, z1):                          # through-X rectangular cutter
+        return Part.makeBox(XB - XF + 2, y1 - y0, z1 - z0, FreeCAD.Vector(XF - 1, y0, z0))
+
+    # items 1-4: fill the old deep central slot (exact walls Y412.5-437.5, Z145-273.2
+    # so the fused faces merge and leave no seam), then cut the new stacked feature.
+    shape = shape.fuse(Part.makeBox(XB - XF, 25.0, 128.2, FreeCAD.Vector(XF, 412.5, 145.0)))
+    shape = shape.cut(_xcut(412.5, 437.5, 270.0, 301.0))   # 1&3: rect outtake, open top, ~3 cm deep
+    shape = shape.cut(_xcut(420.0, 430.0, 228.0, 270.0))   # 4: thin part (bolt thread)
+    shape = shape.cut(_xcut(416.0, 434.0, 205.0, 228.0))   # 2&4: wider bolt-head outtake, below
+
+    # item 5: rail grooves (front face, _P2_GROOVE_D deep), full rail length in Z.
+    gw = _P2_RAIL_W + 1.0
+    for yc in _P2_RAIL_YC:
+        shape = shape.cut(Part.makeBox(_P2_GROOVE_D, gw, 200.0,
+                                       FreeCAD.Vector(XF, yc - gw / 2.0, 100.0)))
+    # item 6: rail mounting holes through the plate (Ø3.4, one per rail bolt).
+    for yc in _P2_RAIL_YC:
+        for rz in _P2_RAIL_Z:
+            shape = shape.cut(Part.makeCylinder(1.7, XB - XF + 2,
+                              FreeCAD.Vector(XF - 1, yc, rz), FreeCAD.Vector(1, 0, 0)))
+    # merge coplanar faces left by the slot-fill fuse so it renders as solid plate
+    # (no phantom rectangle seam) rather than showing the fused box's outline.
+    try:
+        shape = shape.removeSplitter()
+    except Exception:
+        pass
+    return shape
+
+
 def _add_p2of2_bolts(bolt_size: str = 'M3'):
     """
     p2of2 (the sliding plate) rides on the four MGN12H block carriages.
@@ -880,12 +940,12 @@ def _add_p2of2_rail_bolts(bolt_size: str = 'M3'):
     it.  Bolts slide with p2of2 (z_slide) and share each rail's explode offsets.
     """
     fs = fastener(bolt_size)
-    for side, rcy, expl_y in [("L", 457, +40), ("R", 392, -40)]:
-        for rz in (140, 200, 260):
+    for side, rcy, expl_y in [("L", _P2_RAIL_YC[0], +40), ("R", _P2_RAIL_YC[1], -40)]:
+        for rz in _P2_RAIL_Z:
             gantry(z_slide(explode_with(
-                add_bolt(f"Bolt_RailZ_{side}_{rz}_{bolt_size}",
-                         147 - fs["head_h"], rcy, rz, axis='+x',
-                         size=bolt_size, shaft_l=25),
+                add_bolt(f"Bolt_RailZ_{side}_{int(rz)}_{bolt_size}",
+                         _P2_RAIL_X - fs["head_h"], rcy, rz, axis='+x',
+                         size=bolt_size, shaft_l=18),
                 dy=expl_y, dx=130)))
 
 
@@ -1148,8 +1208,9 @@ def _build_assembly(document):
         dx=80))
 
     # Z-rails: slide with p2of2
-    gantry(z_slide(explode_with(add_box("Rail_Z_Left",  8,12,200, 147,451,100,COL_RAIL), dy=+40,dx=130)))
-    gantry(z_slide(explode_with(add_box("Rail_Z_Right", 8,12,200, 147,386,100,COL_RAIL), dy=-40,dx=130)))
+    # Rails bedded into their front-face grooves (item 5): rail front at _P2_RAIL_X.
+    gantry(z_slide(explode_with(add_box("Rail_Z_Left",  8,12,200, _P2_RAIL_X,451,100,COL_RAIL), dy=+40,dx=130)))
+    gantry(z_slide(explode_with(add_box("Rail_Z_Right", 8,12,200, _P2_RAIL_X,386,100,COL_RAIL), dy=-40,dx=130)))
 
     # MGN12H blocks: fixed to p1of2 front face
     for blk_name, by, bz in [
@@ -1160,16 +1221,19 @@ def _build_assembly(document):
     ]:
         gantry(explode_with(add_box(blk_name, 13, 26, 34, 143, by, bz, COL_BLOCK), dx=130))
 
-    # p2of2 (M36.b): sliding plate.  Missing STEP falls back to a placeholder
-    # so the assembly still animates (C.0).
+    # p2of2 (M36.b): sliding plate.  Rebuilt by _build_p2of2_plate (VI plate items
+    # 1-6) — the shape is already in world coords, so it is added at the origin.
+    # Missing STEP falls back to a placeholder box so the assembly still animates.
     VI = f"{METAL}/VI_engine_plate_p2of2_and_router"
     P2 = (f"{VI}/M36b_vertical_plate"
           "/5_models_and_renders/engine_holder_vertical_plate_p2of2.step")
-    gantry(z_slide(explode_with(
-        add_step("Engine_Holder_P2", P2,
-                 x=166, y=425, z=210, yaw=90, pitch=180, roll=-90,
-                 fallback_box=(6, 145, 200)),
-        dx=190)))
+    if os.path.exists(P2):
+        _p2obj = add_shape_obj("Engine_Holder_P2", _build_p2of2_plate(P2))
+    else:
+        _p2obj = add_step("Engine_Holder_P2", P2,
+                          x=166, y=425, z=210, yaw=90, pitch=180, roll=-90,
+                          fallback_box=(6, 145, 200))
+    gantry(z_slide(explode_with(_p2obj, dx=190)))
 
     # Router clamps (M24.a bottom, M24.b top)
     gantry(z_slide(explode_with(
