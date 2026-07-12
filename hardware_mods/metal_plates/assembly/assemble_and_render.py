@@ -695,18 +695,78 @@ def _add_p2of2_bolts(bolt_size: str = 'M3'):
                 dx=200)))
 
 
+# Component-V stepper-plate feature positions (WORLD coords, as placed at
+# x=137, y=126.5, z=305).  The central oval outtake is centred at Y=490.1; the
+# 4 stepper slots sit symmetrically above/below it at these X/Y.  Shared by the
+# plate builder (cuts the slots) and _add_stepper_holder_bolts (one bolt each).
+_TSH_SLOT_X  = (234.75, 273.75)
+_TSH_SLOT_Y  = (474.3, 505.9)        # 474.3 = mirror of 505.9 about the oval Y490.1
+_TSH_SLOT_W  = 5.6                    # slot width Ø (matches the existing 2 slots)
+_TSH_SLOT_HALFLEN = 9.75             # slot half-length in X (ends ±this from centre)
+_TSH_FLANGE_X = 322.0                # X of the 5 flange-bar holes (bar spans X310.9-333.3)
+
+
+def _build_stepper_plate(path):
+    """Load the M40.a top-stepper plate STEP and apply the component-V fixes,
+    returning the shape in WORLD coordinates (placement baked in):
+      - remove the 6 small surrounding round holes near the slots (item 6);
+      - add 2 more stepper slots below the central oval so there are 4 total,
+        symmetric about the oval (item 5);
+      - drill 5 holes in the flange bar (item 1: two outer clamp holes for
+        component IV's top bolts; item 3: two gear-plate bolt holes + one
+        central vertical-thread pass-through) (items 1 & 3).
+    The central oval outtake (item 4) is left untouched."""
+    ZC, ZT = 305.0, 311.0                       # plate bottom / top (world Z)
+    sh = _read_shape(path)
+    _tm = FreeCAD.Matrix(); _tm.move(FreeCAD.Vector(137.0, 490.0 - 363.5, 93.0 + 212.0))
+    sh = sh.transformShape(_tm, True)           # bake placement into geometry
+
+    def _zhole(cx, cy, d):
+        return Part.makeCylinder(d / 2, ZT - ZC + 2, FreeCAD.Vector(cx, cy, ZC - 1))
+
+    def _zplug(cx, cy, d):                       # solid disc that fills an existing hole
+        return Part.makeCylinder(d / 2, ZT - ZC, FreeCAD.Vector(cx, cy, ZC))
+
+    def _slot(cx, cy):                           # rounded X-slot cutter
+        r, hl = _TSH_SLOT_W / 2, _TSH_SLOT_HALFLEN
+        body = Part.makeBox(2 * hl, _TSH_SLOT_W, ZT - ZC + 2,
+                            FreeCAD.Vector(cx - hl, cy - r, ZC - 1))
+        return body.fuse([Part.makeCylinder(r, ZT - ZC + 2, FreeCAD.Vector(cx - hl, cy, ZC - 1)),
+                          Part.makeCylinder(r, ZT - ZC + 2, FreeCAD.Vector(cx + hl, cy, ZC - 1))])
+
+    # item 6: fill the small surrounding round holes (4× Ø3.6, 2× Ø5.6)
+    for cx, cy, d in [(219.3, 474.6, 4.0), (289.3, 474.6, 4.0),
+                      (219.3, 505.6, 4.0), (289.3, 505.6, 4.0),
+                      (221.8, 511.5, 6.0), (286.8, 511.5, 6.0)]:
+        sh = sh.fuse(_zplug(cx, cy, d))
+
+    # item 5: add the lower two slots (the upper two, at Y505.9, come from the STEP)
+    for cx in _TSH_SLOT_X:
+        sh = sh.cut(_slot(cx, 474.3))
+
+    # items 1 & 3: five holes in the flange bar
+    FX = _TSH_FLANGE_X
+    sh = sh.cut(_zhole(FX, 458.0, 5.5))          # item 1: clamp to IV (outer, M5)
+    sh = sh.cut(_zhole(FX, 522.0, 5.5))          # item 1: clamp to IV (outer, M5)
+    sh = sh.cut(_zhole(FX, 478.0, 3.4))          # item 3: gear-plate bolt (M3)
+    sh = sh.cut(_zhole(FX, 502.0, 3.4))          # item 3: gear-plate bolt (M3)
+    sh = sh.cut(_zhole(FX, 490.0, 10.0))         # item 3: vertical-thread pass-through
+    return sh
+
+
 def _add_stepper_holder_bolts(bolt_size: str = 'M5'):
     """
-    Top stepper holder bolts down into p1of2 via holes A and B (M40.a).
-    Bolt head at top of holder, shaft −Z into plate.  Default M5.
+    Four stepper-mount bolts (item 7, M40.a), one through each of the plate's
+    four slots, pointing −Z down into the stepper motor below.  Head sits on the
+    plate top, shaft runs through the slot and into the stepper.  (Replaces the
+    old two bolts, which floated off the plate.)
     """
-    P1_X = 140
-    wz_head = 320
-    for tag, wy in [("A", 351), ("B", 388)]:
-        gantry(explode_with(
-            add_bolt(f"Bolt_TSH_{tag}_{bolt_size}", P1_X, wy, wz_head,
-                     axis='-z', size=bolt_size, shaft_l=22),
-            dz=70))
+    for wx in _TSH_SLOT_X:
+        for wy in _TSH_SLOT_Y:
+            gantry(explode_with(
+                add_bolt(f"Bolt_TSH_{int(round(wx))}_{int(round(wy))}_{bolt_size}",
+                         wx, wy, 316.0, axis='-z', size=bolt_size, shaft_l=28),
+                dz=70))
 
 
 def _add_gantry_beam_rods(GZ_L, GZ_U, bolt_size: str = 'M5'):
@@ -1124,12 +1184,12 @@ def _build_assembly(document):
         dx=240)))
 
     # ── TOP STEPPER HOLDER (M40.a) ────────────────────────────────────────────
-    gantry(explode_with(
-        add_step("Top_Stepper_Holder",
-            f"{METAL}/V_z_axis_drive/M40a_top_stepper_holder"
-            "/5_models_and_renders/engine_holder_top_plate.step",
-            x=137, y=490-363.5, z=93+212),
-        dz=70))
+    # Loaded + fixed by _build_stepper_plate (V items 1,3,5,6); the shape is
+    # already in world coords, so it is added at the origin (no extra placement).
+    _tsh = _build_stepper_plate(
+        f"{METAL}/V_z_axis_drive/M40a_top_stepper_holder"
+        "/5_models_and_renders/engine_holder_top_plate.step")
+    gantry(explode_with(add_shape_obj("Top_Stepper_Holder", _tsh), dz=70))
 
     # ── ENGINE SIDEWAYS BELT CLAMP (MX.1) ─────────────────────────────────────
     gantry(explode_with(
