@@ -99,18 +99,14 @@ Render: `subcomponents/cnc_subcomponent_IV_explode.gif`
 ## V — Top & bottom stepper plate (stepper, belt/gears, threaded rod)
 Render: `subcomponents/cnc_subcomponent_V_explode.gif`
 
-1. Six holes are missing on top. Two on the outside so the plate can be clamped onto the
-   vertical plate that sits on the gantry rails — this plate goes on top there, and those two
-   bolts go into the bolt outtakes width-wise.
-2. Two holes on the inside — purpose currently unclear.
-3. Two small holes to bolt the large-gear plate onto this plate, so the thread can pass in
-   between; the vertical thread should also be able to pass through this plate. All these holes
+1. 5 holes are missing on top (horizontal bar of the T-shape). Two on the outside so that plate can be clamped to vertical plate of cnc_subcomponents_IV_explode.gif using the 2 top bolts that stick out of the outtake of that vertical plate. — this plate goes on top there, and those two.
+3. Two small holes to bolt the gearplate/holder (look into the BOM to find that eXY nr) onto this plate, so the thread can pass in between; the vertical thread should also be able to pass through this plate so that is the 5th hole that is missing.
    are missing in the high T-bar section.
-4. The O-shaped outtake is good; the middle longitudinal oval shape is good.
+4. The Oval-shaped outtake in the middle longitudinal is good.
 5. The small oval slots on the sides: currently there are two on **one** side. There should be
    two on **each** side (four total) instead of two.
-6. There are four surrounding holes near them — the bolts should just go through the small oval
-   side outtakes.
+6. There are four surrounding holes near them, they should go away.
+7. The 2 bolts in the image, should become 4 that go through the 4 small oval slots (1 each), they will eventually go into the stepper motor.
 
 ---
 
