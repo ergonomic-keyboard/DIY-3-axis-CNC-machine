@@ -563,30 +563,32 @@ def _assign_subcomponents():
 
 
 # ── R.3: parameter dimension overlay ──────────────────────────────────────────
-# Map an assembly object to the *.params.yaml that drives its source script, so the
-# --params flag (view_assembly.sh) can draw a labelled double-arrow for each numeric
-# parameter it can locate on the geometry.
-_PARAMS_YAML = {
-    "Router_Clamp_Top":    "VI_engine_plate_p2of2_and_router/M24b_router_clamp_top/5_models_and_renders/router_clamp.params.yaml",
-    "Router_Clamp_Bottom": "VI_engine_plate_p2of2_and_router/M24a_router_clamp_bottom/5_models_and_renders/router_clamp.params.yaml",
-    "Engine_Sideways_Belt_Clamp": "III_gantry/MX1_engine_sideways_belt_clamp/5_models_and_renders/engine_sideways_belt_clamp.params.yaml",
-    "Top_Stepper_Holder":  "V_z_axis_drive/M40a_top_stepper_holder/5_models_and_renders/engine_holder_top_plate.params.yaml",
+# Parameters now live in the single master file (../parameters.yaml, grouped by
+# sub-component).  Map each assembly object to its (sub-component, part-key) block
+# there, so the --params flag (view_assembly.sh) can draw a labelled double-arrow
+# for each numeric parameter it can locate on the geometry.
+_MASTER_YAML = os.path.join(os.path.dirname(METAL), "parameters.yaml")
+_PARAMS_OBJ = {
+    "Router_Clamp_Top":           ("VI", "router_clamp_top"),
+    "Router_Clamp_Bottom":        ("VI", "router_clamp_bottom"),
+    "Engine_Sideways_Belt_Clamp": ("III", "engine_sideways_belt_clamp"),
+    "Top_Stepper_Holder":         ("V", "top_stepper_holder"),
 }
 
 
-def _read_params_yaml(path):
-    """Parse a flat `NAME: value   # comment` params.yaml.  Returns a list of
-    (name, value, axis) where axis is the leading X/Y/Z token of the comment (or None)."""
-    import re
-    out = []
-    with open(path) as f:
-        for line in f:
-            m = re.match(r"\s*([A-Za-z_]\w*)\s*:\s*(-?\d+(?:\.\d+)?)\s*(#.*)?$", line)
-            if not m:
-                continue
-            cmt = m.group(3) or ""
-            am = re.search(r"#\s*([XYZ])\b", cmt)
-            out.append((m.group(1), float(m.group(2)), am.group(1) if am else None))
+def _load_master_params():
+    """Return {(sc, part_key): {NAME: value}} for the numeric params in the master."""
+    import yaml
+    with open(_MASTER_YAML) as f:
+        doc = yaml.safe_load(f) or {}
+    out = {}
+    for sc, parts in doc.items():
+        if not isinstance(parts, dict):
+            continue
+        for pk, blk in parts.items():
+            if isinstance(blk, dict):
+                out[(sc, pk)] = {k: v for k, v in blk.items()
+                                 if k.isupper() and isinstance(v, (int, float))}
     return out
 
 
@@ -611,33 +613,37 @@ def _make_dim(doc, tag, p1, p2, p3, label, color=(0.85, 0.15, 0.05)):
 
 
 def _annotate_params(doc, only_sc=None):
-    """R.3: for every object that has a *.params.yaml, draw labelled double-arrow
-    dimensions for the parameters that can be located on the geometry — the three
-    bounding-box extents (matched to a param by its axis hint + value) and any
-    diameter parameter (matched to a circular edge of the same size).  Call this
+    """R.3: for every mapped object, draw labelled double-arrow dimensions for the
+    parameters in its master (parameters.yaml) block that can be located on the
+    geometry — the three bounding-box extents (matched to a param by value) and any
+    large-diameter param (matched to a circular edge of the same size).  Call this
     AFTER any sub-component filtering so the dimensions are not pruned."""
+    master = _load_master_params()
     drawn = 0
     skipped = []
-    for name, rel in _PARAMS_YAML.items():
+    for name, key in _PARAMS_OBJ.items():
         obj = doc.getObject(name)
         if obj is None or not getattr(obj, "Shape", None):
             continue
         if only_sc and _classify_subcomponent(name) != only_sc:
             continue
-        path = os.path.join(METAL, rel)
-        if not os.path.exists(path):
+        params = dict(master.get(key, {}))
+        if not params:
             continue
-        params = _read_params_yaml(path)
         bb = obj.Shape.BoundBox
         used = set()
 
-        def take(pred):
-            for i, (n, v, a) in enumerate(params):
-                if i not in used and pred(n, v, a):
-                    used.add(i); return n, v
-            return None, None
+        def take(target, pred=lambda n: True):
+            best = None
+            for n, v in params.items():
+                if n not in used and pred(n) and abs(v - target) <= 1.5:
+                    if best is None or abs(v - target) < abs(params[best] - target):
+                        best = n
+            if best is not None:
+                used.add(best)
+            return best
 
-        # the three overall extents, matched to a param by axis + value ≈ extent
+        # the three overall extents, matched to a param by value ≈ extent
         off = max(12.0, 0.12 * bb.DiagonalLength)
         for axis, ext, (p1, p2, p3) in (
             ("X", bb.XLength, ((bb.XMin, bb.YMin, bb.ZMax), (bb.XMax, bb.YMin, bb.ZMax),
@@ -647,20 +653,19 @@ def _annotate_params(doc, only_sc=None):
             ("Z", bb.ZLength, ((bb.XMax, bb.YMin, bb.ZMin), (bb.XMax, bb.YMin, bb.ZMax),
                                (bb.XMax + off, bb.YMin, (bb.ZMin + bb.ZMax) / 2))),
         ):
-            n, v = take(lambda nm, vv, a: a == axis and abs(vv - ext) <= 1.5)
+            n = take(ext)
             _make_dim(doc, f"Param_{name}_{axis}", p1, p2, p3, n or axis)
             drawn += 1
 
-        # diameter params → a diameter arrow across the matching circular edge.  Only
-        # the large bore is annotated; the small bolt-hole diameters and the
-        # offset/pitch params are skipped (they clutter tiny features) — logged so the
-        # user can ask for them (they'd need per-feature placement to read cleanly).
+        # large-diameter params → a diameter arrow across the matching circular edge.
+        # Small bolt-hole diameters + offset/pitch params are left off (they clutter
+        # tiny features and need per-feature placement to read cleanly) — logged below.
         circ = [(e.Curve.Radius, e.Curve.Center) for e in obj.Shape.Edges
                 if type(e.Curve).__name__ == "Circle" and abs(e.Curve.Axis.z) > 0.9]
-        for i, (n, v, a) in enumerate(params):
-            if i in used:
+        for n, v in params.items():
+            if n in used:
                 continue
-            if "DIAM" in n.upper() and v >= 20.0:
+            if "DIAM" in n and v >= 20.0:
                 hit = next(((r, c) for r, c in circ if abs(2 * r - v) <= 1.5), None)
                 if hit is not None:
                     r, c = hit

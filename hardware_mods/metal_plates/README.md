@@ -48,13 +48,18 @@ nothing breaks for parts that have not been converted.
 |-----------|-----------|--------------|---------------|
 | `build_model` plates (holes) | `2_flattened_image/holes.yaml` | `expand_holes.py --example <EX>` | `holes.json` |
 | `build_model` plates (outline) | `4_outline/outline.yaml` | `expand_outline.py --example <EX>` | `outline.json` |
-| script-built parts (clips, clamps, belt clamp, stepper holder) | `<script>.params.yaml` | *(none — the script loads it on run)* | its `<script>.py` |
+| script-built parts (clips, clamps, belt clamp, stepper holder) | `metal_plates/parameters.yaml` (one block per part) | *(none — the script loads it on run)* | its `<script>.py` |
 
 `holes.yaml` groups holes (shared radius, `rect4` bolt patterns numbered
 clockwise-from-top-left with `dx`/`dy`, thread table, datum-relative `z_from_bottom`);
-`outline.yaml` lists vertices with per-edge `constraint`/`group` and comments;
-`<script>.params.yaml` overrides the script's UPPER_CASE constants (shipped equal
-to the defaults, so behaviour is unchanged until edited).
+`outline.yaml` lists vertices with per-edge `constraint`/`group` and comments.
+
+**All script-built part parameters live in the single master `metal_plates/parameters.yaml`**,
+grouped by sub-component (II / III / V / VI) so it is obvious which parameters drive
+which part.  Each block carries `_dir` + `_script` (identifying the part) and its
+UPPER_CASE constants (shipped equal to the script defaults, so behaviour is unchanged
+until edited).  On run, each `<script>.py` walks up to find this master and overrides
+its constants from the matching block — so parameters are edited in one place.
 
 Converted so far: **M20a** (holes + outline) and every script-built part. The two
 manual-design plates (**M36a**, **M36b**) come from `manual_design/*.FCStd` and are

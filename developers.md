@@ -135,15 +135,21 @@ hardware_mods/metal_plates/assembly/view_assembly.sh VI
 ```
 
 Show the parameter dimensions (R.3) — labelled double-arrows for each locatable value
-in the shown component's `*.params.yaml`:
+from the master `parameters.yaml`:
 ```sh
 hardware_mods/metal_plates/assembly/view_assembly.sh VI --params
 ```
-It draws the three overall extents (matched to the params by their `# X/Y/Z` axis hint,
-e.g. `PLATE_WIDTH = 110 mm`) plus the large bore diameter (`BORE_DIAM = 65 mm`). Small
-bolt-hole diameters and offset/pitch params are skipped (they clutter tiny features) and
-listed in the `[params]` console line — the object→yaml map and the drawing live in
-`assemble_and_render.py` (`_PARAMS_YAML`, `_annotate_params`).
+It draws the three overall extents (matched to the params by value, e.g.
+`PLATE_WIDTH = 110 mm`, `PLATE_THICK = 12 mm`) plus the large bore diameter
+(`BORE_DIAM = 65 mm`). Small bolt-hole diameters and offset/pitch params are skipped
+(they clutter tiny features) and listed in the `[params]` console line — the
+object→(subcomponent, part) map and the drawing live in `assemble_and_render.py`
+(`_PARAMS_OBJ`, `_load_master_params`, `_annotate_params`).
+
+**All script-built part parameters are consolidated in one file:
+`hardware_mods/metal_plates/parameters.yaml`** — grouped by sub-component so it is
+obvious which parameters drive which part. Edit values there; each part's
+`<script>.py` reads its block from that master on run (matched by `_dir` + `_script`).
 Then to show all (eye) components of that subcomponent in top: `View>Panels>Python Console` and paste and run:
 ```py
 # show everything

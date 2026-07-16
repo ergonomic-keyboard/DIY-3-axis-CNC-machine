@@ -1,0 +1,136 @@
+# ============================================================================
+# Master parameter file for the parametric metal parts.
+#
+# SINGLE SOURCE OF TRUTH — grouped by sub-component (the same I / II / II_R / III /
+# IV / V / VI split the assembly uses) so it is obvious which parameters drive which
+# part of which sub-component.  Parameters are edited HERE and nowhere else.
+#
+# Each part block carries:
+#   _dir     : the M-code folder under examples/<subcomponent>/ that holds the part
+#   _script  : the generator script in that folder's 5_models_and_renders/
+#   <UPPER>  : millimetre constants that OVERRIDE the same-named UPPER_CASE constant
+#              in that script.  The shipped values equal the script defaults, so
+#              nothing changes until you edit one.
+#
+# Consumers:
+#   * each generator script walks up to find this file and selects its own block by
+#     (_dir, _script), then overrides its constants (see _apply_yaml_param_overrides);
+#   * assembly/view_assembly.sh <SC> --params draws these values as dimensions.
+#
+# Sub-components I (aluminium frame) and IV (engine plate p1of2) have no parametric
+# part scripts, so they have no blocks here.  The right side plate (II_R) mirrors the
+# II clips, so its parts are generated from the II blocks below (no separate entry).
+# ============================================================================
+
+II:   # Left side plate & Y-axis — M20 clips (II_R mirrors these)
+
+  back_clip:
+    _dir: M20b_back_clip
+    _script: back_clip.py
+    X_MIN: 54          # plate-facing -> outer face
+    X_MAX: 69.385      # plate-facing -> outer face
+    Y_MIN: 10
+    Y_MAX: 30
+    Z_MIN: 18.034
+    Z_MAX: 90.514
+    NOTCH_Y_MIN: 13
+    NOTCH_Y_MAX: 26
+    NOTCH_X_START: 64  # back wall stays from NOTCH_X_START to X_MAX
+    BOLT_DIAM: 8.4
+
+  upper_front_clip:
+    _dir: M20cd_front_clips
+    _script: upper_front_clip.py
+    X_MIN: 167
+    X_MAX: 190
+    Y_MIN: 10
+    Y_MAX: 30
+    Z_MIN: 142.222
+    Z_MAX: 190
+    NECK_Z_MIN: 160
+    NECK_Z_MAX: 180
+    NECK_X_START: 180
+    BOLT_DIAM: 8.4     # M8 clearance
+    BOLT_CZ: 166.111
+
+  lower_front_clip:
+    _dir: M20cd_front_clips
+    _script: lower_front_clip.py
+    X_MIN: 167
+    X_MAX: 190
+    Y_MIN: 10
+    Y_MAX: 30
+    Z_MIN: 30.5
+    Z_MAX: 70.5
+    NECK_Z_MIN: 47.5
+    NECK_Z_MAX: 65.5
+    NECK_X_START: 180
+    BOLT_DIAM: 8.4     # M8 clearance
+    BOLT_CZ: 50.5      # bolt at the body midpoint
+
+III:  # Gantry & X-axis
+
+  engine_sideways_belt_clamp:
+    _dir: MX1_engine_sideways_belt_clamp
+    _script: engine_sideways_belt_clamp.py
+    BODY_X: 41         # along belt travel
+    BODY_Y: 23         # vertical, bolt axis
+    BODY_Z: 27         # belt width direction (HTD5M belt is 9-15 mm wide; fits)
+    BOLT_DIAM: 5.5     # M5 clearance
+    BOLT_PITCH_X: 26   # spacing along the belt-travel axis
+    PIN_DIAM: 5
+    PIN_PITCH_X: 8     # close to HTD5M 5 mm + tooth ~= 8 mm interlock
+    PIN_COUNT: 3
+    PIN_Y: -11.5       # centre at the bottom face (half-buried tooth)
+    PIN_LEN: 29        # span the full belt width
+
+V:    # Top & bottom stepper plate (Z-axis drive)
+
+  top_stepper_holder:
+    _dir: M40a_top_stepper_holder
+    _script: engine_holder_top_plate.py
+    PLATE_THICKNESS: 6       # mm
+    POCKET_DIAM: 22          # mm — motor shaft + lead-screw bearing clearance
+    POCKET_R: 11             # 11 mm
+    M5_PITCH: 65
+    M5_HOLE_DIAM: 5.5
+    CENTER_X: 117.289
+    CENTER_Z: 363.631
+    SLIDER_TOTAL_LEN: 25     # mm — total horizontal slot length including end caps
+    SLIDER_WIDTH: 5.5        # 5.5 mm — slot thickness (Z extent)
+    SLIDER_GAP: 2            # mm — clearance between oval top edge and slot bottom
+    HOLE_AB_Z: 385
+
+VI:   # Vertical engine plate p2of2 + two router clamps
+      # Both clamps use the same router_clamp.py; the top (M24b) and bottom (M24a)
+      # ship identical values but are separate so they can diverge later.
+
+  router_clamp_top:
+    _dir: M24b_router_clamp_top
+    _script: router_clamp.py
+    PLATE_WIDTH: 110      # X — along Z plate face (left/right)
+    PLATE_DEPTH: 100      # Y — sticking out from Z plate
+    PLATE_THICK: 12       # Z — vertical thickness (along router axis)
+    BORE_DIAM: 65         # router OD (Makita RT0700 = 65 mm)
+    BORE_CENTER_Y: 8      # bore centre Y, measured from plate centre toward
+    SAW_SLIT_WIDTH: 2.5   # slit goes from bore wall to the +Y front edge.
+    CROSS_BOLT_DIAM: 6.5
+    CROSS_BOLT_Y: 45.5    # 5 mm past bore edge
+    MOUNT_BOLT_DIAM: 5.5
+    MOUNT_X_PITCH: 80
+    MOUNT_Y_OFFSET: -42   # 8 mm from the back edge
+
+  router_clamp_bottom:
+    _dir: M24a_router_clamp_bottom
+    _script: router_clamp.py
+    PLATE_WIDTH: 110      # X — along Z plate face (left/right)
+    PLATE_DEPTH: 100      # Y — sticking out from Z plate
+    PLATE_THICK: 12       # Z — vertical thickness (along router axis)
+    BORE_DIAM: 65         # router OD (Makita RT0700 = 65 mm)
+    BORE_CENTER_Y: 8      # bore centre Y, measured from plate centre toward
+    SAW_SLIT_WIDTH: 2.5   # slit goes from bore wall to the +Y front edge.
+    CROSS_BOLT_DIAM: 6.5
+    CROSS_BOLT_Y: 45.5    # 5 mm past bore edge
+    MOUNT_BOLT_DIAM: 5.5
+    MOUNT_X_PITCH: 80
+    MOUNT_Y_OFFSET: -42   # 8 mm from the back edge

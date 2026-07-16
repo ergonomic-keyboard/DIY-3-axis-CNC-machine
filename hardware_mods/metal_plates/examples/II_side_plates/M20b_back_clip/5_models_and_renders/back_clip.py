@@ -170,27 +170,48 @@ def main() -> None:
     print(f"wrote {plan_path.name}")
 
 
-# -- YAML parameter override (optional) --------------------------------------
-# If a sibling "<thisfile>.params.yaml" exists, its UPPER_CASE keys replace the
-# module constants above, so the geometry can be tuned without editing code.
-# The shipped params.yaml equals these defaults (no behaviour change until you
-# edit it). Guarded so a missing PyYAML / file can never break the build.
+# -- Parameter override from the master parameters.yaml ----------------------
+# All part parameters live in the single master file  metal_plates/parameters.yaml
+# (found by walking up from this script).  This part's block is the one whose _dir
+# equals this script's folder AND whose _script equals this filename; its UPPER_CASE
+# keys replace the module constants above, so geometry is tuned in one place without
+# editing code.  The master ships values equal to these defaults (no behaviour change
+# until you edit it).  Guarded so a missing PyYAML / file / block falls back to the
+# defaults and can never break the build.
 def _apply_yaml_param_overrides():
     try:
         import yaml
         from pathlib import Path
-        pf = Path(__file__).with_suffix(".params.yaml")
-        if not pf.exists():
+        here = Path(__file__).resolve()
+        master = next((a / "parameters.yaml" for a in here.parents
+                       if (a / "parameters.yaml").exists()), None)
+        if master is None:
             return
-        data = yaml.safe_load(pf.read_text()) or {}
+        doc = yaml.safe_load(master.read_text()) or {}
+        my_script = here.name
+        ancestors = {p.name for p in here.parents}
+        block = None
+        for group in doc.values():
+            if not isinstance(group, dict):
+                continue
+            for part in group.values():
+                if (isinstance(part, dict) and part.get("_script") == my_script
+                        and part.get("_dir") in ancestors):
+                    block = part
+                    break
+            if block is not None:
+                break
+        if block is None:
+            return
         g = globals()
         applied = []
-        for k, v in data.items():
+        for k, v in block.items():
             if isinstance(k, str) and k.isupper() and k in g:
                 g[k] = v
                 applied.append(k)
         if applied:
-            print(f"[params] {pf.name}: overrode {len(applied)} constant(s)")
+            print(f"[params] {master.name}: overrode {len(applied)} constant(s) "
+                  f"for {block.get('_dir')}/{my_script}")
     except Exception as exc:
         print(f"[params] YAML override skipped ({exc})")
 
