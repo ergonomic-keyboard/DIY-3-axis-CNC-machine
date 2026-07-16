@@ -6,6 +6,8 @@
 #   ./view_assembly.sh            # full assembled machine
 #   ./view_assembly.sh II         # just one sub-component
 #                                 # (I  II  II_R  III  IV  V  VI)
+#   ./view_assembly.sh VI --params  # + labelled double-arrow dimensions for each
+#                                 # locatable value in the component's *.params.yaml (R.3)
 #
 # It regenerates the FCStd from assemble_and_render.py every run, so it always
 # reflects the current code. Output goes to a scratch file (cnc_assembly_live.FCStd
@@ -14,12 +16,20 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 FC="$HOME/.local/opt/FreeCAD-1.1.1"
-SC="${1:-}"                                   # optional sub-component code
+SC=""                                          # optional sub-component code
+PARAMS=""                                      # R.3: --params dimension overlay
+for a in "$@"; do
+  case "$a" in
+    --params) PARAMS=1 ;;
+    -*)       echo "unknown flag: $a" >&2; exit 2 ;;
+    *)        SC="$a" ;;
+  esac
+done
 OUT="cnc_assembly_live.FCStd"
 [ -n "$SC" ] && OUT="cnc_live_${SC}.FCStd"
 SETUP="_view_setup.py"                        # startup macro (view fit + navigation)
 
-SC="$SC" OUTFILE="$OUT" DISPLAY="${DISPLAY:-:0}" \
+SC="$SC" PARAMS="$PARAMS" OUTFILE="$OUT" DISPLAY="${DISPLAY:-:0}" \
   PYTHONPATH="$FC/usr/lib" "$FC/usr/bin/python" - <<'PY'
 import os, time, FreeCAD, FreeCADGui
 import assemble_and_render as m
@@ -38,6 +48,10 @@ if sc:
                 doc.removeObject(o.Name)
             except Exception:
                 pass
+    doc.recompute()
+# R.3: draw the parameter dimensions AFTER the sub-component filter (so they survive).
+if os.environ.get("PARAMS"):
+    m._annotate_params(doc, sc or None)
     doc.recompute()
 m._apply_colours(FreeCADGui)
 doc.recompute(); time.sleep(0.6)

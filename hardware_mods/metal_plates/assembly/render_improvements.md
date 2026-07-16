@@ -7,7 +7,7 @@ hardware_mods/metal_plates/assembly/view_assembly.sh VI
 R.0 I want the object to be in the center of the screen (where the red dot is when you rotate).
 R.1. I want the complete subcomponent to be streched out as large as possible, until it hits either the max width and max height of the window box. (So that I don't have to search for the object zooming in and zooming (and then accidentally zooming out so far that it is not visible anymore, or panning so far away at zoomed out level that I will not find it anymore.)) 
 R.2 I want the navigation method set to touchpad by default.
-R.3 Add an argument 
+R.3 Add an argument to visually show the parameters (e.g. with an double sided arrow spanning a width or something) of the parameters in router_clamp.parms.yaml, <>.params.yaml etc.
 ---
 
 ## I — Aluminium frame
@@ -52,7 +52,7 @@ Render: `subcomponents/cnc_subcomponent_V_explode.gif`
 
 ## VI — Vertical engine plate p2of2 (+ two router clamps + rails)
 Render: `subcomponents/cnc_subcomponent_VI_explode.gif`
-12. Remove the cnc_live_VI.Router_Clamp_Top.Edge90 artifact (and other left half of the circle)
+12. Remove the cnc_live_VI.Router_Clamp_Top.Edge90 artifact (and other left half of the circle at cnc_live_VI.Router_Clamp_Top.Edge40) (and the same for the bottom circle. Otherwise great work.)
 
 ### Plate outtakes & rails
 

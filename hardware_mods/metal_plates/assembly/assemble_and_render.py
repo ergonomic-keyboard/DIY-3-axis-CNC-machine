@@ -562,6 +562,118 @@ def _assign_subcomponents():
         _SUBCOMP[name] = _classify_subcomponent(name)
 
 
+# ── R.3: parameter dimension overlay ──────────────────────────────────────────
+# Map an assembly object to the *.params.yaml that drives its source script, so the
+# --params flag (view_assembly.sh) can draw a labelled double-arrow for each numeric
+# parameter it can locate on the geometry.
+_PARAMS_YAML = {
+    "Router_Clamp_Top":    "VI_engine_plate_p2of2_and_router/M24b_router_clamp_top/5_models_and_renders/router_clamp.params.yaml",
+    "Router_Clamp_Bottom": "VI_engine_plate_p2of2_and_router/M24a_router_clamp_bottom/5_models_and_renders/router_clamp.params.yaml",
+    "Engine_Sideways_Belt_Clamp": "III_gantry/MX1_engine_sideways_belt_clamp/5_models_and_renders/engine_sideways_belt_clamp.params.yaml",
+    "Top_Stepper_Holder":  "V_z_axis_drive/M40a_top_stepper_holder/5_models_and_renders/engine_holder_top_plate.params.yaml",
+}
+
+
+def _read_params_yaml(path):
+    """Parse a flat `NAME: value   # comment` params.yaml.  Returns a list of
+    (name, value, axis) where axis is the leading X/Y/Z token of the comment (or None)."""
+    import re
+    out = []
+    with open(path) as f:
+        for line in f:
+            m = re.match(r"\s*([A-Za-z_]\w*)\s*:\s*(-?\d+(?:\.\d+)?)\s*(#.*)?$", line)
+            if not m:
+                continue
+            cmt = m.group(3) or ""
+            am = re.search(r"#\s*([XYZ])\b", cmt)
+            out.append((m.group(1), float(m.group(2)), am.group(1) if am else None))
+    return out
+
+
+def _make_dim(doc, tag, p1, p2, p3, label, color=(0.85, 0.15, 0.05)):
+    """Draft linear dimension p1→p2 (double arrow), offset onto the line through p3,
+    with `label` overriding the shown text.  Returns the dimension object."""
+    import Draft
+    d = Draft.makeDimension(FreeCAD.Vector(*p1), FreeCAD.Vector(*p2), FreeCAD.Vector(*p3))
+    d.Label = tag
+    vo = d.ViewObject
+    try:
+        vo.Override = label + " = $dim"
+        vo.Decimals = 0
+        vo.FontSize = 9
+        vo.ArrowSize = 2
+        vo.LineColor = color
+        vo.TextColor = color
+        vo.ExtLines = 8
+    except Exception:
+        pass
+    return d
+
+
+def _annotate_params(doc, only_sc=None):
+    """R.3: for every object that has a *.params.yaml, draw labelled double-arrow
+    dimensions for the parameters that can be located on the geometry — the three
+    bounding-box extents (matched to a param by its axis hint + value) and any
+    diameter parameter (matched to a circular edge of the same size).  Call this
+    AFTER any sub-component filtering so the dimensions are not pruned."""
+    drawn = 0
+    skipped = []
+    for name, rel in _PARAMS_YAML.items():
+        obj = doc.getObject(name)
+        if obj is None or not getattr(obj, "Shape", None):
+            continue
+        if only_sc and _classify_subcomponent(name) != only_sc:
+            continue
+        path = os.path.join(METAL, rel)
+        if not os.path.exists(path):
+            continue
+        params = _read_params_yaml(path)
+        bb = obj.Shape.BoundBox
+        used = set()
+
+        def take(pred):
+            for i, (n, v, a) in enumerate(params):
+                if i not in used and pred(n, v, a):
+                    used.add(i); return n, v
+            return None, None
+
+        # the three overall extents, matched to a param by axis + value ≈ extent
+        off = max(12.0, 0.12 * bb.DiagonalLength)
+        for axis, ext, (p1, p2, p3) in (
+            ("X", bb.XLength, ((bb.XMin, bb.YMin, bb.ZMax), (bb.XMax, bb.YMin, bb.ZMax),
+                               ((bb.XMin + bb.XMax) / 2, bb.YMin - off, bb.ZMax))),
+            ("Y", bb.YLength, ((bb.XMin, bb.YMin, bb.ZMax), (bb.XMin, bb.YMax, bb.ZMax),
+                               (bb.XMin - off, (bb.YMin + bb.YMax) / 2, bb.ZMax))),
+            ("Z", bb.ZLength, ((bb.XMax, bb.YMin, bb.ZMin), (bb.XMax, bb.YMin, bb.ZMax),
+                               (bb.XMax + off, bb.YMin, (bb.ZMin + bb.ZMax) / 2))),
+        ):
+            n, v = take(lambda nm, vv, a: a == axis and abs(vv - ext) <= 1.5)
+            _make_dim(doc, f"Param_{name}_{axis}", p1, p2, p3, n or axis)
+            drawn += 1
+
+        # diameter params → a diameter arrow across the matching circular edge.  Only
+        # the large bore is annotated; the small bolt-hole diameters and the
+        # offset/pitch params are skipped (they clutter tiny features) — logged so the
+        # user can ask for them (they'd need per-feature placement to read cleanly).
+        circ = [(e.Curve.Radius, e.Curve.Center) for e in obj.Shape.Edges
+                if type(e.Curve).__name__ == "Circle" and abs(e.Curve.Axis.z) > 0.9]
+        for i, (n, v, a) in enumerate(params):
+            if i in used:
+                continue
+            if "DIAM" in n.upper() and v >= 20.0:
+                hit = next(((r, c) for r, c in circ if abs(2 * r - v) <= 1.5), None)
+                if hit is not None:
+                    r, c = hit
+                    _make_dim(doc, f"Param_{name}_{n}",
+                              (c.x, c.y - r, bb.ZMax), (c.x, c.y + r, bb.ZMax),
+                              (c.x + off, c.y, bb.ZMax), n)
+                    drawn += 1
+                    continue
+            skipped.append(n)
+    print("[params] drew %d dimension(s); not annotated (would clutter / need per-feature "
+          "placement): %s" % (drawn, ", ".join(skipped) or "none"), flush=True)
+
+
 def set_staged_assembly(stage_num: int, stage_frac: float):
     """
     Animate a staged build:  earlier stages are assembled (t=0),
@@ -944,17 +1056,18 @@ def _build_router_clamp(path, wz):
 
     # item 11: the STEP bore (router outtake) sits at Y433 — +8 mm off the clamp centre
     # Y425 ("to the left").  Recentre it in −Y.  Done while the clamp is still ONE solid:
-    # fill the old bore, then re-cut it 8 mm lower.  (The fill leaves a faint coincident-
-    # cylinder seam arc at the old Y433 that removeSplitter can't merge — cosmetic only;
-    # the bore itself is correctly centred.)
-    shape = shape.fuse(Part.makeCylinder(_RC_BORE_R, b.ZLength + 2,
-                       FreeCAD.Vector(xc, _RC_BORE_Y0, b.ZMin - 1)))
-    shape = shape.cut(Part.makeCylinder(_RC_BORE_R, b.ZLength + 2,
-                      FreeCAD.Vector(xc, _RC_BORE_Y1, b.ZMin - 1)))
+    # fill the old bore with a BOX (item 12 — a box shares no cylinder face with the old
+    # bore wall, so removeSplitter can erase that wall instead of leaving a seam arc that
+    # a coincident cylinder fill would), then re-cut the bore 8 mm lower.
+    _bf = _RC_BORE_R + 2.0
+    shape = shape.fuse(Part.makeBox(2 * _bf, 2 * _bf, b.ZLength,   # exact thickness, no
+                       FreeCAD.Vector(xc - _bf, _RC_BORE_Y0 - _bf, b.ZMin)))  # proud bumps
     try:
-        shape = shape.removeSplitter()
+        shape = shape.removeSplitter()   # erase the old bore wall before re-cutting
     except Exception:
         pass
+    shape = shape.cut(Part.makeCylinder(_RC_BORE_R, b.ZLength + 2,
+                      FreeCAD.Vector(xc, _RC_BORE_Y1, b.ZMin - 1)))
 
     # Saw slit: FULL height (top→bottom) at the X centre so the ring is cut into two
     # fully-separate halves (front + plate-side) regardless of where the bore sits.
