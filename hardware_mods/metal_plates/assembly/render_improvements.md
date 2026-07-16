@@ -7,7 +7,7 @@ hardware_mods/metal_plates/assembly/view_assembly.sh VI
 R.0 I want the object to be in the center of the screen (where the red dot is when you rotate).
 R.1. I want the complete subcomponent to be streched out as large as possible, until it hits either the max width and max height of the window box. (So that I don't have to search for the object zooming in and zooming (and then accidentally zooming out so far that it is not visible anymore, or panning so far away at zoomed out level that I will not find it anymore.)) 
 R.2 I want the navigation method set to touchpad by default.
-
+R.3 Add an argument 
 ---
 
 ## I — Aluminium frame
@@ -52,33 +52,7 @@ Render: `subcomponents/cnc_subcomponent_V_explode.gif`
 
 ## VI — Vertical engine plate p2of2 (+ two router clamps + rails)
 Render: `subcomponents/cnc_subcomponent_VI_explode.gif`
-8. Remove
-cnc_live_VI.Engine_holder_P2.edge141
-cnc_live_VI.Engine_holder_P2.edge143
-cnc_live_VI.Engine_holder_P2.edge142
-cnc_live_VI.Engine_holder_P2.edge140
-
-cnc_live_VI.Bolt_P2_379_240_0_M3.Edge5
-cnc_live_VI.Bolt_P2_379_240_1_M3.Edge5
-cnc_live_VI.Bolt_P2_379_240_2_M3.Edge5
-cnc_live_VI.Bolt_P2_379_240_3_M3.Edge5
-
-cnc_live_VI.Bolt_P2_444_240_0_M3.Edge5
-cnc_live_VI.Bolt_P2_444_240_1_M3.Edge5
-cnc_live_VI.Bolt_P2_444_240_2_M3.Edge5
-cnc_live_VI.Bolt_P2_444_240_3_M3.Edge5
-
-
-The bolt group
-cnc_live_VI.Engine_Holder_P2.Edge139
-cnc_live_VI.Engine_Holder_P2.Edge139
-
-The bolt holder on left side with:
-cnc_live_VI.Engine_Holder_P2.Edge137
-
-cnc_live_VI.Engine_Holder_P2.Edge53
-cnc_live_VI.Engine_Holder_P2.Edge33
-And right side
+12. Remove the cnc_live_VI.Router_Clamp_Top.Edge90 artifact (and other left half of the circle)
 
 ### Plate outtakes & rails
 

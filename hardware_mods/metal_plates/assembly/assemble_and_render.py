@@ -919,7 +919,10 @@ _RC_Z_TOP = 185.0        # top clamp
 _RC_MOUNT_YR  = 425.0 - (470.5 - 425.0)   # 379.5 — the added RIGHT-side mount hole
 _RC_MOUNT_YL  = 470.5                      # the STEP's existing LEFT-side mount hole
 _RC_MOUNT_D   = 6.5                        # matches the STEP hole Edge5 (r3.25)
-_RC_POCKET    = (5.0, 14.0, 14.0)          # take-out (X depth into front face, Y, Z)
+_RC_POCKET    = (5.0, 14.0, 14.0)          # take-out (X depth into slit face, Y, Z)
+_RC_BORE_R    = 32.5                        # router bore radius (from the STEP)
+_RC_BORE_Y0   = 433.0                       # STEP bore centre Y (off-centre by +8)
+_RC_BORE_Y1   = 425.0                       # recentred bore Y (item 11) = clamp centre
 
 
 def _build_router_clamp(path, wz):
@@ -936,34 +939,57 @@ def _build_router_clamp(path, wz):
     shape = shape.transformShape(pl.Matrix, True)
     b = shape.BoundBox
     xc = (b.XMin + b.XMax) / 2.0
-    slit = Part.makeBox(6.0, b.YLength / 2.0, b.ZLength + 2.0,
-                        FreeCAD.Vector(xc - 3.0, b.YMin - 0.5, b.ZMin - 1.0))
-    shape = shape.cut(slit)
-
-    # items 4 & 5: the missing right-side X-through mount hole (mirror of Edge5).
     xf, xb = b.XMin, b.XMax                        # clamp front (X46) / plate-side (X156)
     zc = wz
+
+    # item 11: the STEP bore (router outtake) sits at Y433 — +8 mm off the clamp centre
+    # Y425 ("to the left").  Recentre it in −Y.  Done while the clamp is still ONE solid:
+    # fill the old bore, then re-cut it 8 mm lower.  (The fill leaves a faint coincident-
+    # cylinder seam arc at the old Y433 that removeSplitter can't merge — cosmetic only;
+    # the bore itself is correctly centred.)
+    shape = shape.fuse(Part.makeCylinder(_RC_BORE_R, b.ZLength + 2,
+                       FreeCAD.Vector(xc, _RC_BORE_Y0, b.ZMin - 1)))
+    shape = shape.cut(Part.makeCylinder(_RC_BORE_R, b.ZLength + 2,
+                      FreeCAD.Vector(xc, _RC_BORE_Y1, b.ZMin - 1)))
+    try:
+        shape = shape.removeSplitter()
+    except Exception:
+        pass
+
+    # Saw slit: FULL height (top→bottom) at the X centre so the ring is cut into two
+    # fully-separate halves (front + plate-side) regardless of where the bore sits.
+    shape = shape.cut(Part.makeBox(6.0, b.YLength + 1.0, b.ZLength + 2.0,
+                                   FreeCAD.Vector(xc - 3.0, b.YMin - 0.5, b.ZMin - 1.0)))
+
+    # items 4 & 5: the missing right-side X-through mount hole (mirror of Edge5).
     shape = shape.cut(Part.makeCylinder(
         _RC_MOUNT_D / 2.0, xb - xf + 2.0,
         FreeCAD.Vector(xf - 1.0, _RC_MOUNT_YR, zc), FreeCAD.Vector(1, 0, 0)))
-    # item 3: rectangular take-out (bolt-head seat) in the FRONT face at the mount hole.
+    # items 3 & 10: the bolt take-outs sit in the PLATE-SIDE (high-X) half, at BOTH of
+    # its slit-side corners (the two mount-bolt Y's).  xc+3 is that half's slit face; the
+    # 14 mm-wide pocket reaches each Y end so it reads as a corner notch.
     pdx, pdy, pdz = _RC_POCKET
-    shape = shape.cut(Part.makeBox(
-        pdx, pdy, pdz, FreeCAD.Vector(xf, _RC_MOUNT_YR - pdy / 2.0, zc - pdz / 2.0)))
+    for ym in (_RC_MOUNT_YR, _RC_MOUNT_YL):
+        shape = shape.cut(Part.makeBox(
+            pdx, pdy, pdz, FreeCAD.Vector(xc + 3.0, ym - pdy / 2.0, zc - pdz / 2.0)))
+    try:
+        shape = shape.removeSplitter()   # merge the bore-move crescent seam (Y433 arc)
+    except Exception:
+        pass
     return shape
 
 
 def _add_router_clamp_bolts(bolt_size: str = 'M4'):
-    """Cross-bolts that squeeze each split clamp's two halves together — one across
-    the front slit and one across the back slit, clear of the bore.  Run in X across
-    the slit gap; slide with p2of2.  Default M4.
+    """Cross-bolt that squeezes each split clamp's two halves together — one across the
+    slit, above the bore, clear of it.  Runs in X across the slit gap; slides with p2of2.
+    (render_improvements VI item 9 removed the second cross-bolt below the bore @Y385.)
 
     Also adds the plate-MOUNT bolts (render_improvements VI items 3/4/5): one M6 per
-    X-through mount hole (Y379.5 + Y470.5), head at the clamp FRONT face (seated in the
-    take-out on the right side), shaft +X through the clamp and into the plate front."""
+    X-through mount hole (Y379.5 + Y470.5), head at the clamp FRONT face, shaft +X
+    through the clamp and into the plate front."""
     xf = _RC_X - 55.0                            # clamp front face (X46)
     for clamp_z in (_RC_Z_BOT, _RC_Z_TOP):
-        for cy in (385, 470):        # front slit (below bore) / back slit (above bore)
+        for cy in (470,):            # single cross-bolt above the bore (item 9)
             gantry(z_slide(explode_with(
                 add_bolt(f"Bolt_RC_{int(clamp_z)}_{cy}_{bolt_size}",
                          _RC_X - 7, cy, clamp_z,
