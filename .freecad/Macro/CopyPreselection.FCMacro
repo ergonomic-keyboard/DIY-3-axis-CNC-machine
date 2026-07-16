@@ -1,0 +1,21 @@
+# CopyPreselection.FCMacro
+# Copy the PRESELECTED (hovered) element's full path — e.g.
+#   cnc_live_VI.Engine_Holder_P2.Edge200
+# to the system clipboard, ready to paste into render_improvements.md.
+#
+# Bound to F4 by .freecad/setup_dev_macros.py (see developers.md).
+# Usage: hover the mouse over an edge/face/vertex (so it is preselected — the path
+# shows in the status bar) and press the shortcut; the mouse stays over the element
+# so the preselection persists while the key fires.
+from PySide import QtGui
+import FreeCAD, FreeCADGui
+
+p = FreeCADGui.Selection.getPreselection()
+if p and p.ObjectName:
+    sub = p.SubElementNames[0] if p.SubElementNames else ""
+    txt = ".".join(part for part in (p.DocumentName, p.ObjectName, sub) if part)
+    QtGui.QApplication.clipboard().setText(txt)
+    FreeCAD.Console.PrintMessage("CopyPreselection: copied %s\n" % txt)
+else:
+    FreeCAD.Console.PrintWarning(
+        "CopyPreselection: nothing preselected — hover over an edge/face/vertex first\n")

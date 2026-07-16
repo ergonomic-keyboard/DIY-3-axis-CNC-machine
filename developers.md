@@ -145,3 +145,26 @@ Then Hide all (shut eye) components:
 for o in App.ActiveDocument.Objects:
     if o.ViewObject: o.ViewObject.Visibility = False
 ```
+
+### Dev shortcut — copy a hovered element's path (F4)
+
+When you open the viewer (`view_assembly.sh [SC]`), press **`F4`** while hovering over
+an edge/face/vertex to copy its full path — e.g. `cnc_live_VI.Engine_Holder_P2.Edge200`
+— to the clipboard, ready to paste into `render_improvements.md`. Hover so the element
+is *preselected* (its path shows in the status bar), press `F4`, then paste. **Nothing
+to install** — the viewer's startup script sets it up every launch.
+
+How it works (and why it's fiddly): FreeCAD has no built-in shortcut for this —
+`getPreselection()` only exposes the hovered element to a macro. And a normal
+command/keyboard shortcut does **not** work over the 3D view: the Coin viewer swallows
+shortcut keys, and touchpad navigation claims *every* modifier combo held over the view
+(`Ctrl+Shift` = zoom, `Ctrl+Alt` = rotate, …). So `view_assembly.sh` installs an
+**application-wide Qt event filter** (in its generated `_view_setup.py`) that catches
+the `F4` key press before any widget sees it and copies the preselection. To change the
+key, edit `QtCore.Qt.Key_F4` in the event-filter block of `view_assembly.sh`.
+
+There is also a standalone `.freecad/Macro/CopyPreselection.FCMacro` plus an optional
+installer `python3 .freecad/setup_dev_macros.py` that registers it as a **"Dev macros"**
+toolbar/menu command for general (non-viewer) FreeCAD use — but note its keyboard
+shortcut is subject to the 3D-view limitation above; the reliable path is the viewer's
+`F4`.

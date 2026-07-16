@@ -713,17 +713,20 @@ def _build_p2of2_plate(path):
     def _xcut(y0, y1, z0, z1):                          # through-X rectangular cutter
         return Part.makeBox(XB - XF + 2, y1 - y0, z1 - z0, FreeCAD.Vector(XF - 1, y0, z0))
 
-    # render_improvements VI items 6 & 7: the M36b STEP ships mounting features in the
-    # lower half that the user wants gone — a bottom cluster of holes + two half-moon
-    # slots at Z~95 (item 6), and a full DUPLICATE of the upper (Z255/275) bolt pattern
-    # at Z145/165 with its rectangles (item 7).  Fill every void inside these regions by
-    # fusing back (region_box − plate).  Done BEFORE the rail grooves/holes are cut, so
-    # the wanted rail features that fall inside a region (the Y457/392 groove + the Z160
-    # rail hole) are simply re-cut afterwards.  region_box spans EXACTLY the plate
-    # thickness (XF..XB) so the fill adds no proud slab on either face.
+    # render_improvements VI items 6/7/8: the M36b STEP ships a full block-bolt mounting
+    # system on the front face at THREE Z levels — a bottom cluster of holes + half-moon
+    # slots at Z~95 (item 6), and identical 4-hole clusters + rectangular "bolt-holder"
+    # recesses at Z145/165 (item 7, lower) and Z255/275 (item 8, upper), left and right.
+    # The user wants ALL of it gone.  Fill every void inside these regions by fusing back
+    # (region_box − plate).  Done BEFORE the rail grooves/holes are cut, so the wanted
+    # rail features that fall inside a region (the Y457/392 groove + the Z160/Z280 rail
+    # holes) are simply re-cut afterwards.  region_box spans EXACTLY the plate thickness
+    # (XF..XB) so the fill adds no proud slab on either face.
     for (y0, y1, z0, z1) in ((360.0, 490.0,  85.0, 105.0),    # item 6: bottom cluster
                              (378.0, 406.0, 140.0, 170.0),    # item 7: lower-right pattern
-                             (445.0, 472.0, 140.0, 170.0)):   # item 7: lower-left pattern
+                             (445.0, 472.0, 140.0, 170.0),    # item 7: lower-left pattern
+                             (378.0, 406.0, 248.0, 300.0),    # item 8: upper-right pattern
+                             (445.0, 472.0, 248.0, 300.0)):   # item 8: upper-left pattern
         reg = Part.makeBox(XB - XF, y1 - y0, z1 - z0, FreeCAD.Vector(XF, y0, z0))
         shape = shape.fuse(reg.cut(shape))
     try:
@@ -760,25 +763,13 @@ def _build_p2of2_plate(path):
 def _add_p2of2_bolts(bolt_size: str = 'M3'):
     """
     p2of2 (the sliding plate) rides on the four MGN12H block carriages.
-    Default M3 bolts through p2of2 front face into each carriage.
-    Head on p2of2 front, shaft in −X direction.  These bolts travel with z_slide.
+
+    render_improvements VI items 7 & 8: ALL of the p2of2→block bolts were removed —
+    the lower row (Bolt_P2_*_140) in item 7 and the upper row (Bolt_P2_*_240) in item 8,
+    together with their plate holes / "bolt-holder" recesses (filled in
+    _build_p2of2_plate).  Kept as a no-op so the fastener call site stays uniform.
     """
-    fs = fastener(bolt_size)
-    head_base_x = 166 + fs["head_h"]     # p2of2 front face + head height
-    # render_improvements VI item 7: the LOWER block bolts (Bolt_P2_*_140) and their
-    # plate holes were removed (the plate keeps only the upper Z240 mounting pattern).
-    for blk_y0, blk_z0 in [
-        (444, 240),
-        (379, 240),
-    ]:
-        bc_y = blk_y0 + 13
-        bc_z = blk_z0 + 17
-        for n, (dy, dz) in enumerate([(+6,+8),(+6,-8),(-6,+8),(-6,-8)]):
-            gantry(z_slide(explode_with(
-                add_bolt(f"Bolt_P2_{blk_y0}_{blk_z0}_{n}_{bolt_size}",
-                         head_base_x, bc_y+dy, bc_z+dz,
-                         axis='-x', size=bolt_size, shaft_l=14),
-                dx=200)))
+    return
 
 
 # Component-V stepper-plate feature positions (WORLD coords, as placed at

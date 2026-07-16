@@ -52,57 +52,33 @@ Render: `subcomponents/cnc_subcomponent_V_explode.gif`
 
 ## VI — Vertical engine plate p2of2 (+ two router clamps + rails)
 Render: `subcomponents/cnc_subcomponent_VI_explode.gif`
-3. The rectangular take out for the bolt to bolt the first half of the clamp against the front of the plate is missing. 
-4. The hole on the right side of the clamps (that bolts the router clamps to the front of the plate), is missing. This is the hole like 
-cnc_live_VI.Router_Clamp_Top.edge5  (near cnc_live_VI.Router_Clamp_Top.Edge3)
-but which lives in the 
-cnc_live_VI.Router_Clamp_Top.Face1
-plane, but then on the right side of that face, near 
-cnc_live_VI.Router_Clamp_Top.Edge1.
-5. Same as 4 but then for the bottom clamp.
-6. The 2 half moons consisting of:
-cnc_live_VI.Engine_Holder_P2.Edge184
-cnc_live_VI.Engine_Holder_P2.Edge185
-cnc_live_VI.Engine_Holder_P2.Edge186
-cnc_live_VI.Engine_Holder_P2.Edge187
-can be removed, same as the holes
-cnc_live_VI.Engine_Holder_P2.Edge182
-cnc_live_VI.Engine_Holder_P2.Edge183
-7. The rectangles containing:
-cnc_live_VI.Engine_Holder_P2.Edge102
-cnc_live_VI.Engine_Holder_P2.Edge105
-cnc_live_VI.Engine_Holder_P2.Edge109
-cnc_live_VI.Engine_Holder_P2.Edge98
-cnc_live_VI.Engine_Holder_P2.Edge95
-and the one containing 
-cnc_live_VI.Engine_Holder_P2.Edge134 etc. too.
-And the holes/bolts/whatever at:
-cnc_live_VI.Bolt_P2_379_140_0_M3.Face5
-cnc_live_VI.Bolt_P2_379_140_1_M3.Face5
-cnc_live_VI.Bolt_P2_379_140_2_M3.Face5
-cnc_live_VI.Bolt_P2_379_140_3_M3.Face5
-and:
-cnc_live_VI.Engine_Holder_P2.Edge197
-cnc_live_VI.Engine_Holder_P2.Edge198
+8. Remove
+cnc_live_VI.Engine_holder_P2.edge141
+cnc_live_VI.Engine_holder_P2.edge143
+cnc_live_VI.Engine_holder_P2.edge142
+cnc_live_VI.Engine_holder_P2.edge140
 
-cnc_live_VI.Engine_Holder_P2.Edge199
-cnc_live_VI.Engine_Holder_P2.Edge200
-should go
+cnc_live_VI.Bolt_P2_379_240_0_M3.Edge5
+cnc_live_VI.Bolt_P2_379_240_1_M3.Edge5
+cnc_live_VI.Bolt_P2_379_240_2_M3.Edge5
+cnc_live_VI.Bolt_P2_379_240_3_M3.Edge5
 
-and the same for the construction at the left side with (amongst others):
-rectangle:
-cnc_live_VI.Engine_Holder_P2.Edge134
-boltes/nuts/whatever:
-cnc_live_VI.Bolt_P2_444_140_0_M3.Face5
-cnc_live_VI.Bolt_P2_444_140_1_M3.Face5
-cnc_live_VI.Bolt_P2_444_140_2_M3.Face5
-cnc_live_VI.Bolt_P2_444_140_3_M3.Face5
-holes:
-cnc_live_VI.Engine_Holder_P2.Edge201
-cnc_live_VI.Engine_Holder_P2.Edge202
-cnc_live_VI.Engine_Holder_P2.Edge203
-cnc_live_VI.Engine_Holder_P2.Edge204
+cnc_live_VI.Bolt_P2_444_240_0_M3.Edge5
+cnc_live_VI.Bolt_P2_444_240_1_M3.Edge5
+cnc_live_VI.Bolt_P2_444_240_2_M3.Edge5
+cnc_live_VI.Bolt_P2_444_240_3_M3.Edge5
 
+
+The bolt group
+cnc_live_VI.Engine_Holder_P2.Edge139
+cnc_live_VI.Engine_Holder_P2.Edge139
+
+The bolt holder on left side with:
+cnc_live_VI.Engine_Holder_P2.Edge137
+
+cnc_live_VI.Engine_Holder_P2.Edge53
+cnc_live_VI.Engine_Holder_P2.Edge33
+And right side
 
 ### Plate outtakes & rails
 
