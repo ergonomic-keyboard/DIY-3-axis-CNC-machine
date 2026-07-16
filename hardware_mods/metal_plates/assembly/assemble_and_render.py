@@ -883,15 +883,42 @@ def _add_side_plate_clip_bolts(bolt_size: str = 'M5'):
             dy=-expl_y))
 
 
+# Router-clamp placement (WORLD).  Moved to sit ON the FRONT of the p2of2 plate
+# (X156) instead of straddling it: at _RC_X the clamp's back edge lands ~1 mm in
+# front of the Z-rails (X151), so it no longer passes through the plate.  The two
+# clamps are 30 mm (3 cm) further apart than before — the bottom one dropped.
+_RC_X     = 95.0
+_RC_Z_BOT = 130.0        # bottom clamp (was 160 — dropped 30 mm / 3 cm)
+_RC_Z_TOP = 185.0        # top clamp
+
+
+def _build_router_clamp(path, wz):
+    """Load a router-clamp STEP (M24.a/b) placed ON the front of the p2of2 plate,
+    and add a SECOND saw slit opposite the existing one so the ring is cut into two
+    halves (the router can be set in between).  Returns a WORLD-coord shape.  The
+    STEP already carries one slit from its BACK edge to the bore; this mirrors it to
+    the FRONT edge at the clamp's X centre."""
+    shape = Part.Shape(); shape.read(path)
+    pl = FreeCAD.Placement(FreeCAD.Vector(_RC_X, 425.0, wz), FreeCAD.Rotation())
+    shape = shape.transformShape(pl.Matrix, True)
+    b = shape.BoundBox
+    xc = (b.XMin + b.XMax) / 2.0
+    slit = Part.makeBox(6.0, b.YLength / 2.0, b.ZLength + 2.0,
+                        FreeCAD.Vector(xc - 3.0, b.YMin - 0.5, b.ZMin - 1.0))
+    return shape.cut(slit)
+
+
 def _add_router_clamp_bolts(bolt_size: str = 'M4'):
-    """Bolts clamping the router inside the clamp pair (running in Y).  Default M4."""
-    for clamp_z, expl_x in [(160, 240), (195, 240)]:
-        for n, cy in enumerate([415, 435]):
+    """Cross-bolts that squeeze each split clamp's two halves together — one across
+    the front slit and one across the back slit, clear of the bore.  Run in X across
+    the slit gap; slide with p2of2.  Default M4."""
+    for clamp_z in (_RC_Z_BOT, _RC_Z_TOP):
+        for cy in (385, 470):        # front slit (below bore) / back slit (above bore)
             gantry(z_slide(explode_with(
-                add_bolt(f"Bolt_RC_{clamp_z}_{n}_{bolt_size}",
-                         165, cy, clamp_z,
-                         axis='+x', size=bolt_size, shaft_l=20),
-                dx=expl_x)))
+                add_bolt(f"Bolt_RC_{int(clamp_z)}_{cy}_{bolt_size}",
+                         _RC_X - 7, cy, clamp_z,
+                         axis='+x', size=bolt_size, shaft_l=28),
+                dx=240)))
 
 
 def _add_frame_rail_bolts(bolt_size: str = 'M3'):
@@ -1235,17 +1262,15 @@ def _build_assembly(document):
                           fallback_box=(6, 145, 200))
     gantry(z_slide(explode_with(_p2obj, dx=190)))
 
-    # Router clamps (M24.a bottom, M24.b top)
+    # Router clamps (M24.a bottom, M24.b top): rebuilt by _build_router_clamp — set
+    # ON the front of the plate (not through it) and split into two halves.  Shapes
+    # are in world coords, so added at the origin.
+    _rcb = f"{VI}/M24a_router_clamp_bottom/5_models_and_renders/router_clamp.step"
+    _rct = f"{VI}/M24b_router_clamp_top/5_models_and_renders/router_clamp.step"
     gantry(z_slide(explode_with(
-        add_step("Router_Clamp_Bottom",
-            f"{VI}/M24a_router_clamp_bottom/5_models_and_renders/router_clamp.step",
-            x=170, y=425, z=160),
-        dx=240)))
+        add_shape_obj("Router_Clamp_Bottom", _build_router_clamp(_rcb, _RC_Z_BOT)), dx=240)))
     gantry(z_slide(explode_with(
-        add_step("Router_Clamp_Top",
-            f"{VI}/M24b_router_clamp_top/5_models_and_renders/router_clamp.step",
-            x=170, y=425, z=185),
-        dx=240)))
+        add_shape_obj("Router_Clamp_Top", _build_router_clamp(_rct, _RC_Z_TOP)), dx=240)))
 
     # ── TOP STEPPER HOLDER (M40.a) ────────────────────────────────────────────
     # Loaded + fixed by _build_stepper_plate (V items 1,3,5,6); the shape is

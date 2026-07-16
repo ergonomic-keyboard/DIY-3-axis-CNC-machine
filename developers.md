@@ -128,3 +128,20 @@ change:
 python3 tools/sync_bom_images.py
 ```
 
+## Freecad
+View subcomponent (from repo root):
+```sh
+hardware_mods/metal_plates/assembly/view_assembly.sh VI
+```
+Then to show all (eye) components of that subcomponent in top: `View>Panels>Python Console` and paste and run:
+```py
+# show everything
+for o in App.ActiveDocument.Objects:
+    if o.ViewObject: o.ViewObject.Visibility = True
+```
+Then Hide all (shut eye) components:
+```sh
+# hide everything
+for o in App.ActiveDocument.Objects:
+    if o.ViewObject: o.ViewObject.Visibility = False
+```

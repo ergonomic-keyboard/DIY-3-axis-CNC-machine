@@ -1,26 +1,18 @@
 # Render Improvements
 
-Improvements to the exploded-view renders (`assembly/subcomponents/*.gif`), captured as
-voice notes and transcribed. These describe what is missing or wrong in the renders as they
-existed **before** the yamlification refactor. Structured per subcomponent, matching the
-`A.0.*` grouping in [`Render_requirements.md`](./Render_requirements.md).
+If I run:
+```sh
+hardware_mods/metal_plates/assembly/view_assembly.sh VI
+```
+R.0 I want the object to be in the center of the screen (where the red dot is when you rotate).
+R.1. I want the complete subcomponent to be streched out as large as possible, until it hits either the max width and max height of the window box. (So that I don't have to search for the object zooming in and zooming (and then accidentally zooming out so far that it is not visible anymore, or panning so far away at zoomed out level that I will not find it anymore.)) 
+R.2 I want the navigation method set to touchscreen by default.
 
 ---
 
 ## I — Aluminium frame
 Render: `subcomponents/cnc_subcomponent_I_explode.gif`
 
-Where the metal frame is composed, the following are all missing:
-
-1. Holes for the threads through the small vertical rails / pipes / rectangular beams.
-2. The rings (washers) that go around each thread.
-3. The bolts themselves.
-4. The holes in the beam.
-5. The wrench/socket access holes to reach through and tighten the bolts — missing for
-   both the vertical rods and the side rods.
-6. The holes for the MGN12H rails.
-7. The screws for the MGN12H rails.
-8. The threads for those rail screws.
 
 ---
 
@@ -28,118 +20,48 @@ Where the metal frame is composed, the following are all missing:
 Render: `subcomponents/cnc_subcomponent_II_explode.gif`
 
 ### Side plate / U-bridges
-1. It currently consists of **four** metal components but should consist of **three**.
-2. The outer two should be a **single** component instead of two separate U-bridges
-   (otherwise they are okay). See the *left-side clamp* in the reference photo below.
-3. Their width/thickness is too large (~2–3 cm) — it should be only ~1 cm.
-4. The clamp that holds the front gantry beam should be **rotated 90°** so the U-outtake
-   actually clamps the beam; as-is it would not clamp the beam.
-5. That clamp should also extend further **up and down** than it currently does — giving it
-   the trapezoid/triangle profile of the *right-side clamp* in the reference photo below — so
-   it has the stiffness to really clamp and hold the beam in place. (Its hole is correct
-   position-wise; the diameter is unverified.)
 
 ![Physical reference — left- and right-side plate clamps holding the gantry beams (M20cd front clips)](../examples/II_side_plates/M20cd_front_clips/Screenshot%20From%202026-06-27%2000-24-02.png)
 
 ### Mid-plate
-1. The bottom four holes that hold the MGN12H blocks (which ride over the central-frame rails)
-   have different diameters — the bottom-right one is small, the others are large. They should
-   **all be small**. They don't need threads, since the bolts go on the outside.
-2. The two large holes above them are too high — they would intersect the thread that runs
-   through the gantry beams holding the plate in place. They should **move down**.
-3. The hole for that thread (through the gantry beams) is **missing**.
-4. Those two large holes are for the spacers that hold / guide the HTD5M belt over the stepper
-   motor.
-5. The large hole for the stepper motor itself is **missing**.
-6. On top, the thread is **missing** for the clamp that goes through the gantry beam.
 
 ---
 
 ## II_R — Right side plate & Y-axis (mirror of II)
 Render: `subcomponents/cnc_subcomponent_II_R_explode.gif`
 
-1. Should be **symmetrical** to the left side plate (II). The same improvements listed under
-   component II apply here mirrored.
-
 ---
 
 ## III — Gantry & X-axis (three steel cross bars + rails)
 Render: `subcomponents/cnc_subcomponent_III_explode.gif`
 
-1. The screws that attach the rail to the steel gantry bars are **missing**.
-2. The bolts are **missing**.
-3. The corresponding holes are **missing**.
-4. The holes that let the side plates clamp the beams in place — near (not exactly at) the
-   ends of the beams — are **missing**.
 
 ---
 
 ## IV — Vertical engine plate p1of2 (+ MGN12H blocks)
 Render: `subcomponents/cnc_subcomponent_IV_explode.gif`
 
-1. The outtake lacks the CNC channel (rout) for the threaded rod. It has the rectangular hole
-   that lets the thread-holder move up and down (guidance for the holder), but no guidance for
-   the thread itself. The channel should extend from that hole both up and down, be **less
-   wide** than the rectangular outtake, and be only slightly wider than the thread so the
-   thread can rotate freely within it.
-2. The bolts are correctly positioned in the outtakes, **except** they are upside-down on the
-   top part.
-3. On the bottom part, the outtakes for the bolt heads are in place, but the channels that
-   guide the bolts to the outside are **missing**.
-4. The MGN12 blocks on the **back** of the plate (that bolt onto the gantry) are in the right
-   position, but the blocks themselves are **missing from the visualization** — they should be
-   shown bolted on, and their bolts are missing too.
-5. The MGN12 blocks clamped on the **front** are in the wrong position: too high, too far
-   right, too far above. (The bolts do appear present in those blocks.)
-6. The big hole appears correct.
-7. The two large holes below the big hole (for HTD5M belt guidance) appear correct.
 
 ---
 
 ## V — Top & bottom stepper plate (stepper, belt/gears, threaded rod)
 Render: `subcomponents/cnc_subcomponent_V_explode.gif`
 
-1. 5 holes are missing on top (horizontal bar of the T-shape). Two on the outside so that plate can be clamped to vertical plate of cnc_subcomponents_IV_explode.gif using the 2 top bolts that stick out of the outtake of that vertical plate. — this plate goes on top there, and those two.
-3. Two small holes to bolt the gearplate/holder (look into the BOM to find that eXY nr) onto this plate, so the thread can pass in between; the vertical thread should also be able to pass through this plate so that is the 5th hole that is missing.
-   are missing in the high T-bar section.
-4. The Oval-shaped outtake in the middle longitudinal is good.
-5. The small oval slots on the sides: currently there are two on **one** side. There should be
-   two on **each** side (four total) instead of two.
-6. There are four surrounding holes near them, they should go away.
-7. The 2 bolts in the image, should become 4 that go through the 4 small oval slots (1 each), they will eventually go into the stepper motor.
 
 ---
 
 ## VI — Vertical engine plate p2of2 (+ two router clamps + rails)
 Render: `subcomponents/cnc_subcomponent_VI_explode.gif`
+1. The vertical mgn12H rails is mounted on the front (negative x-axis direction, the face that freecad calls "left" on the top right dice, front is actually the side view from the right and bottom and top are called top.). It should be mounted on the back.
+2. The clamps should be mounted against the front of the plate. (instead of against the rails.)
+3. The rectangular take out for the bolt to bolt the first half of the clamp against the front of the plate is missing. 
+4. The hole on the right side of the clamps (that bolts the router clamps to the front of the plate), is missing.
 
 ### Plate outtakes & rails
-1. The middle rectangular outtake should move all the way up to the top edge.
-2. The bolt outtake in the middle should go down, below that rectangular outtake.
-3. The rectangular outtake should be at most 2–4 cm deep.
-4. Directly below it there should be, in order: first the **thin part** (lets the bolt thread
-   pass through), then the **wider bolt outtake** (houses the bolt head).
-5. It is missing the rail groove / outtake (the "rail river") — that should be CNC'd out.
-6. It is missing the holes used to mount the rails onto the plate.
-7. It is missing the threads for the bolts of those rails.
-8. It is missing the rail bolts themselves.
 
 ### Router clamps
-1. The router clamps currently have an outtake only on the right side; they should have two —
-   cut in half so there is also one on the **left** side. This lets the clamps be removed and
-   the router placed in between, after which the bolts go in.
-2. The bolts are in the wrong position **and** wrong direction: they should point **toward** the
-   plate, not away from it.
-3. They shouldn't be bolts but **large threads** that go through the plate itself.
-4. The holes for those threads are missing for the **top** clamp (the bottom clamp has them).
-5. The router clamp should have a small outtake for the thread through the plate. Assembly
-   order: thread through plate → router clamp over the thread → nut → the other clamp →
-   another nut to tighten.
-6. The router clamp should still be able to close toward the ramp — it should not be pushed
-   against the middle nut, so that it can be tightened.
+
 
 ### Router-clamp holder ("clock-like" shape)
-1. The clock-like shape that holds the router clamp is missing a **routed thread** — the
-   vertical thread that guides the router up and down.
-2. Its basic shape: a rectangle with a half-circle on top, a small circle in the middle, four
-   small holes around it, and one large hole in the center of the rectangle.
+
+
