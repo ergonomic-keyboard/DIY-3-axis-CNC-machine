@@ -595,7 +595,7 @@ def _load_master_params():
     return params, shows
 
 
-def _make_dim(doc, tag, p1, p2, p3, label, color=(0.85, 0.15, 0.05)):
+def _make_dim(doc, tag, p1, p2, p3, label, color=(0.85, 0.15, 0.05), fontsize=9.0):
     """Draft linear dimension p1→p2 (double arrow), offset onto the line through p3,
     with `label` overriding the shown text.  Returns the dimension object."""
     import Draft
@@ -605,17 +605,17 @@ def _make_dim(doc, tag, p1, p2, p3, label, color=(0.85, 0.15, 0.05)):
     try:
         vo.Override = label + " = $dim"
         vo.Decimals = 0
-        vo.FontSize = 9
-        vo.ArrowSize = 2
+        vo.FontSize = fontsize
+        vo.ArrowSize = max(1.5, fontsize / 4.5)
         vo.LineColor = color
         vo.TextColor = color
-        vo.ExtLines = 8
+        vo.ExtLines = fontsize
     except Exception:
         pass
     return d
 
 
-def _make_callout(doc, tag, targets, anchor, label, color=(0.05, 0.25, 0.9)):
+def _make_callout(doc, tag, targets, anchor, label, color=(0.05, 0.25, 0.9), fontsize=10.0):
     """R.4 many-to-one callout: ONE text label at `anchor` (the top-right legend slot)
     with a leader line from every point in `targets`.  Used when a parameter spans
     several features (e.g. a hole diameter shared by many holes) so it reads as a single
@@ -629,7 +629,7 @@ def _make_callout(doc, tag, targets, anchor, label, color=(0.05, 0.25, 0.9)):
     try:
         leaders.ViewObject.LineColor = color
         leaders.ViewObject.LineWidth = 1
-        txt.ViewObject.FontSize = 10
+        txt.ViewObject.FontSize = fontsize
         txt.ViewObject.TextColor = color
     except Exception:
         pass
@@ -702,8 +702,11 @@ def _annotate_params(doc, only_sc=None):
     if gbb is None:
         return
     diag = gbb.DiagonalLength
+    # label/arrow size scales with the shown extent so small parts among big ones (e.g.
+    # the belt clamp beside the gantry beams) stay legible after ViewFit.
+    fs = max(9.0, min(26.0, 0.03 * diag))
     # +Y and +Z read as screen right/up in the isometric view → top-right of the drawing
-    lx, ly, lz0, ldz = gbb.XMax, gbb.YMax + 0.18 * diag, gbb.ZMax + 0.12 * diag, -0.055 * diag
+    lx, ly, lz0, ldz = gbb.XMax, gbb.YMax + 0.18 * diag, gbb.ZMax + 0.12 * diag, -2.2 * fs
     slot = [0]
 
     def legend_anchor():
@@ -724,7 +727,7 @@ def _annotate_params(doc, only_sc=None):
         col = next_color()
         if len(hits) >= 2:
             _make_callout(doc, f"{tag}_{name}", [(c.x, c.y, c.z) for c, _ in hits],
-                          legend_anchor(), f"{label} = {v:g}", color=col)
+                          legend_anchor(), f"{label} = {v:g}", color=col, fontsize=fs)
             drawn += 1
             return True
         if len(hits) == 1:
@@ -733,10 +736,10 @@ def _annotate_params(doc, only_sc=None):
                 off = max(12.0, 0.12 * bb.DiagonalLength)
                 _make_dim(doc, f"Param_{tag}_{name}",
                           (c.x, c.y - v / 2, bb.ZMax), (c.x, c.y + v / 2, bb.ZMax),
-                          (c.x + off, c.y, bb.ZMax), label, color=col)
+                          (c.x + off, c.y, bb.ZMax), label, color=col, fontsize=fs)
             else:                                          # otherwise a legend callout
                 _make_callout(doc, f"{tag}_{name}", [(c.x, c.y, c.z)], legend_anchor(),
-                              f"{label} = {v:g}", color=col)
+                              f"{label} = {v:g}", color=col, fontsize=fs)
             drawn += 1
             return True
         return False
@@ -778,7 +781,8 @@ def _annotate_params(doc, only_sc=None):
         ):
             n = take(ext)
             if n and (show_set is None or n in show_set):
-                _make_dim(doc, f"Param_{name}_{axis}", p1, p2, p3, n, color=next_color())
+                _make_dim(doc, f"Param_{name}_{axis}", p1, p2, p3, n,
+                          color=next_color(), fontsize=fs)
                 drawn += 1
 
         # remaining shown params: diameters (single arrow or many-to-one), else skipped

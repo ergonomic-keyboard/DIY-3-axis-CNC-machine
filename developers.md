@@ -151,6 +151,15 @@ It draws:
 the overlay falls back to the extents + any large bore. So to turn a parameter's
 annotation on/off, add/remove it from that part's `_show`.
 
+**Coverage** (which sub-components the overlay annotates): **VI** (2 router clamps + the
+plate rail holes), **V** (stepper plate: `PLATE_THICKNESS`, `POCKET_DIAM`), **III** (belt
+clamp: `BODY_X/Y/Z` — but the clamp is tiny beside the gantry beams, so zoom to it to
+read the labels). **II is not covered**: the M20 side-plate clips are fused / re-modelled
+into `Side_Plate_Front_Clamp` / `Side_Plate_Beam_Clamp` (different objects, trimmed
+geometry), so their `parameters.yaml` blocks don't map to a distinct assembly object. **I
+and IV** have no parametric part scripts, so there's nothing to label. Label/arrow sizes
+scale with the shown extent (`fs`) so small parts stay legible after ViewFit.
+
 Each label (and its leader bundle) is drawn in a distinct colour cycled from
 `_ANNO_COLORS`, so overlapping bundles stay separable. The solid parts are made
 semi-transparent (`_PARAMS_TRANSPARENCY`, default 60 %) in this overlay so each leader
