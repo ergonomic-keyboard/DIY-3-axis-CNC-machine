@@ -139,12 +139,31 @@ from the master `parameters.yaml`:
 ```sh
 hardware_mods/metal_plates/assembly/view_assembly.sh VI --params
 ```
-It draws the three overall extents (matched to the params by value, e.g.
-`PLATE_WIDTH = 110 mm`, `PLATE_THICK = 12 mm`) plus the large bore diameter
-(`BORE_DIAM = 65 mm`). Small bolt-hole diameters and offset/pitch params are skipped
-(they clutter tiny features) and listed in the `[params]` console line — the
-object→(subcomponent, part) map and the drawing live in `assemble_and_render.py`
-(`_PARAMS_OBJ`, `_load_master_params`, `_annotate_params`).
+It draws:
+- **overall extents** (matched by value, e.g. `PLATE_WIDTH = 110 mm`, `PLATE_THICK = 12 mm`)
+  and a lone **bore** as on-part double arrows;
+- a parameter that spans **multiple features** (e.g. a shared hole diameter, or the
+  mgn12h rail holes) as **many leader lines to ONE shared label parked in the top-right
+  legend** (R.4) — instead of one cluttered dimension per hole.
+
+**Binary per-parameter toggle:** each part block in `parameters.yaml` may carry a
+`_show:` list — only those parameters are drawn (omit a name to hide it). Without `_show`
+the overlay falls back to the extents + any large bore. So to turn a parameter's
+annotation on/off, add/remove it from that part's `_show`.
+
+Each label (and its leader bundle) is drawn in a distinct colour cycled from
+`_ANNO_COLORS`, so overlapping bundles stay separable. The solid parts are made
+semi-transparent (`_PARAMS_TRANSPARENCY`, default 60 %) in this overlay so each leader
+reads end-to-end — its feature end shows through the material instead of being cut off
+inside it. (Leaders keep ending exactly at the real holes; that's why transparency is
+used rather than stopping them at an outer surface, which would detach them from the
+holes and still be occluded by neighbouring parts.)
+
+The object→(subcomponent, part) map, the non-parametric callouts (e.g. rail holes), and
+the drawing live in `assemble_and_render.py` (`_PARAMS_OBJ`, `_EXTRA_CALLOUTS`,
+`_load_master_params`, `_annotate_params`, `_make_callout`). The legend is anchored in
+world space off the top-right of the fitted isometric view, so it reads top-right on
+open; orbiting moves it with the model (3D annotations aren't screen-locked).
 
 **All script-built part parameters are consolidated in one file:
 `hardware_mods/metal_plates/parameters.yaml`** — grouped by sub-component so it is

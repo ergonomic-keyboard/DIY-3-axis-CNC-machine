@@ -8,6 +8,10 @@
 # Each part block carries:
 #   _dir     : the M-code folder under examples/<subcomponent>/ that holds the part
 #   _script  : the generator script in that folder's 5_models_and_renders/
+#   _show    : (optional) the binary per-parameter toggle for the --params overlay —
+#              a list of the parameter names to DRAW as dimensions.  Omit a name (or
+#              drop _show entirely) to hide it; with no _show the overlay falls back to
+#              the overall extents + any large bore.
 #   <UPPER>  : millimetre constants that OVERRIDE the same-named UPPER_CASE constant
 #              in that script.  The shipped values equal the script defaults, so
 #              nothing changes until you edit one.
@@ -108,6 +112,7 @@ VI:   # Vertical engine plate p2of2 + two router clamps
   router_clamp_top:
     _dir: M24b_router_clamp_top
     _script: router_clamp.py
+    _show: [PLATE_WIDTH, PLATE_DEPTH, PLATE_THICK, BORE_DIAM, MOUNT_BOLT_DIAM]
     PLATE_WIDTH: 110      # X — along Z plate face (left/right)
     PLATE_DEPTH: 100      # Y — sticking out from Z plate
     PLATE_THICK: 12       # Z — vertical thickness (along router axis)
@@ -123,6 +128,7 @@ VI:   # Vertical engine plate p2of2 + two router clamps
   router_clamp_bottom:
     _dir: M24a_router_clamp_bottom
     _script: router_clamp.py
+    _show: [PLATE_WIDTH, PLATE_DEPTH, PLATE_THICK, BORE_DIAM, MOUNT_BOLT_DIAM]
     PLATE_WIDTH: 110      # X — along Z plate face (left/right)
     PLATE_DEPTH: 100      # Y — sticking out from Z plate
     PLATE_THICK: 12       # Z — vertical thickness (along router axis)

@@ -577,19 +577,22 @@ _PARAMS_OBJ = {
 
 
 def _load_master_params():
-    """Return {(sc, part_key): {NAME: value}} for the numeric params in the master."""
+    """Return (params, shows): params={(sc,pk):{NAME:value}} for the numeric params, and
+    shows={(sc,pk): [names] | None} for each block's `_show` binary-toggle allowlist."""
     import yaml
     with open(_MASTER_YAML) as f:
         doc = yaml.safe_load(f) or {}
-    out = {}
+    params, shows = {}, {}
     for sc, parts in doc.items():
         if not isinstance(parts, dict):
             continue
         for pk, blk in parts.items():
-            if isinstance(blk, dict):
-                out[(sc, pk)] = {k: v for k, v in blk.items()
-                                 if k.isupper() and isinstance(v, (int, float))}
-    return out
+            if not isinstance(blk, dict):
+                continue
+            params[(sc, pk)] = {k: v for k, v in blk.items()
+                                if k.isupper() and isinstance(v, (int, float))}
+            shows[(sc, pk)] = blk.get("_show")
+    return params, shows
 
 
 def _make_dim(doc, tag, p1, p2, p3, label, color=(0.85, 0.15, 0.05)):
@@ -612,38 +615,158 @@ def _make_dim(doc, tag, p1, p2, p3, label, color=(0.85, 0.15, 0.05)):
     return d
 
 
+def _make_callout(doc, tag, targets, anchor, label, color=(0.05, 0.25, 0.9)):
+    """R.4 many-to-one callout: ONE text label at `anchor` (the top-right legend slot)
+    with a leader line from every point in `targets`.  Used when a parameter spans
+    several features (e.g. a hole diameter shared by many holes) so it reads as a single
+    shared annotation instead of one cluttered dimension per feature."""
+    import Draft, Part
+    leaders = doc.addObject("Part::Feature", "Lead_" + tag)
+    leaders.Shape = Part.makeCompound(
+        [Part.makeLine(FreeCAD.Vector(*t), FreeCAD.Vector(*anchor)) for t in targets])
+    txt = Draft.makeText([label], FreeCAD.Vector(*anchor))
+    txt.Label = "Lbl_" + tag
+    try:
+        leaders.ViewObject.LineColor = color
+        leaders.ViewObject.LineWidth = 1
+        txt.ViewObject.FontSize = 10
+        txt.ViewObject.TextColor = color
+    except Exception:
+        pass
+    return txt
+
+
+def _unique_circles(shape):
+    """[(radius, center, axis_char)] with coaxial duplicate edges (a hole's two rim
+    circles) collapsed to one, so a single hole counts once."""
+    out = {}
+    for e in shape.Edges:
+        if type(e.Curve).__name__ != "Circle":
+            continue
+        c, ax, r = e.Curve.Center, e.Curve.Axis, e.Curve.Radius
+        a = max("xyz", key=lambda k: abs(getattr(ax, k)))          # dominant axis
+        perp = tuple(round(getattr(c, k), 1) for k in "xyz" if k != a)
+        out.setdefault((a, round(r, 1), perp), (r, c, a))
+    return list(out.values())
+
+
+# Non-parametric multi-feature callouts — features not driven by parameters.yaml but
+# worth the same many-to-one leader treatment (R.4).  The mgn12h rail bolt holes on the
+# p2of2 plate are the canonical "one parameter, many items" example.
+_EXTRA_CALLOUTS = [
+    {"obj": "Engine_Holder_P2", "sc": "VI", "label": "rail bolt hole Ø", "diam": 3.4},
+]
+
+# Distinct colours cycled across the annotations so each label (and its leader bundle)
+# is visually separable where several bundles overlap ("each label a different colour").
+_ANNO_COLORS = [
+    (0.85, 0.15, 0.05),   # red
+    (0.10, 0.35, 0.90),   # blue
+    (0.00, 0.60, 0.20),   # green
+    (0.65, 0.10, 0.80),   # purple
+    (0.95, 0.55, 0.00),   # orange
+    (0.00, 0.55, 0.60),   # teal
+    (0.90, 0.10, 0.55),   # magenta
+    (0.45, 0.30, 0.10),   # brown
+]
+
+# Transparency (%) applied to the solid parts in the --params overlay so leader lines
+# read end-to-end — their feature end no longer vanishes into the material (rather than
+# stopping the leader at an outside surface, which would detach it from the real hole).
+_PARAMS_TRANSPARENCY = 60
+
+
 def _annotate_params(doc, only_sc=None):
-    """R.3: for every mapped object, draw labelled double-arrow dimensions for the
-    parameters in its master (parameters.yaml) block that can be located on the
-    geometry — the three bounding-box extents (matched to a param by value) and any
-    large-diameter param (matched to a circular edge of the same size).  Call this
-    AFTER any sub-component filtering so the dimensions are not pruned."""
-    master = _load_master_params()
+    """R.3/R.4 + binary toggle.  Draw labelled dimensions for the master parameters that
+    can be located on the geometry:
+      * per-part `_show` is the binary per-parameter toggle (an allowlist; without it the
+        overall extents + any large bore are shown);
+      * a single-span parameter (an overall extent, a lone bore) is an on-part double
+        arrow;
+      * a parameter that spans MULTIPLE features (e.g. a shared hole diameter) is drawn
+        as many leader lines to ONE shared text label parked in a TOP-RIGHT legend, not
+        one cluttered dimension per feature (R.4).
+    Call AFTER any sub-component filtering so the annotations are not pruned."""
+    params_map, shows_map = _load_master_params()
+
+    # union bbox of the shown solids → anchor the legend column off the top-right corner
+    gbb = None
+    for o in doc.Objects:
+        sh = getattr(o, "Shape", None)
+        if sh and sh.Solids:
+            if gbb is None:
+                gbb = sh.BoundBox
+            else:
+                gbb.add(FreeCAD.Vector(sh.BoundBox.XMin, sh.BoundBox.YMin, sh.BoundBox.ZMin))
+                gbb.add(FreeCAD.Vector(sh.BoundBox.XMax, sh.BoundBox.YMax, sh.BoundBox.ZMax))
+    if gbb is None:
+        return
+    diag = gbb.DiagonalLength
+    # +Y and +Z read as screen right/up in the isometric view → top-right of the drawing
+    lx, ly, lz0, ldz = gbb.XMax, gbb.YMax + 0.18 * diag, gbb.ZMax + 0.12 * diag, -0.055 * diag
+    slot = [0]
+
+    def legend_anchor():
+        a = (lx, ly, lz0 + slot[0] * ldz); slot[0] += 1; return a
+
     drawn = 0
     skipped = []
+    ci = [0]
+
+    def next_color():
+        c = _ANNO_COLORS[ci[0] % len(_ANNO_COLORS)]; ci[0] += 1; return c
+
+    def diam_annotation(tag, bb, circles, name, v, label):
+        """Single matching hole → on-part diameter arrow; ≥2 → many-to-one legend callout.
+        Each annotation gets the next distinct colour."""
+        nonlocal drawn
+        hits = [(c, a) for (r, c, a) in circles if abs(2 * r - v) <= 1.5]
+        col = next_color()
+        if len(hits) >= 2:
+            _make_callout(doc, f"{tag}_{name}", [(c.x, c.y, c.z) for c, _ in hits],
+                          legend_anchor(), f"{label} = {v:g}", color=col)
+            drawn += 1
+            return True
+        if len(hits) == 1:
+            c, a = hits[0]
+            if a == "z":                                   # flat hole → arrow in its plane
+                off = max(12.0, 0.12 * bb.DiagonalLength)
+                _make_dim(doc, f"Param_{tag}_{name}",
+                          (c.x, c.y - v / 2, bb.ZMax), (c.x, c.y + v / 2, bb.ZMax),
+                          (c.x + off, c.y, bb.ZMax), label, color=col)
+            else:                                          # otherwise a legend callout
+                _make_callout(doc, f"{tag}_{name}", [(c.x, c.y, c.z)], legend_anchor(),
+                              f"{label} = {v:g}", color=col)
+            drawn += 1
+            return True
+        return False
+
     for name, key in _PARAMS_OBJ.items():
         obj = doc.getObject(name)
         if obj is None or not getattr(obj, "Shape", None):
             continue
         if only_sc and _classify_subcomponent(name) != only_sc:
             continue
-        params = dict(master.get(key, {}))
+        params = dict(params_map.get(key, {}))
         if not params:
             continue
+        show = shows_map.get(key)
+        show_set = set(show) if show else None          # None → default set
         bb = obj.Shape.BoundBox
+        circles = _unique_circles(obj.Shape)
         used = set()
 
-        def take(target, pred=lambda n: True):
+        def take(target):
             best = None
-            for n, v in params.items():
-                if n not in used and pred(n) and abs(v - target) <= 1.5:
-                    if best is None or abs(v - target) < abs(params[best] - target):
+            for n, val in params.items():
+                if n not in used and abs(val - target) <= 1.5:
+                    if best is None or abs(val - target) < abs(params[best] - target):
                         best = n
             if best is not None:
                 used.add(best)
             return best
 
-        # the three overall extents, matched to a param by value ≈ extent
+        # overall extents → on-part double arrows (each is a single-span dimension)
         off = max(12.0, 0.12 * bb.DiagonalLength)
         for axis, ext, (p1, p2, p3) in (
             ("X", bb.XLength, ((bb.XMin, bb.YMin, bb.ZMax), (bb.XMax, bb.YMin, bb.ZMax),
@@ -654,29 +777,43 @@ def _annotate_params(doc, only_sc=None):
                                (bb.XMax + off, bb.YMin, (bb.ZMin + bb.ZMax) / 2))),
         ):
             n = take(ext)
-            _make_dim(doc, f"Param_{name}_{axis}", p1, p2, p3, n or axis)
-            drawn += 1
+            if n and (show_set is None or n in show_set):
+                _make_dim(doc, f"Param_{name}_{axis}", p1, p2, p3, n, color=next_color())
+                drawn += 1
 
-        # large-diameter params → a diameter arrow across the matching circular edge.
-        # Small bolt-hole diameters + offset/pitch params are left off (they clutter
-        # tiny features and need per-feature placement to read cleanly) — logged below.
-        circ = [(e.Curve.Radius, e.Curve.Center) for e in obj.Shape.Edges
-                if type(e.Curve).__name__ == "Circle" and abs(e.Curve.Axis.z) > 0.9]
+        # remaining shown params: diameters (single arrow or many-to-one), else skipped
         for n, v in params.items():
             if n in used:
                 continue
-            if "DIAM" in n and v >= 20.0:
-                hit = next(((r, c) for r, c in circ if abs(2 * r - v) <= 1.5), None)
-                if hit is not None:
-                    r, c = hit
-                    _make_dim(doc, f"Param_{name}_{n}",
-                              (c.x, c.y - r, bb.ZMax), (c.x, c.y + r, bb.ZMax),
-                              (c.x + off, c.y, bb.ZMax), n)
-                    drawn += 1
-                    continue
+            wanted = (n in show_set) if show_set is not None else ("DIAM" in n and v >= 20.0)
+            if not wanted:
+                continue
+            if "DIAM" in n and diam_annotation(name, bb, circles, n, v, n):
+                continue
             skipped.append(n)
-    print("[params] drew %d dimension(s); not annotated (would clutter / need per-feature "
-          "placement): %s" % (drawn, ", ".join(skipped) or "none"), flush=True)
+
+    # non-parametric multi-feature callouts (e.g. the mgn12h rail holes) — R.4
+    for cal in _EXTRA_CALLOUTS:
+        if only_sc and cal["sc"] != only_sc:
+            continue
+        obj = doc.getObject(cal["obj"])
+        if obj is None or not getattr(obj, "Shape", None):
+            continue
+        diam_annotation(cal["obj"], obj.Shape.BoundBox, _unique_circles(obj.Shape),
+                        cal["label"].replace(" ", "_"), cal["diam"], cal["label"])
+
+    # slight transparency on the solid parts so leader lines read end-to-end (their
+    # feature end shows through the material instead of being cut off inside it).
+    for o in doc.Objects:
+        sh = getattr(o, "Shape", None)
+        if sh and sh.Solids:
+            try:
+                o.ViewObject.Transparency = _PARAMS_TRANSPARENCY
+            except Exception:
+                pass
+
+    print("[params] drew %d annotation(s); not placed (no matching geometry): %s"
+          % (drawn, ", ".join(skipped) or "none"), flush=True)
 
 
 def set_staged_assembly(stage_num: int, stage_frac: float):
