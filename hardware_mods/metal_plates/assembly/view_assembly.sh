@@ -17,6 +17,7 @@ FC="$HOME/.local/opt/FreeCAD-1.1.1"
 SC="${1:-}"                                   # optional sub-component code
 OUT="cnc_assembly_live.FCStd"
 [ -n "$SC" ] && OUT="cnc_live_${SC}.FCStd"
+SETUP="_view_setup.py"                        # startup macro (view fit + navigation)
 
 SC="$SC" OUTFILE="$OUT" DISPLAY="${DISPLAY:-:0}" \
   PYTHONPATH="$FC/usr/lib" "$FC/usr/bin/python" - <<'PY'
@@ -44,4 +45,50 @@ doc.saveAs(os.path.abspath(os.environ["OUTFILE"]))
 print("saved %s — %d objects (sc=%r)" % (os.environ["OUTFILE"], len(doc.Objects), sc))
 PY
 
-exec "$HOME/.local/bin/freecad" "$PWD/$OUT"
+# ── Startup macro (render_improvements.md R.0/R.1/R.2) ──────────────────────
+# FreeCAD executes a .py given on its command line once the GUI + document are
+# up, so this runs inside the interactive session (not the headless build above).
+# We defer the actual work on a QTimer and retry until the 3D view exists, because
+# the script can fire before the document finishes loading (same GUI-init race the
+# sub-component deletion avoids up top).
+cat > "$SETUP" <<'PY'
+import FreeCAD, FreeCADGui
+try:
+    from PySide2 import QtCore
+except Exception:
+    from PySide import QtCore
+
+# R.2: navigation method = touchscreen.  FreeCAD 1.1 has no style literally named
+# "Touchscreen"; its touch-oriented style (pinch-zoom / two-finger orbit) is
+# "Gesture".  Persist it and apply it to the live view.
+_NAV = "Gui::GestureNavigationStyle"
+_tries = {"n": 0}
+
+def _setup_view():
+    _tries["n"] += 1
+    ad = FreeCADGui.ActiveDocument
+    view = ad.ActiveView if ad else None
+    if view is None or not hasattr(view, "setNavigationType"):
+        if _tries["n"] < 60:
+            QtCore.QTimer.singleShot(250, _setup_view)
+        return
+    pg = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/View")
+    pg.SetString("NavigationStyle", _NAV)   # R.2 (persisted for future sessions)
+    pg.SetInt("RotationMode", 0)            # R.0: rotate about the WINDOW centre —
+                                            #      the red dot sits at screen centre
+    try:
+        view.setNavigationType(_NAV)        # R.2 (live view, this session)
+    except Exception:
+        pass
+    try:
+        view.viewIsometric()
+    except Exception:
+        pass
+    # R.0 + R.1: frame the whole (sub)assembly, centred and as large as the window
+    # allows, so nothing has to be hunted for by zoom/pan.
+    FreeCADGui.SendMsgToActiveView("ViewFit")
+
+QtCore.QTimer.singleShot(500, _setup_view)
+PY
+
+exec "$HOME/.local/bin/freecad" "$PWD/$OUT" "$PWD/$SETUP"
