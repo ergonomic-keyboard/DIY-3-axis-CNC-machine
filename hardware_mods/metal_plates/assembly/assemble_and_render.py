@@ -91,6 +91,8 @@ FASTENERS: dict[str, dict] = {
            "nut_af": 7.0,  "nut_thk": 3.2, "clearance": 4.5, "tap": 3.3},
     "M5": {"shaft_d": 5.0, "head_d": 9.0, "head_h": 4.0,
            "nut_af": 8.0,  "nut_thk": 4.0, "clearance": 5.5, "tap": 4.2},
+    "M6": {"shaft_d": 6.0, "head_d": 10.,  "head_h": 5.0,
+           "nut_af": 10.,  "nut_thk": 5.0, "clearance": 6.5, "tap": 5.0},
     "M8": {"shaft_d": 8.0, "head_d": 13.,  "head_h": 5.5,
            "nut_af": 13.,  "nut_thk": 6.5, "clearance": 9.0, "tap": 6.8},
 }
@@ -711,6 +713,24 @@ def _build_p2of2_plate(path):
     def _xcut(y0, y1, z0, z1):                          # through-X rectangular cutter
         return Part.makeBox(XB - XF + 2, y1 - y0, z1 - z0, FreeCAD.Vector(XF - 1, y0, z0))
 
+    # render_improvements VI items 6 & 7: the M36b STEP ships mounting features in the
+    # lower half that the user wants gone — a bottom cluster of holes + two half-moon
+    # slots at Z~95 (item 6), and a full DUPLICATE of the upper (Z255/275) bolt pattern
+    # at Z145/165 with its rectangles (item 7).  Fill every void inside these regions by
+    # fusing back (region_box − plate).  Done BEFORE the rail grooves/holes are cut, so
+    # the wanted rail features that fall inside a region (the Y457/392 groove + the Z160
+    # rail hole) are simply re-cut afterwards.  region_box spans EXACTLY the plate
+    # thickness (XF..XB) so the fill adds no proud slab on either face.
+    for (y0, y1, z0, z1) in ((360.0, 490.0,  85.0, 105.0),    # item 6: bottom cluster
+                             (378.0, 406.0, 140.0, 170.0),    # item 7: lower-right pattern
+                             (445.0, 472.0, 140.0, 170.0)):   # item 7: lower-left pattern
+        reg = Part.makeBox(XB - XF, y1 - y0, z1 - z0, FreeCAD.Vector(XF, y0, z0))
+        shape = shape.fuse(reg.cut(shape))
+    try:
+        shape = shape.removeSplitter()   # merge the fill seams BEFORE re-cutting rail
+    except Exception:                    # features, else a re-drilled hole fragments
+        pass
+
     # items 1-4: fill the old deep central slot (exact walls Y412.5-437.5, Z145-273.2
     # so the fused faces merge and leave no seam), then cut the new stacked feature.
     shape = shape.fuse(Part.makeBox(XB - XF, 25.0, 128.2, FreeCAD.Vector(XF, 412.5, 145.0)))
@@ -745,9 +765,11 @@ def _add_p2of2_bolts(bolt_size: str = 'M3'):
     """
     fs = fastener(bolt_size)
     head_base_x = 166 + fs["head_h"]     # p2of2 front face + head height
+    # render_improvements VI item 7: the LOWER block bolts (Bolt_P2_*_140) and their
+    # plate holes were removed (the plate keeps only the upper Z240 mounting pattern).
     for blk_y0, blk_z0 in [
-        (444, 140), (444, 240),
-        (379, 140), (379, 240),
+        (444, 240),
+        (379, 240),
     ]:
         bc_y = blk_y0 + 13
         bc_z = blk_z0 + 17
@@ -897,26 +919,27 @@ _RC_Z_BOT = 130.0        # bottom clamp (was 160 — dropped 30 mm / 3 cm)
 _RC_Z_TOP = 185.0        # top clamp
 
 
-# Router-clamp plate-mount feature (render_improvements VI items 3 & 4).  The
-# clamp's plate-side (high-X) half is fastened to the plate FRONT face by a
-# horizontal (X) bolt: the bolt seats in a rectangular take-out (item 3) on the
-# clamp's right side and its shaft runs +X into the plate.  Shared by the clamp
-# builder (cuts the hole + pocket) and _add_router_clamp_bolts (adds the bolt) so
-# they stay aligned.  Y is one rail-clear band below the bore ("right side").
-_RC_MOUNT_Y   = 425.0 - 50.0 + 6.0   # world Y of the mount bolt (clamp YMin + 6)
-_RC_MOUNT_D   = 4.5                  # M4 clearance hole Ø
-_RC_POCKET    = (12.0, 9.0, 9.0)     # take-out size (X depth, Y width, Z height)
-_RC_POCKET_X0 = 22.0                 # pocket inset from the clamp's plate edge (−X)
+# Router-clamp plate-mount feature (render_improvements VI items 3/4/5).  The STEP
+# already carries ONE X-through mount hole (Router_Clamp.Edge5, r3.25) at Y470.5 that
+# bolts the clamp to the plate FRONT face; its mirror on the RIGHT side (near Edge1,
+# Y375) is missing (items 4 & 5), as is a rectangular take-out to seat the bolt head
+# (item 3).  Y379.5 = mirror of 470.5 about the clamp centre Y425.  Shared by the clamp
+# builder (cuts hole + take-out) and _add_router_clamp_bolts (adds the bolts).
+_RC_MOUNT_YR  = 425.0 - (470.5 - 425.0)   # 379.5 — the added RIGHT-side mount hole
+_RC_MOUNT_YL  = 470.5                      # the STEP's existing LEFT-side mount hole
+_RC_MOUNT_D   = 6.5                        # matches the STEP hole Edge5 (r3.25)
+_RC_POCKET    = (5.0, 14.0, 14.0)          # take-out (X depth into front face, Y, Z)
 
 
 def _build_router_clamp(path, wz):
     """Load a router-clamp STEP (M24.a/b) placed ON the front of the p2of2 plate,
     and add a SECOND saw slit opposite the existing one so the ring is cut into two
     halves (the router can be set in between).  Then add the plate-mount features
-    (render_improvements VI items 3 & 4): a rectangular take-out for the mount bolt
-    and the mount-bolt hole through the clamp's right side into the plate front.
-    Returns a WORLD-coord shape.  The STEP already carries one slit from its BACK
-    edge to the bore; the second slit is mirrored to the FRONT edge at the X centre."""
+    (render_improvements VI items 3/4/5): mirror the STEP's X-through mount hole
+    (Edge5 @ Y470.5) onto the missing right side (Y379.5) and cut a rectangular
+    take-out in the clamp's FRONT face to seat that bolt's head.  Returns a WORLD-coord
+    shape.  The STEP already carries one slit from its BACK edge to the bore; the
+    second slit is mirrored to the FRONT edge at the X centre."""
     shape = Part.Shape(); shape.read(path)
     pl = FreeCAD.Placement(FreeCAD.Vector(_RC_X, 425.0, wz), FreeCAD.Rotation())
     shape = shape.transformShape(pl.Matrix, True)
@@ -926,17 +949,17 @@ def _build_router_clamp(path, wz):
                         FreeCAD.Vector(xc - 3.0, b.YMin - 0.5, b.ZMin - 1.0))
     shape = shape.cut(slit)
 
-    # items 3 & 4: plate-mount take-out + bolt hole on the clamp's plate-side half.
-    xb = b.XMax                                   # plate-side (high-X) edge = X156
-    ym, zc = _RC_MOUNT_Y, wz
+    # items 4 & 5: the missing right-side X-through mount hole (mirror of Edge5).
+    xf, xb = b.XMin, b.XMax                        # clamp front (X46) / plate-side (X156)
+    zc = wz
+    shape = shape.cut(Part.makeCylinder(
+        _RC_MOUNT_D / 2.0, xb - xf + 2.0,
+        FreeCAD.Vector(xf - 1.0, _RC_MOUNT_YR, zc), FreeCAD.Vector(1, 0, 0)))
+    # item 3: rectangular take-out (bolt-head seat) in the FRONT face at the mount hole.
     pdx, pdy, pdz = _RC_POCKET
-    pocket = Part.makeBox(pdx, pdy, pdz,          # item 3: rectangular bolt-head take-out
-                          FreeCAD.Vector(xb - _RC_POCKET_X0, ym - pdy / 2.0, zc - pdz / 2.0))
-    hole = Part.makeCylinder(_RC_MOUNT_D / 2.0,   # item 4: mount-bolt hole (right side, +X)
-                             _RC_POCKET_X0 + 4.0,
-                             FreeCAD.Vector(xb - _RC_POCKET_X0 + 2.0, ym, zc),
-                             FreeCAD.Vector(1, 0, 0))
-    return shape.cut(pocket).cut(hole)
+    shape = shape.cut(Part.makeBox(
+        pdx, pdy, pdz, FreeCAD.Vector(xf, _RC_MOUNT_YR - pdy / 2.0, zc - pdz / 2.0)))
+    return shape
 
 
 def _add_router_clamp_bolts(bolt_size: str = 'M4'):
@@ -944,10 +967,10 @@ def _add_router_clamp_bolts(bolt_size: str = 'M4'):
     the front slit and one across the back slit, clear of the bore.  Run in X across
     the slit gap; slide with p2of2.  Default M4.
 
-    Also adds the plate-MOUNT bolt (render_improvements VI items 3 & 4): head seated
-    in the clamp's rectangular take-out, shaft +X through the clamp's right side and
-    into the plate front face — fastening the clamp's plate-side half to the plate."""
-    xb = _RC_X + 55.0                            # clamp plate-side edge (X156)
+    Also adds the plate-MOUNT bolts (render_improvements VI items 3/4/5): one M6 per
+    X-through mount hole (Y379.5 + Y470.5), head at the clamp FRONT face (seated in the
+    take-out on the right side), shaft +X through the clamp and into the plate front."""
+    xf = _RC_X - 55.0                            # clamp front face (X46)
     for clamp_z in (_RC_Z_BOT, _RC_Z_TOP):
         for cy in (385, 470):        # front slit (below bore) / back slit (above bore)
             gantry(z_slide(explode_with(
@@ -955,12 +978,12 @@ def _add_router_clamp_bolts(bolt_size: str = 'M4'):
                          _RC_X - 7, cy, clamp_z,
                          axis='+x', size=bolt_size, shaft_l=28),
                 dx=240)))
-        # plate-mount bolt: head in the take-out (X inset), shaft +X into the plate
-        gantry(z_slide(explode_with(
-            add_bolt(f"Bolt_RC_Mount_{int(clamp_z)}_{bolt_size}",
-                     xb - _RC_POCKET_X0, _RC_MOUNT_Y, clamp_z,
-                     axis='+x', size=bolt_size, shaft_l=28),
-            dx=240)))
+        # plate-mount bolts: head at the front face, shaft +X through into the plate
+        for cy in (_RC_MOUNT_YR, _RC_MOUNT_YL):
+            gantry(z_slide(explode_with(
+                add_bolt(f"Bolt_RC_Mount_{int(clamp_z)}_{int(cy)}_M6",
+                         xf, cy, clamp_z, axis='+x', size='M6', shaft_l=115),
+                dx=240)))
 
 
 def _add_frame_rail_bolts(bolt_size: str = 'M3'):

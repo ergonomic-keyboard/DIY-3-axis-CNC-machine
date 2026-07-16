@@ -4,10 +4,8 @@ try:
 except Exception:
     from PySide import QtCore
 
-# R.2: navigation method = touchscreen.  FreeCAD 1.1 has no style literally named
-# "Touchscreen"; its touch-oriented style (pinch-zoom / two-finger orbit) is
-# "Gesture".  Persist it and apply it to the live view.
-_NAV = "Gui::GestureNavigationStyle"
+# R.2: navigation method = touchpad (render_improvements R.2).
+_NAV = "Gui::TouchpadNavigationStyle"
 _tries = {"n": 0}
 
 def _setup_view():
