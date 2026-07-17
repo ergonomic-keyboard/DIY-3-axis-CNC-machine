@@ -97,6 +97,15 @@ FASTENERS: dict[str, dict] = {
            "nut_af": 13.,  "nut_thk": 6.5, "clearance": 9.0, "tap": 6.8},
 }
 
+# ── Gantry beam / side-plate U-clamp registration (render_improvements "Constellation")
+# The gantry beams are square extrusions of _GANTRY_BEAM_W mm; the side-plate U-fork
+# clamps grip them with a _CLAMP_CUTOUT mm total clearance so the U slides around the
+# beam with maximum metal-on-metal contact.  The notch is centred in the clamp body so
+# its two arms are even.  (Beam cross-section measures 30 mm in the model — the spec's
+# "40 mm" doesn't match; using the actual 30 mm here, driven by the constant.)
+_GANTRY_BEAM_W = 30.0
+_CLAMP_CUTOUT  = 1.0
+
 
 def fastener(size: str) -> dict:
     """Return the parametric spec for a bolt size (raises KeyError on unknown)."""
@@ -1476,9 +1485,10 @@ def _build_assembly(document):
     # width inside the now-hollow beams (open ends), so they need no cross-holes.
     _grail = [{'axis': 'z', 'u': 25.5, 'v': ry + 10, 'd': hole_d('M3')}
               for ry in (160, 290, 420, 550, 660)]
-    gantry(explode_with(add_beam("Gantry_Beam_Upper1", 30, 803, 30, GX,    -10, GZ_U,  holes=_grail), dz=100))
-    gantry(explode_with(add_beam("Gantry_Beam_Upper2", 30, 803, 30, GX+30, -10, GZ_U2, holes=_grail), dz=100))
-    gantry(explode_with(add_beam("Gantry_Beam_Lower",  30, 803, 30, GX-30, -10, GZ_L),  dz=100))
+    _BW = _GANTRY_BEAM_W
+    gantry(explode_with(add_beam("Gantry_Beam_Upper1", _BW, 803, _BW, GX,     -10, GZ_U,  holes=_grail), dz=100))
+    gantry(explode_with(add_beam("Gantry_Beam_Upper2", _BW, 803, _BW, GX+_BW, -10, GZ_U2, holes=_grail), dz=100))
+    gantry(explode_with(add_beam("Gantry_Beam_Lower",  _BW, 803, _BW, GX-_BW, -10, GZ_L),  dz=100))
     gantry(explode_with(add_box("Rail_X_Upper", 9, 600, 7, GX+21,      110, GZ_U +30, COL_RAIL), dz=100))
     gantry(explode_with(add_box("Rail_X_Lower", 9, 600, 7, GX+30+21,   110, GZ_U2+30, COL_RAIL), dz=100))
 
@@ -1553,7 +1563,10 @@ def _build_assembly(document):
     _CX, _CY, _CZ = 25.0, 10.0, 72.0
     _cx0, _cy0, _cz0 = 54.0, TIE_Y - _CY / 2.0, 18.0
     _clamp = Part.makeBox(_CX, _CY, _CZ, FreeCAD.Vector(_cx0, _cy0, _cz0))
-    _nd, _nh = 18.0, 32.0                            # notch depth (X), height (Z, fits 30 mm beam)
+    # Constellation: U-notch height = beam + _CLAMP_CUTOUT clearance (1 mm → max contact),
+    # centred in the clamp body (_cz0+(_CZ-_nh)/2) so the two arms are even.
+    _nd = 18.0                                       # notch depth (X)
+    _nh = _GANTRY_BEAM_W + _CLAMP_CUTOUT             # notch height (Z) = beam + clearance
     _notch = Part.makeBox(_nd + 1, _CY + 2, _nh,
                           FreeCAD.Vector(_cx0 + _CX - _nd, _cy0 - 1, _cz0 + (_CZ - _nh) / 2.0))
     beam_clamp = _xbore(_clamp.cut(_notch), 50.0, 82.0, TIE_Y, TIE_ZL)

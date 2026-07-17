@@ -69,3 +69,28 @@ Render: `subcomponents/cnc_subcomponent_VI_explode.gif`
 ### Router-clamp holder ("clock-like" shape)
 
 
+### Constellation.
+Ensure the 
+cnc_assembly_live.Side_Plate_Beam_Clamp_R.Face2 
+and cnc_assembly_live.Side_Plate_Beam_Clamp_R.Edge7
+align with:
+cnc_assembly_live.Gantry_Beam_Lower.Edge14 
+
+
+and that the top rows and  similarly:
+cnc_assembly_live.Side_Plate_Beam_Clamp_R.Edge9
+cnc_assembly_live.Side_Plate_Left_R.Edge91
+align/are on 
+cnc_assembly_live.Side_Plate_Left_R.Edge91 of the gantry beam.
+
+Also parameterise the cutout width such such that u-shaped outtakes described above perfectly slide around the gantry bars, and that tying bolt 
+ cnc_assembly_live.Side_Plate_Left_R.Edge91
+ presses the 2 u-shapes against the gentry beams instead of against eachother like <>. 
+ Make it 1 millimeter, such that it has maximum flesh contact with the gantrybeam.
+ Make both sides of the u-shape evenly span the gantry beam so 
+ cnc_assembly_live.Side_Plate_Left_R.Edge91
+ cnc_assembly_live.Side_Plate_Beam_Clamp_R.Edge9 
+ are equally long, and combined have the length of:
+ cnc_assembly_live.Gantry_Beam_Lower.Edge14-cutout_parameter_length (so practically 40-1=39mm)
+
+Then fix that for the u-shaped gantry beams as well. (Move the gantry beams to realise that, ensure the front most (positive x) gantry beams are above eachother, (on same x-position. )
