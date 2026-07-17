@@ -573,6 +573,7 @@ _PARAMS_OBJ = {
     "Router_Clamp_Bottom":        ("VI", "router_clamp_bottom"),
     "Engine_Sideways_Belt_Clamp": ("III", "engine_sideways_belt_clamp"),
     "Top_Stepper_Holder":         ("V", "top_stepper_holder"),
+    "Engine_Holder_P1":           ("IV", "engine_plate_p1of2"),
 }
 
 
@@ -595,24 +596,52 @@ def _load_master_params():
     return params, shows
 
 
-def _make_dim(doc, tag, p1, p2, p3, label, color=(0.85, 0.15, 0.05), fontsize=9.0):
-    """Draft linear dimension p1→p2 (double arrow), offset onto the line through p3,
-    with `label` overriding the shown text.  Returns the dimension object."""
-    import Draft
-    d = Draft.makeDimension(FreeCAD.Vector(*p1), FreeCAD.Vector(*p2), FreeCAD.Vector(*p3))
-    d.Label = tag
-    vo = d.ViewObject
+# Default colour for the "plain" annotations (on-part extent/diameter dimensions): WHITE,
+# so the text reads on the viewer's dark/gradient background.  The many-to-one legend
+# callouts keep their distinct colours (_ANNO_COLORS) instead.
+_DIM_COLOR = (1.0, 1.0, 1.0)
+
+
+def _make_dim(doc, tag, p1, p2, p3, label, color=_DIM_COLOR, fontsize=9.0, value=None):
+    """A dimension built from plain Part edges (double arrow p1→p2, offset onto the line
+    through p3) plus a Draft text label showing `label = value` (the parameter value if
+    given, else the measured span length).  Built this way, not from Draft.makeDimension,
+    because the built-in Draft Dimension TEXT ignores TextColor in this FreeCAD build and
+    always renders black; a Draft Text does honour it.  Text + arrow default to WHITE."""
+    import math, Part, Draft
+    A = FreeCAD.Vector(*p1); B = FreeCAD.Vector(*p2); C = FreeCAD.Vector(*p3)
+    span = B - A; val = span.Length                     # (operators return NEW vectors;
+    if val < 1e-6:                                      #  Vector.multiply() mutates in place)
+        return None
+    u = span * (1.0 / val)                              # unit along the span
+    ca = C - A
+    delta = ca - u * ca.dot(u)                          # perpendicular offset AB → C
+    dl = delta.Length
+    dhat = delta * (1.0 / dl) if dl > 1e-6 else FreeCAD.Vector(0, 0, 1)
+    A2, B2 = A + delta, B + delta                       # the offset dimension line
+    ah = max(1.5, fontsize / 2.0)
+    cs, sn = math.cos(math.radians(22)), math.sin(math.radians(22))
+
+    def barbs(tip, into):                               # flat chevron arrowhead at `tip`
+        step, wing = into * (cs * ah), dhat * (sn * ah)
+        return [Part.makeLine(tip, tip + step + wing),
+                Part.makeLine(tip, tip + step - wing)]
+
+    edges = [Part.makeLine(A2, B2), Part.makeLine(A, A2), Part.makeLine(B, B2)]
+    edges += barbs(A2, u) + barbs(B2, u * -1)
+    obj = doc.addObject("Part::Feature", tag)
+    obj.Shape = Part.makeCompound(edges)
+    disp = val if value is None else value
+    txt = Draft.makeText([f"{label} = {disp:g}"], C)
+    txt.Label = "Lbl_" + tag
     try:
-        vo.Override = label + " = $dim"
-        vo.Decimals = 0
-        vo.FontSize = fontsize
-        vo.ArrowSize = max(1.5, fontsize / 4.5)
-        vo.LineColor = color
-        vo.TextColor = color
-        vo.ExtLines = fontsize
+        obj.ViewObject.LineColor = color
+        obj.ViewObject.LineWidth = 1
+        txt.ViewObject.FontSize = fontsize
+        txt.ViewObject.TextColor = color
     except Exception:
         pass
-    return d
+    return obj
 
 
 def _make_callout(doc, tag, targets, anchor, label, color=(0.05, 0.25, 0.9), fontsize=10.0):
@@ -724,22 +753,21 @@ def _annotate_params(doc, only_sc=None):
         Each annotation gets the next distinct colour."""
         nonlocal drawn
         hits = [(c, a) for (r, c, a) in circles if abs(2 * r - v) <= 1.5]
-        col = next_color()
-        if len(hits) >= 2:
+        if len(hits) >= 2:                                 # many-to-one legend callout
             _make_callout(doc, f"{tag}_{name}", [(c.x, c.y, c.z) for c, _ in hits],
-                          legend_anchor(), f"{label} = {v:g}", color=col, fontsize=fs)
+                          legend_anchor(), f"{label} = {v:g}", color=next_color(), fontsize=fs)
             drawn += 1
             return True
         if len(hits) == 1:
             c, a = hits[0]
-            if a == "z":                                   # flat hole → arrow in its plane
+            if a == "z":                                   # flat hole → on-part arrow (white)
                 off = max(12.0, 0.12 * bb.DiagonalLength)
                 _make_dim(doc, f"Param_{tag}_{name}",
                           (c.x, c.y - v / 2, bb.ZMax), (c.x, c.y + v / 2, bb.ZMax),
-                          (c.x + off, c.y, bb.ZMax), label, color=col, fontsize=fs)
+                          (c.x + off, c.y, bb.ZMax), label, fontsize=fs, value=v)
             else:                                          # otherwise a legend callout
                 _make_callout(doc, f"{tag}_{name}", [(c.x, c.y, c.z)], legend_anchor(),
-                              f"{label} = {v:g}", color=col, fontsize=fs)
+                              f"{label} = {v:g}", color=next_color(), fontsize=fs)
             drawn += 1
             return True
         return False
@@ -781,8 +809,8 @@ def _annotate_params(doc, only_sc=None):
         ):
             n = take(ext)
             if n and (show_set is None or n in show_set):
-                _make_dim(doc, f"Param_{name}_{axis}", p1, p2, p3, n,
-                          color=next_color(), fontsize=fs)
+                _make_dim(doc, f"Param_{name}_{axis}", p1, p2, p3, n,   # white, param value
+                          fontsize=fs, value=params[n])
                 drawn += 1
 
         # remaining shown params: diameters (single arrow or many-to-one), else skipped
@@ -849,57 +877,41 @@ def set_staged_assembly(stage_num: int, stage_frac: float):
 
 def _add_p1of2_outtake_bolts(bolt_size: str = 'M5'):
     """
-    p1of2 has four TAB EXTENSIONS that protrude beyond the plate's top and
-    bottom edges.  Each tab captures one hex nut (default M5, AF=8 mm).  The
-    bolt comes from above (top tabs) or below (bottom tabs) — this is the
-    'weird way' the bolt/nut assembly sticks out of the plate edge.
+    p1of2's four tab bolts (top TL/TR, bottom BL/BR).
 
-    C.1 — bolt axis is vertical (±Z), so the *nut axis is also vertical*.
-    In every 2D plan view the nut must therefore appear as a rectangle
-    (side profile) rather than a hexagon (face view).  See build_model.py's
-    render_plan with orientation='z_up' / 'z_down'.
+    render_improvements IV item 4: the bolt HEAD sits RECESSED in the plate's bolt-head
+    pocket (top: the open slot Z283-306; bottom: the rectangle Z111-119) and the THREAD
+    sticks OUT past the plate edge — up out the top for the top bolts, down out the bottom
+    (through the item-3 channel) for the bottom bolts — with the nut on the protruding
+    thread.  (Previously the head protruded and the nut sat in the tab.)
 
-    C.2 — swap `bolt_size` (e.g. 'M4' vs 'M5') and both bolt+nut+hole
-    dimensions update via the FASTENERS catalogue.
+    C.1 — bolt axis is vertical (±Z), so the nut also reads as a rectangle in plan.
+    C.2 — swapping `bolt_size` rescales bolt/nut via the FASTENERS catalogue.
 
-    p1of2 world position after placement (x=133, y=369, z=224, yaw=0):
-        plate body spans world X[133,143] Y[310,497] Z[88,306]; the front face
-        at x=143 carries the four MGN12H blocks, and P1_X=140 is the mid-plane
-        of the 10 mm plate thickness (bolt shafts run through it).
-
-    Tab centres (the four nut-carrying tab extensions, local → world):
-        TL  world y=337, z=314   TR  world y=402, z=314
-        BL  world y=337, z=81    BR  world y=402, z=81
+    Plate world span X[133,143] Y[310,497] Z[88,306]; P1_X=138 is the plate mid-plane so
+    the head sits inside the 10 mm thickness.  Tabs at world y=337 and y=402.
     """
-    P1_X = 140          # world X centre of plate
-    fs = fastener(bolt_size)
-    nut_thk = fs["nut_thk"]
-    head_h  = fs["head_h"]
-    gap = nut_thk + head_h + 4     # small clearance between head base and nut
+    P1_X = 138          # world X centre of the 10 mm plate
 
-    # Top tabs: head above, shaft pointing −Z through tab and into beam above
+    # Top tabs: head recessed in the top slot, thread up & out the top edge
     for tag, wy in [("TL", 337), ("TR", 402)]:
-        wz_nut  = 314
-        wz_head = wz_nut + gap
         gantry(explode_with(
-            add_bolt(f"Bolt_P1_Top_{tag}_{bolt_size}", P1_X, wy, wz_head,
-                     axis='-z', size=bolt_size, shaft_l=22),
+            add_bolt(f"Bolt_P1_Top_{tag}_{bolt_size}", P1_X, wy, 288,
+                     axis='+z', size=bolt_size, shaft_l=30),
             dx=80))
         gantry(explode_with(
-            add_nut(f"Nut_P1_Top_{tag}_{bolt_size}", P1_X, wy, wz_nut,
+            add_nut(f"Nut_P1_Top_{tag}_{bolt_size}", P1_X, wy, 314,
                     axis='+z', size=bolt_size),
             dx=80))
 
-    # Bottom tabs: head below, shaft pointing +Z through tab and into beam below
+    # Bottom tabs: head recessed in the bottom rectangle, thread down & out the bottom edge
     for tag, wy in [("BL", 337), ("BR", 402)]:
-        wz_nut  = 81
-        wz_head = wz_nut - gap
         gantry(explode_with(
-            add_bolt(f"Bolt_P1_Bot_{tag}_{bolt_size}", P1_X, wy, wz_head,
-                     axis='+z', size=bolt_size, shaft_l=22),
+            add_bolt(f"Bolt_P1_Bot_{tag}_{bolt_size}", P1_X, wy, 115,
+                     axis='-z', size=bolt_size, shaft_l=34),
             dx=80))
         gantry(explode_with(
-            add_nut(f"Nut_P1_Bot_{tag}_{bolt_size}", P1_X, wy, wz_nut,
+            add_nut(f"Nut_P1_Bot_{tag}_{bolt_size}", P1_X, wy, 82,
                     axis='+z', size=bolt_size),
             dx=80))
 
@@ -1011,6 +1023,25 @@ def _build_p2of2_plate(path):
                               FreeCAD.Vector(XF - 1, yc, rz), FreeCAD.Vector(1, 0, 0)))
     # merge coplanar faces left by the slot-fill fuse so it renders as solid plate
     # (no phantom rectangle seam) rather than showing the fused box's outline.
+    try:
+        shape = shape.removeSplitter()
+    except Exception:
+        pass
+    return shape
+
+
+def _build_p1of2_plate(path):
+    """Load the M36a p1of2 vertical plate STEP, bake its placement, and add the missing
+    bottom thread channels (render_improvements IV item 3): the STEP's TOP bolt-head slots
+    are open to the top edge (thread channels), but the BOTTOM bolt-head rectangles are
+    closed pockets.  Cut a matching channel from each bottom rectangle (Z111-119) down to
+    the bottom edge (Z88), at the same Y width as the top channels (mirrored about the
+    plate centre).  Returns a WORLD-coord shape (placement baked in)."""
+    shape = Part.Shape(); shape.read(path)
+    pl = FreeCAD.Placement(FreeCAD.Vector(133.0, 369.0, 224.0), FreeCAD.Rotation())
+    shape = shape.transformShape(pl.Matrix, True)      # bake add_step's placement → world
+    for y0, y1 in ((332.0, 341.0), (397.0, 406.0)):    # the two tab channel Y-ranges
+        shape = shape.cut(Part.makeBox(12.0, y1 - y0, 26.0, FreeCAD.Vector(132.0, y0, 86.0)))
     try:
         shape = shape.removeSplitter()
     except Exception:
@@ -1569,20 +1600,21 @@ def _build_assembly(document):
     # (The old yaw=90 rotated it thin-in-Y and parked it at the machine's far left,
     # so the blocks/rails/p2of2 — which were always placed for the plate to be here
     # — floated in space. See assembly_description.md "p1of2 orientation (desired)".)
-    gantry(explode_with(
-        add_step("Engine_Holder_P1",
-            f"{METAL}/IV_engine_plate_p1of2/M36a_vertical_plate"
-            "/5_models_and_renders/starting_point_rect_metal.step",
-            x=133, y=369, z=224, yaw=0,
-            fallback_box=(10, 187, 218)),
-        dx=80))
+    P1 = (f"{METAL}/IV_engine_plate_p1of2/M36a_vertical_plate"
+          "/5_models_and_renders/starting_point_rect_metal.step")
+    if os.path.exists(P1):
+        _p1obj = add_shape_obj("Engine_Holder_P1", _build_p1of2_plate(P1))   # IV item 3
+    else:
+        _p1obj = add_step("Engine_Holder_P1", P1, x=133, y=369, z=224, yaw=0,
+                          fallback_box=(10, 187, 218))
+    gantry(explode_with(_p1obj, dx=80))
 
     # Z-rails: slide with p2of2
     # Rails bedded into their BACK-face grooves (item 1/5): rail low-X at _P2_RAIL_X.
     gantry(z_slide(explode_with(add_box("Rail_Z_Left",  _P2_RAIL_TX,_P2_RAIL_W,200, _P2_RAIL_X,451,100,COL_RAIL), dy=+40,dx=130)))
     gantry(z_slide(explode_with(add_box("Rail_Z_Right", _P2_RAIL_TX,_P2_RAIL_W,200, _P2_RAIL_X,386,100,COL_RAIL), dy=-40,dx=130)))
 
-    # MGN12H blocks: fixed to p1of2 front face
+    # MGN12H blocks on the p1of2 BACK face (X143→156): horizontal-rail carriages.
     for blk_name, by, bz in [
         ("MGN12H_Block_LL", 444, 140),
         ("MGN12H_Block_LU", 444, 240),
@@ -1590,6 +1622,15 @@ def _build_assembly(document):
         ("MGN12H_Block_RU", 379, 240),
     ]:
         gantry(explode_with(add_box(blk_name, 13, 26, 34, 143, by, bz, COL_BLOCK), dx=130))
+    # render_improvements IV item 1: the vertical-rail carriages must ALSO be on the
+    # p1of2 FRONT face (X120→133), not only the horizontal-rail blocks on the back.
+    for blk_name, by, bz in [
+        ("MGN12H_Block_Front_LL", 444, 140),
+        ("MGN12H_Block_Front_LU", 444, 240),
+        ("MGN12H_Block_Front_RL", 379, 140),
+        ("MGN12H_Block_Front_RU", 379, 240),
+    ]:
+        gantry(explode_with(add_box(blk_name, 13, 26, 34, 120, by, bz, COL_BLOCK), dx=-130))
 
     # p2of2 (M36.b): sliding plate.  Rebuilt by _build_p2of2_plate (VI plate items
     # 1-6) — the shape is already in world coords, so it is added at the origin.

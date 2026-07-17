@@ -152,16 +152,23 @@ the overlay falls back to the extents + any large bore. So to turn a parameter's
 annotation on/off, add/remove it from that part's `_show`.
 
 **Coverage** (which sub-components the overlay annotates): **VI** (2 router clamps + the
-plate rail holes), **V** (stepper plate: `PLATE_THICKNESS`, `POCKET_DIAM`), **III** (belt
-clamp: `BODY_X/Y/Z` — but the clamp is tiny beside the gantry beams, so zoom to it to
-read the labels). **II is not covered**: the M20 side-plate clips are fused / re-modelled
-into `Side_Plate_Front_Clamp` / `Side_Plate_Beam_Clamp` (different objects, trimmed
-geometry), so their `parameters.yaml` blocks don't map to a distinct assembly object. **I
-and IV** have no parametric part scripts, so there's nothing to label. Label/arrow sizes
-scale with the shown extent (`fs`) so small parts stay legible after ViewFit.
+plate rail holes), **V** (stepper plate: `PLATE_THICKNESS`, `POCKET_DIAM`), **IV** (p1of2
+plate: `PLATE_THICKNESS/WIDTH/HEIGHT`, `BORE_DIAM`, `ACCESS_HOLE_DIAM`, and the ×36
+`RAIL_BOLT_DIAM` many-to-one), **III** (belt clamp: `BODY_X/Y/Z` — but the clamp is tiny
+beside the gantry beams, so zoom to it to read the labels). IV's p1of2 is a manual-design
+plate with no generator, so its `parameters.yaml` block is **annotation-only** (no
+`_dir`/`_script`; the values are measured-dimension snapshots). **II is not covered**: the
+M20 side-plate clips are fused / re-modelled into `Side_Plate_Front_Clamp` /
+`Side_Plate_Beam_Clamp` (different objects, trimmed geometry), so their `parameters.yaml`
+blocks don't map to a distinct assembly object. **I** (aluminium frame) has no parametric
+part. Label/arrow sizes scale with the shown extent (`fs`) so small parts stay legible.
 
-Each label (and its leader bundle) is drawn in a distinct colour cycled from
-`_ANNO_COLORS`, so overlapping bundles stay separable. The solid parts are made
+The many-to-one legend callouts are each drawn in a distinct colour cycled from
+`_ANNO_COLORS` (so overlapping bundles stay separable); the plain on-part dimensions
+(extents + lone bore) use `_DIM_COLOR` — **white** by default, so the text reads on the
+viewer's dark/gradient background. (On-part dimensions are drawn from Part edges + a
+Draft **Text**, not `Draft.makeDimension`, because the built-in Draft Dimension text
+ignores `TextColor` in this build and always renders black.) The solid parts are made
 semi-transparent (`_PARAMS_TRANSPARENCY`, default 60 %) in this overlay so each leader
 reads end-to-end — its feature end shows through the material instead of being cut off
 inside it. (Leaders keep ending exactly at the real holes; that's why transparency is

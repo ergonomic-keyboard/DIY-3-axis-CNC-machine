@@ -41,9 +41,16 @@ Render: `subcomponents/cnc_subcomponent_III_explode.gif`
 
 ## IV — Vertical engine plate p1of2 (+ MGN12H blocks)
 Render: `subcomponents/cnc_subcomponent_IV_explode.gif`
-
-
+1. Ensure the 4 mgn12H blocksfor the vertical rail are also mounted to the front of the plate, not only the horizontal rail mgn12H blocks on the back. 
+2. Ensure the parameters are visualised in the render.
+3. Ensure the bolt thread channels like the ones on top at:
+cnc_live_IV.Engine_Holder_P1.Edge34
+are also added in the bottom bolt head holes like:
+cnc_live_IV.Engine_Holder_P1.Edge71
+4. Ensure the bolt heads are in the bolthead head rectangles (instead of sticking out of the plate, make the bolt threads stick out the plate.)
+ 
 ---
+
 
 ## V — Top & bottom stepper plate (stepper, belt/gears, threaded rod)
 Render: `subcomponents/cnc_subcomponent_V_explode.gif`
@@ -53,7 +60,6 @@ Render: `subcomponents/cnc_subcomponent_V_explode.gif`
 
 ## VI — Vertical engine plate p2of2 (+ two router clamps + rails)
 Render: `subcomponents/cnc_subcomponent_VI_explode.gif`
-12. Remove the cnc_live_VI.Router_Clamp_Top.Edge90 artifact (and other left half of the circle at cnc_live_VI.Router_Clamp_Top.Edge40) (and the same for the bottom circle. Otherwise great work.)
 
 ### Plate outtakes & rails
 

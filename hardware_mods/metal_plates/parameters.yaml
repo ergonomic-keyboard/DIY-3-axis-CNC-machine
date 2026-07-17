@@ -21,9 +21,10 @@
 #     (_dir, _script), then overrides its constants (see _apply_yaml_param_overrides);
 #   * assembly/view_assembly.sh <SC> --params draws these values as dimensions.
 #
-# Sub-components I (aluminium frame) and IV (engine plate p1of2) have no parametric
-# part scripts, so they have no blocks here.  The right side plate (II_R) mirrors the
-# II clips, so its parts are generated from the II blocks below (no separate entry).
+# A block WITHOUT _dir/_script is ANNOTATION-ONLY: no generator consumes it; it just
+# supplies labelled dimensions to the --params overlay (see IV below, a manual-design
+# plate).  Sub-component I (aluminium frame) has no block.  The right side plate (II_R)
+# mirrors the II clips, so its parts are generated from the II blocks below (no entry).
 # ============================================================================
 
 II:   # Left side plate & Y-axis — M20 clips (II_R mirrors these)
@@ -88,6 +89,21 @@ III:  # Gantry & X-axis
     PIN_COUNT: 3
     PIN_Y: -11.5       # centre at the bottom face (half-buried tooth)
     PIN_LEN: 29        # span the full belt width
+
+IV:   # Vertical engine plate p1of2 + MGN12H blocks
+
+  engine_plate_p1of2:
+    # ANNOTATION-ONLY block: the p1of2 plate (M36a) is a manual-design FreeCAD part with
+    # NO generator script, so there is no _dir/_script and nothing consumes these values
+    # to build geometry.  They are snapshots of the plate's measured dimensions, here so
+    # the --params overlay can label them (render_improvements IV item 2).
+    _show: [PLATE_THICKNESS, PLATE_WIDTH, PLATE_HEIGHT, BORE_DIAM, ACCESS_HOLE_DIAM, RAIL_BOLT_DIAM]
+    PLATE_THICKNESS: 10    # X — plate thickness
+    PLATE_WIDTH: 187       # Y — plate width
+    PLATE_HEIGHT: 218      # Z — plate height
+    BORE_DIAM: 36          # central lead-screw / bearing bore
+    ACCESS_HOLE_DIAM: 16   # 2 wrench / cable access holes
+    RAIL_BOLT_DIAM: 3.5    # the MGN12H rail bolt holes (×36, the many-to-one pattern)
 
 V:    # Top & bottom stepper plate (Z-axis drive)
 
