@@ -69,28 +69,32 @@ Render: `subcomponents/cnc_subcomponent_VI_explode.gif`
 ### Router-clamp holder ("clock-like" shape)
 
 
-### Constellation.
-Ensure the 
-cnc_assembly_live.Side_Plate_Beam_Clamp_R.Face2 
-and cnc_assembly_live.Side_Plate_Beam_Clamp_R.Edge7
-align with:
-cnc_assembly_live.Gantry_Beam_Lower.Edge14 
+### Constellation
 
+The side-plate U-fork clamps must grip the gantry beams cleanly. **This is not a
+redesign — only two things are needed: (1) move the existing gantry beams so they
+line up, and (2) size the U-cutout so it slides snugly around a beam.**
 
-and that the top rows and  similarly:
-cnc_assembly_live.Side_Plate_Beam_Clamp_R.Edge9
-cnc_assembly_live.Side_Plate_Left_R.Edge91
-align/are on 
-cnc_assembly_live.Side_Plate_Left_R.Edge91 of the gantry beam.
+#### 1. Reposition the gantry beams (just move them)
 
-Also parameterise the cutout width such such that u-shaped outtakes described above perfectly slide around the gantry bars, and that tying bolt 
- cnc_assembly_live.Side_Plate_Left_R.Edge91
- presses the 2 u-shapes against the gentry beams instead of against eachother like <>. 
- Make it 1 millimeter, such that it has maximum flesh contact with the gantrybeam.
- Make both sides of the u-shape evenly span the gantry beam so 
- cnc_assembly_live.Side_Plate_Left_R.Edge91
- cnc_assembly_live.Side_Plate_Beam_Clamp_R.Edge9 
- are equally long, and combined have the length of:
- cnc_assembly_live.Gantry_Beam_Lower.Edge14-cutout_parameter_length (so practically 40-1=39mm)
+Today the three beams "staircase" — each is offset from the next in both X and Z.
+Move them so they form a clean, aligned cross-section:
 
-Then fix that for the u-shaped gantry beams as well. (Move the gantry beams to realise that, ensure the front most (positive x) gantry beams are above eachother, (on same x-position. )
+- Move `Gantry_Beam_Lower` and `Gantry_Beam_Upper2` to the **same Z-height** (same
+  vertical level, side by side).
+- Move `Gantry_Beam_Upper2` and `Gantry_Beam_Upper1` to the **same X position**
+  (same horizontal position, `Upper1` directly above `Upper2`).
+
+So `Gantry_Beam_Upper2` is the corner: level with `Gantry_Beam_Lower` (shared Z) and
+directly beneath `Gantry_Beam_Upper1` (shared X). No other geometry changes.
+
+#### 2. Parameterise the U-cutout so it grips the beam
+
+- Give the cutout **1 mm total clearance** so the U slides around the beam with
+  maximum metal-to-metal contact.
+- Make both arms of the U **evenly span** the beam, so the front arm
+  (`Side_Plate_Left_R.Edge91`) and the back arm (`Side_Plate_Beam_Clamp_R.Edge9`)
+  are equal length, and combined equal the beam width minus the clearance —
+  i.e. `Gantry_Beam_Lower.Edge14` − cutout (e.g. 40 − 1 = 39 mm).
+- The tie bolt must press the two U-shapes **against the gantry beams**, not against
+  each other.
