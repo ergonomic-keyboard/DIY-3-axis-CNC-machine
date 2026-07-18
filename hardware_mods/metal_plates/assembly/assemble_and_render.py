@@ -1153,8 +1153,8 @@ def _add_gantry_beam_rods(GZ_L, GZ_U, bolt_size: str = 'M5'):
     beam level (lower and upper).
     """
     for tag, rx, rz in [
-        ("Lo", 85,  GZ_L + 15),
-        ("Up", 123, GZ_U + 15),
+        ("Lo", 92,  GZ_L + 15),      # through the Lower beam (X77–107)
+        ("Up", 164, GZ_U + 15),      # through the Upper2 back-column beam (X149–179)
     ]:
         gantry(explode_with(
             add_bolt(f"Rod_Beam_{tag}_{bolt_size}", rx, -2, rz,
@@ -1477,12 +1477,14 @@ def _build_assembly(document):
         ann.Position  = FreeCAD.Vector(lx, ly, lz)
 
     # ── GANTRY BEAMS ──────────────────────────────────────────────────────────
-    # Constellation §1: clean L-cross-section.  Lower & Upper2 share Z (side by
-    # side); Upper2 & Upper1 share X (Upper1 directly above Upper2) — so Upper2 is
-    # the corner.  Lower's Z-centre is placed on the side-plate clamp/tie line
-    # (world Z147 = GZ_L+15) so the beam clamp grips it with no tie-system change.
-    GZ_U, GZ_U2, GZ_L = 162, 132, 132
-    GX = 107
+    # "Moving gantrybeams": a LARGE, far-apart L (not a tight cross-section).
+    #   Lower  — front-low, gripped by the beam clamp (unchanged, Z-centre on the tie
+    #            line world Z147).
+    #   Upper1 — the CORNER: back-low, same Z as Lower, moved to the back-column X so it
+    #            engages the front clamp's lower U.
+    #   Upper2 — moved +X and +Z into the front clamp's UPPER pocket (back-high).
+    GX_LOW, GX_BACK = 77, 149          # Lower front-low X ; upper back-column X
+    GZ_LOW, GZ_HIGH = 132, 242         # low row (Lower + Upper1 corner) Z ; high row (Upper2) Z
 
     # (c) Same fix as the frame: the three gantry beams were solid blocks — now
     # hollow 2 mm-wall extrusions.  The two rail-carrying beams (Upper1, Upper2)
@@ -1492,13 +1494,12 @@ def _build_assembly(document):
     _grail = [{'axis': 'z', 'u': 25.5, 'v': ry + 10, 'd': hole_d('M3')}
               for ry in (160, 290, 420, 550, 660)]
     _BW = _GANTRY_BEAM_W
-    gantry(explode_with(add_beam("Gantry_Beam_Upper1", _BW, 803, _BW, GX,     -10, GZ_U,  holes=_grail), dz=100))
-    gantry(explode_with(add_beam("Gantry_Beam_Upper2", _BW, 803, _BW, GX,     -10, GZ_U2, holes=_grail), dz=100))
-    gantry(explode_with(add_beam("Gantry_Beam_Lower",  _BW, 803, _BW, GX-_BW, -10, GZ_L),  dz=100))
-    # X-rails follow their beams: the L-corner blocks the beam tops, so the two
-    # guide rails sit on the exposed −X front faces (Upper1 front, Lower front).
-    gantry(explode_with(add_box("Rail_X_Upper", 9, 600, 7, GX-9,      110, GZ_U +12, COL_RAIL), dz=100))
-    gantry(explode_with(add_box("Rail_X_Lower", 9, 600, 7, GX-_BW-9,  110, GZ_L +12, COL_RAIL), dz=100))
+    gantry(explode_with(add_beam("Gantry_Beam_Upper1", _BW, 803, _BW, GX_BACK, -10, GZ_LOW,  holes=_grail), dz=100))
+    gantry(explode_with(add_beam("Gantry_Beam_Upper2", _BW, 803, _BW, GX_BACK, -10, GZ_HIGH, holes=_grail), dz=100))
+    gantry(explode_with(add_beam("Gantry_Beam_Lower",  _BW, 803, _BW, GX_LOW,  -10, GZ_LOW),  dz=100))
+    # X-rails follow the back-column beams (Upper1 corner + Upper2 top) onto their −X faces.
+    gantry(explode_with(add_box("Rail_X_Upper", 9, 600, 7, GX_BACK-9, 110, GZ_HIGH+12, COL_RAIL), dz=100))
+    gantry(explode_with(add_box("Rail_X_Lower", 9, 600, 7, GX_BACK-9, 110, GZ_LOW +12, COL_RAIL), dz=100))
 
     # ── SIDE PLATES (II) ──────────────────────────────────────────────────────
     # Complaint II: the side plate had FOUR parts (body + back clip + 2 front clips)
@@ -1542,7 +1543,7 @@ def _build_assembly(document):
     _CLAMP_X0, _CLAMP_LEN, _CLAMP_ARM = 54.0, 38.0, 15.0     # front X, body depth, arm len
     _CLAMP_Z0, _CLAMP_H = 18.0, 72.0                          # local Z origin, height
     _arm_tip = _CLAMP_X0 + _CLAMP_LEN                         # world X of the arm tips (92)
-    _bx1     = GX                                             # Lower-beam rear face X (107)
+    _bx1     = GX_LOW + _BW                                   # Lower-beam rear face X (107)
     _cc      = _CLAMPING_CLEARANCE
 
     # (a) main body ("mid plate") — two X bores at Y=-3 (bottom tie thread world Z147 /
@@ -1556,7 +1557,7 @@ def _build_assembly(document):
     _body = _body.cut(Part.makeBox((_arm_tip + _cc) - 40.0, 40.0, _CLAMP_H,
                                    FreeCAD.Vector(40.0, -20.0, _CLAMP_Z0)))
     _body = _body.cut(Part.makeBox((_bx1 + _cc) - (_arm_tip + _cc), 40.0, _GANTRY_BEAM_W + _cc,
-                                   FreeCAD.Vector(_arm_tip + _cc, -20.0, (GZ_L - _cc / 2) - 93.0)))
+                                   FreeCAD.Vector(_arm_tip + _cc, -20.0, (GZ_LOW - _cc / 2) - 93.0)))
     gantry(explode_with(add_shape_obj("Side_Plate_Left", _body, z=93), dy=-90))
     gantry(explode_with(add_shape_obj("Side_Plate_Left_R", _body, z=93, mirror_y=396.5), dy=+90))
 
@@ -1716,7 +1717,7 @@ def _build_assembly(document):
     _add_mgn12h_block_bolts()
     _add_p2of2_bolts()
     _add_stepper_holder_bolts()
-    _add_gantry_beam_rods(GZ_L, GZ_U)
+    _add_gantry_beam_rods(GZ_LOW, GZ_HIGH)
     # (removed _add_side_plate_clip_bolts(): those 4 Y bolts/side sat at X10-30 —
     #  where no clamp is any more — so they just floated in mid air.  The front
     #  clamp is now fastened by the two X studs (d)/(e) in the SIDE PLATES block.)
