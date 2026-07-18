@@ -50,8 +50,7 @@ Move the top stepper holder plate such that cnc_assembly_live.Bolt_P1_Top_TL_M5.
 
 ## VI — Vertical engine plate p2of2 (+ two router clamps + rails)
 Render: `subcomponents/cnc_subcomponent_VI_explode.gif`
-The vertical engine plate p2of2 should rotate 180 degrees around Z-axis, such that its rail outtakes are over the vertical MGN12 rails. The vertical MGN12H blocks should be bolted on to the vertical engine plate p1of2 (instead of p2of2). The vertical mgn12h rails should then sit into those mgn12h blocks.
-
+The rails should be sunk (I don't know exactly how much, probabbly 2 mm or something) in the rails cut-out/channels of the plate (NOT IN THE MIDDLE CHANNEL FOR THE THREAD), instead of above the outtake for the rails, if the outtake is not long enough make it long enough. 
 ### Plate outtakes & rails
 
 ### Router clamps
@@ -61,3 +60,4 @@ The vertical engine plate p2of2 should rotate 180 degrees around Z-axis, such th
 
 
 ### Constellation
+The Green Y-axis on the cnc beams points in the opposite direction as the green y-axis in the bottom right of the screen. Make it point in the same direction (By moving it to the other corner of the rectangular frame).
