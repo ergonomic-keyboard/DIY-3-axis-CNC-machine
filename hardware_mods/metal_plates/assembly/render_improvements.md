@@ -44,13 +44,12 @@ Render: `subcomponents/cnc_subcomponent_IV_explode.gif`
 
 ## V — Top & bottom stepper plate (stepper, belt/gears, threaded rod)
 Render: `subcomponents/cnc_subcomponent_V_explode.gif`
-Move the top stepper holder plate such that cnc_assembly_live.Bolt_P1_Top_TL_M5.Face4 goes through the hole cnc_assembly_live.Top_Stepper_Holder.Edge20 and such that cnc_assembly_live.Bolt_P1_Top_TR_M5.Face4 goes through the hole: cnc_assembly_live.Top_Stepper_Holder.Edge46.
 
 ---
 
 ## VI — Vertical engine plate p2of2 (+ two router clamps + rails)
 Render: `subcomponents/cnc_subcomponent_VI_explode.gif`
-The rails should be sunk (I don't know exactly how much, probabbly 2 mm or something) in the rails cut-out/channels of the plate (NOT IN THE MIDDLE CHANNEL FOR THE THREAD), instead of above the outtake for the rails, if the outtake is not long enough make it long enough. 
+
 ### Plate outtakes & rails
 
 ### Router clamps

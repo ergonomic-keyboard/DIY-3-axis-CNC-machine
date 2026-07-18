@@ -996,7 +996,9 @@ _P2_X0      = _RAILZ_X0 + _P2_RAIL_TX     # 232 — p2of2 plate low-X (→242)
 _P2_THK     = 10.0                        # p2of2 plate thickness in X
 _P2_DX      = _P2_X0 - 156.0              # +76 — shift for the world-baked p2of2 shape (was X156)
 _P2_CY      = 425.0                        # p2of2 plate Y centre-line (Z-rotation axis)
-_P2_RAIL_X  = _RAILZ_X0                    # Rail_Z low-X (rails belong to p2of2, ride the p1of2 blocks)
+_P2_RAIL_SINK = 2.0                        # render_improvements VI: seat the rail 2 mm INTO the
+#                                            p2of2 −X-face rail channel (was flush/proud of it)
+_P2_RAIL_X  = _RAILZ_X0 + _P2_RAIL_SINK    # Rail_Z low-X: sunk +X so its back 2 mm sits in the channel
 
 
 def _build_p2of2_plate(path):
@@ -1122,6 +1124,16 @@ _TSH_SLOT_Y  = (474.3, 505.9)        # 474.3 = mirror of 505.9 about the oval Y4
 _TSH_SLOT_W  = 5.6                    # slot width Ø (matches the existing 2 slots)
 _TSH_SLOT_HALFLEN = 9.75             # slot half-length in X (ends ±this from centre)
 _TSH_FLANGE_X = 322.0                # X of the 5 flange-bar holes (bar spans X310.9-333.3)
+# render_improvements V (2026-07-18): slide the whole top-stepper plate so its two outer
+# flange clamp holes (Top_Stepper_Holder.Edge20 @ (322,458) & .Edge46 @ (322,522)) drop
+# onto the p1of2 top-tab bolts (Bolt_P1_Top_TL @ (206,337) & _TR @ (206,402)).  X is exact
+# (322→206); Y aligns the hole/bolt midpoints (490→369.5) — hole spacing 64 vs bolt 65, so
+# each lands within 0.5 mm, well inside the Ø5.5 holes.  The 4 slot bolts move with it.
+_TSH_DX = 206.0 - 322.0                          # −116
+_TSH_DY = (337.0 + 402.0) / 2 - (458.0 + 522.0) / 2   # −120.5
+_TSH_DZ = 1.0                                    # lift 1 mm so the plate rests ON the p1of2 top
+#                                                  (Z305.8) instead of clipping into it, and its
+#                                                  top (Z312) meets the tab nuts (Nut_P1_Top Z312-316)
 
 
 def _build_stepper_plate(path):
@@ -1183,7 +1195,7 @@ def _add_stepper_holder_bolts(bolt_size: str = 'M5'):
         for wy in _TSH_SLOT_Y:
             gantry(explode_with(
                 add_bolt(f"Bolt_TSH_{int(round(wx))}_{int(round(wy))}_{bolt_size}",
-                         wx, wy, 316.0, axis='-z', size=bolt_size, shaft_l=28),
+                         wx + _TSH_DX, wy + _TSH_DY, 316.0 + _TSH_DZ, axis='-z', size=bolt_size, shaft_l=28),
                 dz=70))
 
 
@@ -1393,13 +1405,14 @@ def _add_p2of2_rail_bolts(bolt_size: str = 'M3'):
     and into the p2of2 plate behind it.  Move with p2of2 → gantry + z_slide.
     """
     fs = fastener(bolt_size)
-    rail_front_x = _P2_RAIL_X                        # rail −X (exposed) face (224)
+    rail_front_x = _P2_RAIL_X                         # rail −X (exposed) face (226, sunk)
+    shaft_l = _P2_X0 + _P2_THK - rail_front_x - fs["head_h"]   # reach flush to the plate back
     for side, rcy, expl_y in [("L", _P2_RAIL_YC[0], +40), ("R", _P2_RAIL_YC[1], -40)]:
         for rz in _P2_RAIL_Z:
             gantry(z_slide(explode_with(
                 add_bolt(f"Bolt_RailZ_{side}_{int(rz)}_{bolt_size}",
                          rail_front_x, rcy, rz, axis='+x',
-                         size=bolt_size, shaft_l=15),   # head counterbored in rail, shaft flush to plate back
+                         size=bolt_size, shaft_l=shaft_l),   # head counterbored in rail, shaft flush to plate back
                 dy=expl_y, dx=190)))
 
 
@@ -1528,12 +1541,15 @@ def _build_assembly(document):
 
     # ── AXIS INDICATOR ────────────────────────────────────────────────────────
     AL, AW = 160, 18
-    OX, OY, OZ = 0, 793, 0
+    # render_improvements Constellation: put the triad on the (0,0,0) frame corner and make
+    # the green Y-axis point +Y (into the frame) so it matches the +Y of the screen-corner
+    # reference triad (it was on the Y=793 corner pointing −Y — the opposite direction).
+    OX, OY, OZ = 0, 0, 0
     add_box("Axis_Z", AW, AW, AL, OX-AW/2, OY-AW/2, OZ,           color=(0.05,0.20,0.95))
     add_box("Axis_X", AL, AW, AW, OX,      OY-AW/2, OZ-AW/2,      color=(0.95,0.10,0.05))
-    add_box("Axis_Y", AW, AL, AW, OX-AW/2, OY-AL,   OZ-AW/2,      color=(0.05,0.85,0.10))
+    add_box("Axis_Y", AW, AL, AW, OX-AW/2, OY,      OZ-AW/2,      color=(0.05,0.85,0.10))
     for lbl, lx, ly, lz in [
-        ("Z", OX, OY, OZ+AL+15), ("X", OX+AL+15, OY, OZ), ("Y", OX, OY-AL-15, OZ)]:
+        ("Z", OX, OY, OZ+AL+15), ("X", OX+AL+15, OY, OZ), ("Y", OX, OY+AL+15, OZ)]:
         ann = doc.addObject("App::Annotation", f"AxisLabel_{lbl}")
         ann.LabelText = [lbl]
         ann.Position  = FreeCAD.Vector(lx, ly, lz)
@@ -1792,12 +1808,13 @@ def _build_assembly(document):
         add_shape_obj("Router_Clamp_Top", _build_router_clamp(_rct, _RC_Z_TOP)), dx=240)))
 
     # ── TOP STEPPER HOLDER (M40.a) ────────────────────────────────────────────
-    # Loaded + fixed by _build_stepper_plate (V items 1,3,5,6); the shape is
-    # already in world coords, so it is added at the origin (no extra placement).
+    # Loaded + fixed by _build_stepper_plate (V items 1,3,5,6); the shape is in world
+    # coords, then slid by (_TSH_DX,_TSH_DY) (render_improvements V) so its two flange
+    # clamp holes drop onto the p1of2 top-tab bolts.
     _tsh = _build_stepper_plate(
         f"{METAL}/V_z_axis_drive/M40a_top_stepper_holder"
         "/5_models_and_renders/engine_holder_top_plate.step")
-    gantry(explode_with(add_shape_obj("Top_Stepper_Holder", _tsh), dz=70))
+    gantry(explode_with(add_shape_obj("Top_Stepper_Holder", _tsh, x=_TSH_DX, y=_TSH_DY, z=_TSH_DZ), dz=70))
 
     # ── ENGINE SIDEWAYS BELT CLAMP (MX.1) ─────────────────────────────────────
     gantry(explode_with(
