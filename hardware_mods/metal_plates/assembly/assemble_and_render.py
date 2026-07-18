@@ -1552,7 +1552,13 @@ def _build_assembly(document):
     #       · recess the front face to _arm_tip+clearance over the clamp's Z-band, so the
     #         plate and the clamp arms "almost kiss" above & below the beam;
     #       · a through-slot (beam + clearance) so the beam's rear half passes cleanly.
-    _body = _xbore(_read_shape(BODY), 78.0, 192.0, TIE_Y, TIE_ZL)
+    # "Moving gantrybeams": raise the plate's imported shell by PLATE_DZ so its ledges rest
+    # against the front-clamp bottom (Edge15↔Edge8, world Z127) and the Upper1 beam bottom
+    # (Edge10↔Edge5, world Z132).  The bores/reliefs below are cut at fixed LOCAL Z, so they
+    # stay at their world positions (tie line Z147/262.6 + Lower-beam relief unchanged).
+    PLATE_DZ = 4.0
+    _shell = _read_shape(BODY); _shell.translate(FreeCAD.Vector(0.0, 0.0, PLATE_DZ))
+    _body = _xbore(_shell, 78.0, 192.0, TIE_Y, TIE_ZL)
     _body = _xbore(_body, 78.0, 192.0, TOP_Y, TOP_ZL)
     _body = _body.cut(Part.makeBox((_arm_tip + _cc) - 40.0, 40.0, _CLAMP_H,
                                    FreeCAD.Vector(40.0, -20.0, _CLAMP_Z0)))
@@ -1585,9 +1591,8 @@ def _build_assembly(document):
     for _bz0 in (GZ_LOW, GZ_HIGH):                     # Upper1 (Z132) & Upper2 (Z242) beams
         front = front.cut(Part.makeBox(_GANTRY_BEAM_W + _cc, 200.0, _GANTRY_BEAM_W + _cc,
                           FreeCAD.Vector(GX_BACK - _cc / 2, -100.0, (_bz0 - _cc / 2) - _fz)))
-    # Trim the U material that sticks up above the top beam down to beam-top + clearance.
-    front = front.cut(Part.makeBox(_GANTRY_BEAM_W + 40.0, 200.0, 60.0,
-                      FreeCAD.Vector(GX_BACK - 20.0, -100.0, (GZ_HIGH + _GANTRY_BEAM_W + _cc) - _fz)))
+    # (No top trim: the imported top arm is kept so the upper outtake stays a U-clamp — the
+    #  beam-profile relief above only opens the notch to the beam, not the whole top block.)
     # Seat coplanar with the mid plate: shift (via placement) so the two STEP bolt
     # holes land on the Y=-3 thread plane, lower hole at the tie rod's Z147 (constants).
     # For the mirrored (_R) copy the Y shift flips sign (mirror about Y=396.5).
