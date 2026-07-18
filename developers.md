@@ -3,13 +3,25 @@
 This site is built with [MkDocs](https://www.mkdocs.org/) using the [Material](https://squidfunk.github.io/mkdocs-material/) theme. The source for every page lives in `docs/`, and navigation is configured in `mkdocs.yml`. Deployment to GitHub Pages happens automatically on every push to `main` (see `.github/workflows/`).
 
 ## Prerequisites
-- Python 3.x
-- `pip`
+- Python 3.x (the pinned env uses 3.12)
+- `conda` (recommended) or `pip`
 
 ## Install dependencies
+Recommended — the pinned, reproducible env in [`env.yaml`](./env.yaml) (creates
+env `cnc-docs` with mkdocs + the Material theme + the pymdownx extensions):
+```sh
+conda env create -f env.yaml
+conda activate cnc-docs
+```
+
+Or into any existing environment with pip:
 ```sh
 pip install mkdocs-material
 ```
+
+> Installing bare `mkdocs` (without `mkdocs-material`) makes `mkdocs serve`
+> abort with `Config value 'theme': Unrecognised theme name: 'material'`,
+> because `mkdocs.yml` uses the Material theme and pymdownx extensions.
 
 ## Commands to run locally
 
@@ -20,7 +32,7 @@ step, no "oops I forgot the helper and lost my edits" failure mode (SL-10.U /
 SL-10.V):
 
 ```sh
-python3 tools/dev.py
+python tools/dev.py
 ```
 
 The shopping page is then at

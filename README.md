@@ -34,8 +34,15 @@ write-through helper together so edits on the Shopping page land directly in
 `docs/data/*.json`):
 
 ```sh
+## One-time: create the docs env (mkdocs + Material theme + pymdownx extensions)
+conda env create -f env.yaml
+conda activate cnc-docs
+
 python3 tools/dev.py
 ```
+
+> A bare `mkdocs` (e.g. conda `base`) has no Material theme and aborts with
+> `Unrecognised theme name: 'material'` — activate `cnc-docs` first.
 
 Then open <http://127.0.0.1:8000/DIY-3-axis-CNC-machine/shopping/>. See
 [`developers.md`](./developers.md) for everything else.
