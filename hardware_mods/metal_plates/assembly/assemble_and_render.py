@@ -99,12 +99,14 @@ FASTENERS: dict[str, dict] = {
 
 # ── Gantry beam / side-plate U-clamp registration (render_improvements "Constellation")
 # The gantry beams are square extrusions of _GANTRY_BEAM_W mm; the side-plate U-fork
-# clamps grip them with a _CLAMP_CUTOUT mm total clearance so the U slides around the
-# beam with maximum metal-on-metal contact.  The notch is centred in the clamp body so
-# its two arms are even.  (Beam cross-section measures 30 mm in the model — the spec's
+# clamps grip them with _CLAMPING_CLEARANCE mm total clearance so the U slides around
+# the beam with maximum metal-on-metal contact.  The notch is centred in the clamp body
+# so its two arms are even.  _CLAMPING_CLEARANCE is ALSO the gap kept between the mid
+# plate and the clamp ("Moving gantrybeams": they almost kiss above & below the beam
+# without touching).  (Beam cross-section measures 30 mm in the model — the spec's
 # "40 mm" doesn't match; using the actual 30 mm here, driven by the constant.)
 _GANTRY_BEAM_W = 30.0
-_CLAMP_CUTOUT  = 1.0
+_CLAMPING_CLEARANCE = 1.0
 
 
 def fastener(size: str) -> dict:
@@ -1534,11 +1536,27 @@ def _build_assembly(document):
     CLAMP_DY, CLAMP_DZ    = -23.0, 3.5
     TOP_Y, TOP_ZW, TOP_ZL = TIE_Y, 262.6, 169.6
 
-    # (a) main body ("mid plate") — two X bores through the plate's depth at Y=-3:
-    #     the bottom tie thread at world Z147 (local Z54) and the top clamp thread at
-    #     world Z262.6 (local Z169.6), so both X studs run through the plate.
+    # Beam-clamp fitment (Constellation "Moving gantrybeams"): the U-fork wraps only the
+    # FRONT half of the Lower beam (arm length _CLAMP_ARM ≈ half the 30 mm beam) and the
+    # mid plate backs the REAR half.  Shared clamp geometry (block (c) reuses these):
+    _CLAMP_X0, _CLAMP_LEN, _CLAMP_ARM = 54.0, 38.0, 15.0     # front X, body depth, arm len
+    _CLAMP_Z0, _CLAMP_H = 18.0, 72.0                          # local Z origin, height
+    _arm_tip = _CLAMP_X0 + _CLAMP_LEN                         # world X of the arm tips (92)
+    _bx1     = GX                                             # Lower-beam rear face X (107)
+    _cc      = _CLAMPING_CLEARANCE
+
+    # (a) main body ("mid plate") — two X bores at Y=-3 (bottom tie thread world Z147 /
+    #     top clamp thread world Z262.6), plus two front reliefs so the beam and clamp no
+    #     longer interpenetrate the plate (shapes are LOCAL, z=93 added at placement):
+    #       · recess the front face to _arm_tip+clearance over the clamp's Z-band, so the
+    #         plate and the clamp arms "almost kiss" above & below the beam;
+    #       · a through-slot (beam + clearance) so the beam's rear half passes cleanly.
     _body = _xbore(_read_shape(BODY), 78.0, 192.0, TIE_Y, TIE_ZL)
     _body = _xbore(_body, 78.0, 192.0, TOP_Y, TOP_ZL)
+    _body = _body.cut(Part.makeBox((_arm_tip + _cc) - 40.0, 40.0, _CLAMP_H,
+                                   FreeCAD.Vector(40.0, -20.0, _CLAMP_Z0)))
+    _body = _body.cut(Part.makeBox((_bx1 + _cc) - (_arm_tip + _cc), 40.0, _GANTRY_BEAM_W + _cc,
+                                   FreeCAD.Vector(_arm_tip + _cc, -20.0, (GZ_L - _cc / 2) - 93.0)))
     gantry(explode_with(add_shape_obj("Side_Plate_Left", _body, z=93), dy=-90))
     gantry(explode_with(add_shape_obj("Side_Plate_Left_R", _body, z=93, mirror_y=396.5), dy=+90))
 
@@ -1565,18 +1583,16 @@ def _build_assembly(document):
                         y=-CLAMP_DY, z=93 + CLAMP_DZ, mirror_y=396.5), dy=+90))
 
     # (c) front U-fork clamp (U-outtake opening +X), seated at the plate's Y so its
-    #     U-floor hole lines up with the plate's X bore for the tie thread
-    # Body extended in X (25 → 53 mm) so the U-notch is deep enough to wrap the
-    # full Lower-beam width (world X77–107) yet stays inside the clamp plate:
-    # 23 mm of solid remains in front of the notch = the U's closed end.
-    _CX, _CY, _CZ = 53.0, 10.0, 72.0
-    _cx0, _cy0, _cz0 = 54.0, TIE_Y - _CY / 2.0, 18.0
+    #     U-floor hole lines up with the plate's X bore for the tie thread.  Arms are
+    #     _CLAMP_ARM long (≈ half the beam — "Edge9 half as long"): they wrap the beam's
+    #     FRONT half; the recessed mid plate (a) backs the rear half.
+    _CX, _CY, _CZ = _CLAMP_LEN, 10.0, _CLAMP_H
+    _cx0, _cy0, _cz0 = _CLAMP_X0, TIE_Y - _CY / 2.0, _CLAMP_Z0
     _clamp = Part.makeBox(_CX, _CY, _CZ, FreeCAD.Vector(_cx0, _cy0, _cz0))
-    # Constellation §2/§3: U-notch height = beam + _CLAMP_CUTOUT clearance (1 mm →
-    # max contact), centred in the body so the two arms are even; notch depth = beam
-    # width so Face2/Edge7 grip Gantry_Beam_Lower (world X77–107, Z132–162).
-    _nd = 30.0                                       # notch depth (X) = beam width
-    _nh = _GANTRY_BEAM_W + _CLAMP_CUTOUT             # notch height (Z) = beam + clearance
+    # U-notch height = beam + _CLAMPING_CLEARANCE (1 mm → max contact), centred in the
+    # body so the two arms are even; notch depth = _CLAMP_ARM (arms wrap the front half).
+    _nd = _CLAMP_ARM                                 # notch/arm depth (X) ≈ half beam
+    _nh = _GANTRY_BEAM_W + _CLAMPING_CLEARANCE       # notch height (Z) = beam + clearance
     _notch = Part.makeBox(_nd + 1, _CY + 2, _nh,
                           FreeCAD.Vector(_cx0 + _CX - _nd, _cy0 - 1, _cz0 + (_CZ - _nh) / 2.0))
     beam_clamp = _xbore(_clamp.cut(_notch), 50.0, 82.0, TIE_Y, TIE_ZL)
