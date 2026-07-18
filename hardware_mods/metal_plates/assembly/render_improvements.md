@@ -35,29 +35,27 @@ Render: `subcomponents/cnc_subcomponent_II_R_explode.gif`
 
 ## III — Gantry & X-axis (three steel cross bars + rails)
 Render: `subcomponents/cnc_subcomponent_III_explode.gif`
-1. For 2 Gantry beams that are on top of eachother (same x-coordinate) that are furthest in the positive x-direction: The mgn12H rails should be on the other side, so  not on the face pointing to negative x-direction, but on the face in positive x-direction. 
 
 ---
 
 ## IV — Vertical engine plate p1of2 (+ MGN12H blocks)
 Render: `subcomponents/cnc_subcomponent_IV_explode.gif`
-1. Like the gantry mgn12h rails, it should be moved further the other side, except the mgn12h rails should rotate 180 degrees around z or y-axis, this plate is already pointing in the right direction, but it currently goes through the gantry beams. Instead its mgn12h blocks should mount on the mgn12H rails that will be moved to the other side of the gantry beams.
 
 
 ## V — Top & bottom stepper plate (stepper, belt/gears, threaded rod)
 Render: `subcomponents/cnc_subcomponent_V_explode.gif`
-
+Move the top stepper holder plate such that cnc_assembly_live.Bolt_P1_Top_TL_M5.Face4 goes through the hole cnc_assembly_live.Top_Stepper_Holder.Edge20 and such that cnc_assembly_live.Bolt_P1_Top_TR_M5.Face4 goes through the hole: cnc_assembly_live.Top_Stepper_Holder.Edge46.
 
 ---
 
 ## VI — Vertical engine plate p2of2 (+ two router clamps + rails)
 Render: `subcomponents/cnc_subcomponent_VI_explode.gif`
-1. This move in positive x-direction such that its mgn12 blocks are on the vertical mgn12h rails of the plate 1of2.
+The vertical engine plate p2of2 should rotate 180 degrees around Z-axis, such that its rail outtakes are over the vertical MGN12 rails. The vertical MGN12H blocks should be bolted on to the vertical engine plate p1of2 (instead of p2of2). The vertical mgn12h rails should then sit into those mgn12h blocks.
 
 ### Plate outtakes & rails
 
 ### Router clamps
-1. These should rotate 180 degrees around the z-axis and be mounted to the front(most positive x-axis) side of the engine plate p2of2.
+
 
 ### Router-clamp holder ("clock-like" shape)
 
