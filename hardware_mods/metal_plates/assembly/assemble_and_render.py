@@ -1575,6 +1575,19 @@ def _build_assembly(document):
         if _gz1 > _gz0:
             front = front.fuse(Part.makeBox(_fb.XLength, _fb.YLength, _gz1 - _gz0,
                                             FreeCAD.Vector(_fb.XMin, _fb.YMin, _gz0)))
+    # "Moving gantrybeams" fitment: relieve the two U-outtakes to the beam profile +
+    # _CLAMPING_CLEARANCE so each U wraps its beam cleanly (no overlap — the imported U
+    # floors sat above the beam bottoms, so the beam's lower ~half poked into solid clamp).
+    # Shapes are LOCAL; the front clamp is placed at z=93+CLAMP_DZ, so world_Z = local_Z +
+    # (93+CLAMP_DZ); map the world beam Z back with −_fz.  X is unmapped; cut full Y so both
+    # the L and the mirrored _R copy are relieved.
+    _fz = 93.0 + CLAMP_DZ
+    for _bz0 in (GZ_LOW, GZ_HIGH):                     # Upper1 (Z132) & Upper2 (Z242) beams
+        front = front.cut(Part.makeBox(_GANTRY_BEAM_W + _cc, 200.0, _GANTRY_BEAM_W + _cc,
+                          FreeCAD.Vector(GX_BACK - _cc / 2, -100.0, (_bz0 - _cc / 2) - _fz)))
+    # Trim the U material that sticks up above the top beam down to beam-top + clearance.
+    front = front.cut(Part.makeBox(_GANTRY_BEAM_W + 40.0, 200.0, 60.0,
+                      FreeCAD.Vector(GX_BACK - 20.0, -100.0, (GZ_HIGH + _GANTRY_BEAM_W + _cc) - _fz)))
     # Seat coplanar with the mid plate: shift (via placement) so the two STEP bolt
     # holes land on the Y=-3 thread plane, lower hole at the tie rod's Z147 (constants).
     # For the mirrored (_R) copy the Y shift flips sign (mirror about Y=396.5).
