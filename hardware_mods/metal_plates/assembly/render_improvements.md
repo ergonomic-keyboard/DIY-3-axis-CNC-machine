@@ -94,7 +94,14 @@ directly beneath `Gantry_Beam_Upper1` (shared X). No other geometry changes.
   maximum metal-to-metal contact.
 - Make both arms of the U **evenly span** the beam, so the front arm
   (`Side_Plate_Left_R.Edge91`) and the back arm (`Side_Plate_Beam_Clamp_R.Edge9`)
-  are equal length, and combined equal the beam width minus the clearance —
+  are equal length, and combined equal the beam width minus the clamping_clearance (parameterised) —
   i.e. `Gantry_Beam_Lower.Edge14` − cutout (e.g. 40 − 1 = 39 mm).
 - The tie bolt must press the two U-shapes **against the gantry beams**, not against
   each other.
+
+
+## Moving ganttrybeams.
+The cnc_assembly_live.Gantry_Beam_Lower.Face2 is positioned correctly and it is in the U shape, however the Side_Plate_Left.Edge90 should move in negative X direction such that it does not overlap with the 2 wrapping part of the U shape of the Side_Plate_Clamp. the mid side plate and the clamp should almost kiss above and below the gantry beams with just the parameterised clamping_clearance (parameterised) between them. Then Side_Plate_Clamp.Edge9 should become roughly half as long.
+
+Also the Gantry_Beam_Upper2.Face2 should move in negative X-direction (such that  falls in the U-clamp and touches Side_Plate_Front_Clamp.Edge13 ). 
+Also the Gantry_Beam_Upper2.Face2 should move the same amount negative X-direction, and it should move in positve z direction. such that it presses against Side_Plate_Front_Clamp.Face22, Side_Plate_Left.Face34 and Side_plate_Left.Face35 and Side_plate_Left.Face51 and Side_plate_Left.Face52 and Side_Plate_Front_Clamp.Face21 ).

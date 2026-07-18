@@ -1475,7 +1475,11 @@ def _build_assembly(document):
         ann.Position  = FreeCAD.Vector(lx, ly, lz)
 
     # ── GANTRY BEAMS ──────────────────────────────────────────────────────────
-    GZ_U, GZ_U2, GZ_L = 148, 118, 78
+    # Constellation §1: clean L-cross-section.  Lower & Upper2 share Z (side by
+    # side); Upper2 & Upper1 share X (Upper1 directly above Upper2) — so Upper2 is
+    # the corner.  Lower's Z-centre is placed on the side-plate clamp/tie line
+    # (world Z147 = GZ_L+15) so the beam clamp grips it with no tie-system change.
+    GZ_U, GZ_U2, GZ_L = 162, 132, 132
     GX = 107
 
     # (c) Same fix as the frame: the three gantry beams were solid blocks — now
@@ -1487,10 +1491,12 @@ def _build_assembly(document):
               for ry in (160, 290, 420, 550, 660)]
     _BW = _GANTRY_BEAM_W
     gantry(explode_with(add_beam("Gantry_Beam_Upper1", _BW, 803, _BW, GX,     -10, GZ_U,  holes=_grail), dz=100))
-    gantry(explode_with(add_beam("Gantry_Beam_Upper2", _BW, 803, _BW, GX+_BW, -10, GZ_U2, holes=_grail), dz=100))
+    gantry(explode_with(add_beam("Gantry_Beam_Upper2", _BW, 803, _BW, GX,     -10, GZ_U2, holes=_grail), dz=100))
     gantry(explode_with(add_beam("Gantry_Beam_Lower",  _BW, 803, _BW, GX-_BW, -10, GZ_L),  dz=100))
-    gantry(explode_with(add_box("Rail_X_Upper", 9, 600, 7, GX+21,      110, GZ_U +30, COL_RAIL), dz=100))
-    gantry(explode_with(add_box("Rail_X_Lower", 9, 600, 7, GX+30+21,   110, GZ_U2+30, COL_RAIL), dz=100))
+    # X-rails follow their beams: the L-corner blocks the beam tops, so the two
+    # guide rails sit on the exposed −X front faces (Upper1 front, Lower front).
+    gantry(explode_with(add_box("Rail_X_Upper", 9, 600, 7, GX-9,      110, GZ_U +12, COL_RAIL), dz=100))
+    gantry(explode_with(add_box("Rail_X_Lower", 9, 600, 7, GX-_BW-9,  110, GZ_L +12, COL_RAIL), dz=100))
 
     # ── SIDE PLATES (II) ──────────────────────────────────────────────────────
     # Complaint II: the side plate had FOUR parts (body + back clip + 2 front clips)
@@ -1560,12 +1566,16 @@ def _build_assembly(document):
 
     # (c) front U-fork clamp (U-outtake opening +X), seated at the plate's Y so its
     #     U-floor hole lines up with the plate's X bore for the tie thread
-    _CX, _CY, _CZ = 25.0, 10.0, 72.0
+    # Body extended in X (25 → 53 mm) so the U-notch is deep enough to wrap the
+    # full Lower-beam width (world X77–107) yet stays inside the clamp plate:
+    # 23 mm of solid remains in front of the notch = the U's closed end.
+    _CX, _CY, _CZ = 53.0, 10.0, 72.0
     _cx0, _cy0, _cz0 = 54.0, TIE_Y - _CY / 2.0, 18.0
     _clamp = Part.makeBox(_CX, _CY, _CZ, FreeCAD.Vector(_cx0, _cy0, _cz0))
-    # Constellation: U-notch height = beam + _CLAMP_CUTOUT clearance (1 mm → max contact),
-    # centred in the clamp body (_cz0+(_CZ-_nh)/2) so the two arms are even.
-    _nd = 18.0                                       # notch depth (X)
+    # Constellation §2/§3: U-notch height = beam + _CLAMP_CUTOUT clearance (1 mm →
+    # max contact), centred in the body so the two arms are even; notch depth = beam
+    # width so Face2/Edge7 grip Gantry_Beam_Lower (world X77–107, Z132–162).
+    _nd = 30.0                                       # notch depth (X) = beam width
     _nh = _GANTRY_BEAM_W + _CLAMP_CUTOUT             # notch height (Z) = beam + clearance
     _notch = Part.makeBox(_nd + 1, _CY + 2, _nh,
                           FreeCAD.Vector(_cx0 + _CX - _nd, _cy0 - 1, _cz0 + (_CZ - _nh) / 2.0))
