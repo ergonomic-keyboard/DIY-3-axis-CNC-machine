@@ -35,7 +35,7 @@ Render: `subcomponents/cnc_subcomponent_II_R_explode.gif`
 
 ## III — Gantry & X-axis (three steel cross bars + rails)
 Render: `subcomponents/cnc_subcomponent_III_explode.gif`
-For 2 Gantry beams that are on top of eachother (same x-coordinate) that are furthest in the positive x-direction: The mgn12H rails should be on the other side, so  not on the face pointing to negative x-direction, but on the face in positive x-direction. 
+1. For 2 Gantry beams that are on top of eachother (same x-coordinate) that are furthest in the positive x-direction: The mgn12H rails should be on the other side, so  not on the face pointing to negative x-direction, but on the face in positive x-direction. 
 
 ---
 
@@ -57,7 +57,7 @@ Render: `subcomponents/cnc_subcomponent_VI_explode.gif`
 ### Plate outtakes & rails
 
 ### Router clamps
-These should rotate 180 degrees around the z-axis and be mounted to the front(most positive x-axis) side of the engine plate p2of2.
+1. These should rotate 180 degrees around the z-axis and be mounted to the front(most positive x-axis) side of the engine plate p2of2.
 
 ### Router-clamp holder ("clock-like" shape)
 

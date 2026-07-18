@@ -902,7 +902,7 @@ def _add_p1of2_outtake_bolts(bolt_size: str = 'M5'):
     Plate world span X[133,143] Y[310,497] Z[88,306]; P1_X=138 is the plate mid-plane so
     the head sits inside the 10 mm thickness.  Tabs at world y=337 and y=402.
     """
-    P1_X = 138          # world X centre of the 10 mm plate
+    P1_X = 138 + _P1_DX          # world X centre of the 10 mm plate (shifted +X, IV.1)
 
     # Top tabs: head recessed in the top slot, thread up & out the top edge
     for tag, wy in [("TL", 337), ("TR", 402)]:
@@ -939,7 +939,7 @@ def _add_mgn12h_block_bolts(bolt_size: str = 'M3'):
     into solid metal, regardless of `bolt_size`.
     """
     fs = fastener(bolt_size)
-    head_base_x = 143 + 13 + fs["head_h"]   # block outer face + head height
+    head_base_x = _P1_BLK_X0 + _MGN_DX + fs["head_h"]   # block outer (+X) face + head height
     for blk_y0, blk_z0 in [
         (444, 140),   # LL
         (444, 240),   # LU
@@ -968,8 +968,30 @@ _P2_RAIL_Z     = (120.0, 160.0, 200.0, 240.0, 280.0)   # rail-bolt Z positions
 _P2_RAIL_W     = 12.0                # rail width (Y)
 _P2_RAIL_TX    = 8.0                 # rail thickness in X (the add_box lx dim)
 _P2_GROOVE_D   = 3.0                 # rail-groove depth into the back face (X)
-_P2_RAIL_X     = 163.0               # rail low-X: bedded 3 mm into the back face
-                                     # (166) and standing 5 mm proud (X163→171)
+_P2_RAIL_X     = 163.0               # (overridden below — Rail_Z now lives on the p1of2
+                                     #  front face, see the Z-axis registration block)
+
+
+# ── Z-axis carriage X-registration (render_improvements III.1 / IV.1 / VI.1 + router) ──
+# The whole moving Z-axis assembly now sits on the +X (back) side of the gantry beams
+# (the two stacked back-column beams span world X149→179).  One clean contact chain,
+# built up in +X (each face touches the next):
+#   beam(149-179) → gantry X-rail(179-188) → p1of2 carriage blocks(188-201) →
+#   p1of2 plate(201-211) → p1of2 vertical Z-rails(211-219) → p2of2 carriage blocks(219-232)
+#   → p2of2 plate(232-242) → router clamps(242-352, on the p2of2 front / +X face).
+_GBEAM_BACK = 179.0                       # gantry beam +X face (GX_BACK 149 + _GANTRY_BEAM_W 30)
+_GRAIL_TX   = 9.0                         # gantry X-rail thickness, proud in +X
+_MGN_DX     = 13.0                        # MGN12H carriage-block depth in X
+_P1_BLK_X0  = _GBEAM_BACK + _GRAIL_TX     # 188 — p1of2 gantry-carriage blocks low-X (→201) [IV.1]
+_P1_X0      = _P1_BLK_X0 + _MGN_DX        # 201 — p1of2 plate low-X (→211)
+_P1_THK     = 10.0                        # p1of2 plate thickness in X
+_P1_DX      = _P1_X0 - 133.0              # +68 — shift for the world-baked p1of2 shape (was X133)
+_RAILZ_X0   = _P1_X0 + _P1_THK            # 211 — p1of2 vertical Z-rail low-X (→219)  [VI.1]
+_P2_BLK_X0  = _RAILZ_X0 + _P2_RAIL_TX     # 219 — p2of2 carriage blocks low-X (→232)
+_P2_X0      = _P2_BLK_X0 + _MGN_DX        # 232 — p2of2 plate low-X (→242)
+_P2_THK     = 10.0                        # p2of2 plate thickness in X
+_P2_DX      = _P2_X0 - 156.0              # +76 — shift for the world-baked p2of2 shape (was X156)
+_P2_RAIL_X  = _RAILZ_X0                    # Rail_Z bedded on the p1of2 front (+X) face (VI.1)
 
 
 def _build_p2of2_plate(path):
@@ -1200,12 +1222,12 @@ def _add_side_plate_clip_bolts(bolt_size: str = 'M5'):
             dy=-expl_y))
 
 
-# Router-clamp placement (WORLD).  render_improvements VI item 2: the clamps mount
-# flush AGAINST the plate's FRONT face (X156), not against the rails (now on the
-# back) and not floating out in space.  The clamp's raw +X edge is at local +55, so
-# _RC_X = 156 − 55 = 101 lands that edge exactly on the front face.  The two clamps
-# are 30 mm (3 cm) further apart than before — the bottom one dropped.
-_RC_X     = 101.0        # clamp centre X → back (high-X) edge seats on X156 (item 2)
+# Router-clamp placement (WORLD).  render_improvements Router.1: the clamps rotate 180°
+# about Z and mount on the p2of2 FRONT (most +X) face.  With p2of2 shifted to X232→242,
+# its front face is X242; the clamp's raw half-span is 55 mm, so centring it at
+# _RC_X = 242 + 55 puts its low-X (mounting) face on X242 and it extends +X to X352.
+_RC_YAW   = 180.0                         # Router.1: rotate the clamp 180° about Z
+_RC_X     = _P2_X0 + _P2_THK + 55.0       # 297 — clamp centre; −X face seats on p2of2 front (X242)
 _RC_Z_BOT = 130.0        # bottom clamp (was 160 — dropped 30 mm / 3 cm)
 _RC_Z_TOP = 185.0        # top clamp
 
@@ -1221,7 +1243,8 @@ _RC_MOUNT_YL  = 470.5                      # the STEP's existing LEFT-side mount
 _RC_MOUNT_D   = 6.5                        # matches the STEP hole Edge5 (r3.25)
 _RC_POCKET    = (5.0, 14.0, 14.0)          # take-out (X depth into slit face, Y, Z)
 _RC_BORE_R    = 32.5                        # router bore radius (from the STEP)
-_RC_BORE_Y0   = 433.0                       # STEP bore centre Y (off-centre by +8)
+_RC_BORE_Y0   = 425.0 - 8.0                 # 417 — STEP bore Y AFTER the 180° Z flip
+                                            # (Router.1): the +8 off-centre bore mirrors to −8
 _RC_BORE_Y1   = 425.0                       # recentred bore Y (item 11) = clamp centre
 
 
@@ -1235,11 +1258,12 @@ def _build_router_clamp(path, wz):
     shape.  The STEP already carries one slit from its BACK edge to the bore; the
     second slit is mirrored to the FRONT edge at the X centre."""
     shape = Part.Shape(); shape.read(path)
-    pl = FreeCAD.Placement(FreeCAD.Vector(_RC_X, 425.0, wz), FreeCAD.Rotation())
+    pl = FreeCAD.Placement(FreeCAD.Vector(_RC_X, 425.0, wz),
+                           FreeCAD.Rotation(_RC_YAW, 0.0, 0.0))   # Router.1: 180° about Z
     shape = shape.transformShape(pl.Matrix, True)
     b = shape.BoundBox
     xc = (b.XMin + b.XMax) / 2.0
-    xf, xb = b.XMin, b.XMax                        # clamp front (X46) / plate-side (X156)
+    xf, xb = b.XMin, b.XMax                        # clamp: −X mounting face (X242) / +X outer (X352)
     zc = wz
 
     # item 11: the STEP bore (router outtake) sits at Y433 — +8 mm off the clamp centre
@@ -1288,7 +1312,7 @@ def _add_router_clamp_bolts(bolt_size: str = 'M4'):
     Also adds the plate-MOUNT bolts (render_improvements VI items 3/4/5): one M6 per
     X-through mount hole (Y379.5 + Y470.5), head at the clamp FRONT face, shaft +X
     through the clamp and into the plate front."""
-    xf = _RC_X - 55.0                            # clamp front face (X46)
+    xb = _RC_X + 55.0                            # clamp outer (+X) face (X352)
     for clamp_z in (_RC_Z_BOT, _RC_Z_TOP):
         for cy in (470,):            # single cross-bolt above the bore (item 9)
             gantry(z_slide(explode_with(
@@ -1296,11 +1320,12 @@ def _add_router_clamp_bolts(bolt_size: str = 'M4'):
                          _RC_X - 7, cy, clamp_z,
                          axis='+x', size=bolt_size, shaft_l=28),
                 dx=240)))
-        # plate-mount bolts: head at the front face, shaft +X through into the plate
+        # plate-mount bolts (render_improvements Router.1 flipped the clamp): head at the
+        # clamp OUTER (+X) face, shaft −X through the clamp into the p2of2 front behind it.
         for cy in (_RC_MOUNT_YR, _RC_MOUNT_YL):
             gantry(z_slide(explode_with(
                 add_bolt(f"Bolt_RC_Mount_{int(clamp_z)}_{int(cy)}_M6",
-                         xf, cy, clamp_z, axis='+x', size='M6', shaft_l=115),
+                         xb, cy, clamp_z, axis='-x', size='M6', shaft_l=115),
                 dx=240)))
 
 
@@ -1325,40 +1350,39 @@ def _add_frame_rail_bolts(bolt_size: str = 'M3'):
 
 def _add_gantry_rail_bolts(bolt_size: str = 'M3'):
     """
-    Complaint III-1/2: the screws/bolts that attach the two X-axis rails
-    (Rail_X_Upper on beam Upper1, Rail_X_Lower on beam Upper2) to the steel
-    gantry beams were missing.  Head on top of each rail, shaft −Z through the
-    7 mm rail and into the beam below.  Bolts move with the gantry (X) and share
-    the rails' explode lift (dz=100).
+    Complaint III-1/2 + render_improvements III.1: the two X-axis rails now sit on the
+    beams' +X face (Rail_X_Upper on Upper2, Rail_X_Lower on Upper1), so the mounting
+    screws run −X: head on the rail's outer (+X) face, shaft through the rail and into
+    the beam behind it.  Bolts move with the gantry (X) and share the rails' explode lift.
     """
     fs = fastener(bolt_size)
-    # (tag, rail centre-X, rail top-Z)
-    for tag, rcx, rtop in [("U", 132.5, 185), ("L", 162.5, 155)]:
+    head_x = _GBEAM_BACK + _GRAIL_TX + fs["head_h"]   # rail outer (+X) face + head
+    # (tag, rail centre-Z): U rides Upper2 (rail Z254-261), L rides Upper1 (rail Z144-151)
+    for tag, rz_c in [("U", 257.5), ("L", 147.5)]:
         for ry in (160, 290, 420, 550, 660):
             gantry(explode_with(
                 add_bolt(f"Bolt_RailX_{tag}_{ry}_{bolt_size}",
-                         rcx, ry, rtop + fs["head_h"], axis='-z',
+                         head_x, ry, rz_c, axis='-x',
                          size=bolt_size, shaft_l=22),
                 dz=100))
 
 
 def _add_p2of2_rail_bolts(bolt_size: str = 'M3'):
     """
-    Complaint VI (plate rails): the two Z-rails (Rail_Z_Left / _Right) bolt onto
-    the p2of2 sliding plate, but the rail bolts themselves were missing.  With the
-    rails moved to the BACK face (item 1), the head sits on the rail's outer (high
-    X) face and the shaft runs −X through the rail and into p2of2 in front of it.
-    Bolts slide with p2of2 (z_slide) and share each rail's explode offsets.
+    render_improvements VI.1: the two Z-rails (Rail_Z_Left / _Right) now bolt onto the
+    p1of2 FRONT face (they belong to p1of2, gripped by p2of2's carriages).  The head sits
+    on the rail's outer (+X) face and the shaft runs −X through the rail into p1of2 behind
+    it.  Fixed to p1of2 → gantry group only (not z_slide).
     """
     fs = fastener(bolt_size)
-    rail_back_x = _P2_RAIL_X + _P2_RAIL_TX          # outer (high-X) face of the rail
+    rail_back_x = _P2_RAIL_X + _P2_RAIL_TX          # outer (+X) face of the rail (219)
     for side, rcy, expl_y in [("L", _P2_RAIL_YC[0], +40), ("R", _P2_RAIL_YC[1], -40)]:
         for rz in _P2_RAIL_Z:
-            gantry(z_slide(explode_with(
+            gantry(explode_with(
                 add_bolt(f"Bolt_RailZ_{side}_{int(rz)}_{bolt_size}",
                          rail_back_x + fs["head_h"], rcy, rz, axis='-x',
                          size=bolt_size, shaft_l=18),
-                dy=expl_y, dx=130)))
+                dy=expl_y, dx=130))
 
 
 def _add_frame_tie_rods(rod_size: str = 'M8'):
@@ -1491,15 +1515,21 @@ def _build_assembly(document):
     # are drilled with the MGN12H X-rail mounting holes (Ø3.4) that pair with the
     # rail screws from _add_gantry_rail_bolts.  The two Y-tie rods run the full
     # width inside the now-hollow beams (open ends), so they need no cross-holes.
-    _grail = [{'axis': 'z', 'u': 25.5, 'v': ry + 10, 'd': hole_d('M3')}
+    # render_improvements III.1: the two stacked back-column beams carry their rails on
+    # the +X face now, so the MGN12H mounting holes pierce that +X face (axis 'x';
+    # (u,v)=(local Y, local Z)).  v = local Z of the rail centre (rail at beam-Z +12..+19
+    # → centre +15.5); u = local Y (beam placed at world y=-10, so local = world+10).
+    _grail = [{'axis': 'x', 'u': ry + 10, 'v': 15.5, 'd': hole_d('M3')}
               for ry in (160, 290, 420, 550, 660)]
     _BW = _GANTRY_BEAM_W
     gantry(explode_with(add_beam("Gantry_Beam_Upper1", _BW, 803, _BW, GX_BACK, -10, GZ_LOW,  holes=_grail), dz=100))
     gantry(explode_with(add_beam("Gantry_Beam_Upper2", _BW, 803, _BW, GX_BACK, -10, GZ_HIGH, holes=_grail), dz=100))
     gantry(explode_with(add_beam("Gantry_Beam_Lower",  _BW, 803, _BW, GX_LOW,  -10, GZ_LOW),  dz=100))
-    # X-rails follow the back-column beams (Upper1 corner + Upper2 top) onto their −X faces.
-    gantry(explode_with(add_box("Rail_X_Upper", 9, 600, 7, GX_BACK-9, 110, GZ_HIGH+12, COL_RAIL), dz=100))
-    gantry(explode_with(add_box("Rail_X_Lower", 9, 600, 7, GX_BACK-9, 110, GZ_LOW +12, COL_RAIL), dz=100))
+    # render_improvements III.1: the X-rails move from the beams' −X face onto their +X
+    # (back) face — so the p1of2 carriage blocks ride them from +X, on the far side of the
+    # beams.  Rail low-X = the beam back face (_GBEAM_BACK), proud +X by _GRAIL_TX.
+    gantry(explode_with(add_box("Rail_X_Upper", _GRAIL_TX, 600, 7, _GBEAM_BACK, 110, GZ_HIGH+12, COL_RAIL), dz=100))
+    gantry(explode_with(add_box("Rail_X_Lower", _GRAIL_TX, 600, 7, _GBEAM_BACK, 110, GZ_LOW +12, COL_RAIL), dz=100))
 
     # ── SIDE PLATES (II) ──────────────────────────────────────────────────────
     # Complaint II: the side plate had FOUR parts (body + back clip + 2 front clips)
@@ -1660,35 +1690,42 @@ def _build_assembly(document):
     # — floated in space. See assembly_description.md "p1of2 orientation (desired)".)
     P1 = (f"{METAL}/IV_engine_plate_p1of2/M36a_vertical_plate"
           "/5_models_and_renders/starting_point_rect_metal.step")
+    # render_improvements IV.1: the whole p1of2 assembly moves to the +X side of the
+    # gantry beams (shift +_P1_DX) so its carriage blocks ride the gantry X-rails that
+    # moved to the beams' +X face (III.1), instead of the plate ploughing through the
+    # beams.  The plate itself is already correctly oriented — pure +X translation.
     if os.path.exists(P1):
-        _p1obj = add_shape_obj("Engine_Holder_P1", _build_p1of2_plate(P1))   # IV item 3
+        _p1obj = add_shape_obj("Engine_Holder_P1", _build_p1of2_plate(P1), x=_P1_DX)  # IV.1 + item 3
     else:
-        _p1obj = add_step("Engine_Holder_P1", P1, x=133, y=369, z=224, yaw=0,
+        _p1obj = add_step("Engine_Holder_P1", P1, x=133+_P1_DX, y=369, z=224, yaw=0,
                           fallback_box=(10, 187, 218))
     gantry(explode_with(_p1obj, dx=80))
 
-    # Z-rails: slide with p2of2
-    # Rails bedded into their BACK-face grooves (item 1/5): rail low-X at _P2_RAIL_X.
-    gantry(z_slide(explode_with(add_box("Rail_Z_Left",  _P2_RAIL_TX,_P2_RAIL_W,200, _P2_RAIL_X,451,100,COL_RAIL), dy=+40,dx=130)))
-    gantry(z_slide(explode_with(add_box("Rail_Z_Right", _P2_RAIL_TX,_P2_RAIL_W,200, _P2_RAIL_X,386,100,COL_RAIL), dy=-40,dx=130)))
+    # Vertical Z-rails on the p1of2 FRONT (+X) face (render_improvements VI.1: p2of2's
+    # blocks ride the p1of2 rails).  Fixed to p1of2 → gantry group only (they do NOT
+    # z-slide; the p2of2 carriages slide along them).  Low-X at _P2_RAIL_X (=_RAILZ_X0).
+    gantry(explode_with(add_box("Rail_Z_Left",  _P2_RAIL_TX,_P2_RAIL_W,200, _P2_RAIL_X,451,100,COL_RAIL), dx=130))
+    gantry(explode_with(add_box("Rail_Z_Right", _P2_RAIL_TX,_P2_RAIL_W,200, _P2_RAIL_X,386,100,COL_RAIL), dx=130))
 
-    # MGN12H blocks on the p1of2 BACK face (X143→156): horizontal-rail carriages.
+    # p1of2 gantry-carriage MGN12H blocks (render_improvements IV.1): ride the gantry
+    # X-rails on the beams' +X face.  Low-X at _P1_BLK_X0 (188→201), on the p1of2 −X face.
     for blk_name, by, bz in [
         ("MGN12H_Block_LL", 444, 140),
         ("MGN12H_Block_LU", 444, 240),
         ("MGN12H_Block_RL", 379, 140),
         ("MGN12H_Block_RU", 379, 240),
     ]:
-        gantry(explode_with(add_box(blk_name, 13, 26, 34, 143, by, bz, COL_BLOCK), dx=130))
-    # render_improvements IV item 1: the vertical-rail carriages must ALSO be on the
-    # p1of2 FRONT face (X120→133), not only the horizontal-rail blocks on the back.
+        gantry(explode_with(add_box(blk_name, _MGN_DX, 26, 34, _P1_BLK_X0, by, bz, COL_BLOCK), dx=130))
+    # p2of2 carriage MGN12H blocks (render_improvements VI.1): ride the p1of2 vertical
+    # Z-rails.  Low-X at _P2_BLK_X0 (219→232), on the p2of2 −X face; they slide in Z with
+    # p2of2 → gantry + z_slide (matching the p2of2 plate below).
     for blk_name, by, bz in [
         ("MGN12H_Block_Front_LL", 444, 140),
         ("MGN12H_Block_Front_LU", 444, 240),
         ("MGN12H_Block_Front_RL", 379, 140),
         ("MGN12H_Block_Front_RU", 379, 240),
     ]:
-        gantry(explode_with(add_box(blk_name, 13, 26, 34, 120, by, bz, COL_BLOCK), dx=-130))
+        gantry(z_slide(explode_with(add_box(blk_name, _MGN_DX, 26, 34, _P2_BLK_X0, by, bz, COL_BLOCK), dx=190)))
 
     # p2of2 (M36.b): sliding plate.  Rebuilt by _build_p2of2_plate (VI plate items
     # 1-6) — the shape is already in world coords, so it is added at the origin.
@@ -1696,11 +1733,13 @@ def _build_assembly(document):
     VI = f"{METAL}/VI_engine_plate_p2of2_and_router"
     P2 = (f"{VI}/M36b_vertical_plate"
           "/5_models_and_renders/engine_holder_vertical_plate_p2of2.step")
+    # render_improvements VI.1: p2of2 moves +X (shift +_P2_DX) so its carriage blocks sit
+    # on the p1of2 vertical Z-rails.  Pure +X translation of the world-baked shape.
     if os.path.exists(P2):
-        _p2obj = add_shape_obj("Engine_Holder_P2", _build_p2of2_plate(P2))
+        _p2obj = add_shape_obj("Engine_Holder_P2", _build_p2of2_plate(P2), x=_P2_DX)
     else:
         _p2obj = add_step("Engine_Holder_P2", P2,
-                          x=166, y=425, z=210, yaw=90, pitch=180, roll=-90,
+                          x=166+_P2_DX, y=425, z=210, yaw=90, pitch=180, roll=-90,
                           fallback_box=(6, 145, 200))
     gantry(z_slide(explode_with(_p2obj, dx=190)))
 
