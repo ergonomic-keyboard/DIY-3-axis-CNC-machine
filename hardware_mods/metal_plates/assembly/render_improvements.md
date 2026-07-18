@@ -70,3 +70,16 @@ Add O03 acme threaded rod nut (8x8mm) (bolt that to a small rectangle with a hal
 O02 acme threaded rod 300mm 8x8mm
 and the O19 KFL08 rod beraring(8mm)
 To the 3d render, and add its bolts.
+
+## Move
+Ensure the bolt Bolt_Bearing_Top_L.Face3 goes through Top_Stepper_Holder.Edge27 (and such that the Bearing_KL09_Top element is on top of Top_Stepper_Holder.Face3.
+
+
+
+
+and that the Bolt_Bearing_Top_R.Face3 bolt is through Top_Stepper_Holder.Edge44. Ensure Acme_Rod rod goes through Top_Stepper_Holder.Edge43 hole.
+
+
+
+
+If there is something that does not fit, ask me how to resolve.

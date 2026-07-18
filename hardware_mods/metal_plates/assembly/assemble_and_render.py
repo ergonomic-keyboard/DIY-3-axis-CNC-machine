@@ -503,7 +503,8 @@ def _assign_stages():
             _STAGE[name] = 3
         elif any(tok in name for tok in (
                 "Engine_Holder", "Rail_Z", "MGN12H_Block",
-                "Router_Clamp", "Top_Stepper", "Engine_Sideways")):
+                "Router_Clamp", "Top_Stepper", "Engine_Sideways",
+                "Acme_Rod", "Acme_Nut_Holder", "Bearing_KFL08")):
             _STAGE[name] = 4
         else:
             _STAGE[name] = 5   # all bolts, nuts, threaded rods
@@ -554,13 +555,16 @@ def _classify_subcomponent(name: str) -> str:
             name.startswith("Bolt_Blk_") or "Bolt_P1_" in name or
             "Nut_P1_" in name):
         return "IV"
-    # V. Z-axis drive (top stepper holder + its bolts)
-    if "Top_Stepper" in name or name.startswith("Bolt_TSH_"):
+    # V. Z-axis drive (top stepper holder + acme rod + KFL08 bearings + their bolts)
+    if ("Top_Stepper" in name or name.startswith("Bolt_TSH_") or
+            name.startswith("Acme_Rod") or name.startswith("Bearing_KFL08") or
+            name.startswith("Bolt_Bearing_")):
         return "V"
-    # VI. Engine plate p2of2 & router
+    # VI. Engine plate p2of2 & router (+ the acme nut/holder integrated into p2of2)
     if (name == "Engine_Holder_P2" or "Router_Clamp" in name or
             name.startswith("Bolt_P2_") or name.startswith("Bolt_RC_") or
-            name.startswith("Rail_Z") or name.startswith("Bolt_RailZ_")):
+            name.startswith("Rail_Z") or name.startswith("Bolt_RailZ_") or
+            name.startswith("Acme_Nut") or name.startswith("Bolt_Acme_")):
         return "VI"
     # Default catch-all: axis indicator etc.
     return "I"
@@ -1096,6 +1100,94 @@ def _build_p1of2_plate(path):
     shape = shape.transformShape(pl.Matrix, True)      # bake add_step's placement → world
     for y0, y1 in ((332.0, 341.0), (397.0, 406.0)):    # the two tab channel Y-ranges
         shape = shape.cut(Part.makeBox(12.0, y1 - y0, 26.0, FreeCAD.Vector(132.0, y0, 86.0)))
+    # acme-rod clearance bore (user 2026-07-18): the drive is anchored to the stepper's
+    # Edge43 hole, so the Ø8 rod passes straight down through this plate — drill a Ø10
+    # through-bore at the rod centreline (matches the stepper Edge43 Ø10).  This shape is
+    # returned PRE-shift and add_shape_obj adds +_P1_DX in X, so cut at (rodX − _P1_DX).
+    shape = shape.cut(Part.makeCylinder(5.0, 260.0,
+                                        FreeCAD.Vector(_ACME_ROD_X - _P1_DX, _ACME_Y, 80.0)))
+    try:
+        shape = shape.removeSplitter()
+    except Exception:
+        pass
+    return shape
+
+
+# ── Acme Z-drive: rod (O02) + nut (O03) + KFL08 bearings (O19) ─────────────────
+# render_improvements "Additional components", then re-anchored to the stepper drive
+# (user 2026-07-18): the whole drive is registered to the Top_Stepper_Holder (M40.a)
+# top face + holes, NOT the p2of2 plate:
+#   * Acme_Rod runs through the stepper's Ø10 rod hole Edge43 @ (X206, Y369.5);
+#   * Bearing_KFL08_Top sits ON the stepper top face Face3 (Z312) and bolts through
+#     Edge27 (206,357.5) & Edge44 (206,381.5) — the two Ø3.4 (M3) holes, ±12 mm in Y;
+#   * the rod passes DOWN through the fixed p1of2 plate (a Ø10 clearance bore is cut
+#     for it in _build_p1of2_plate), so the nut + keyhole holder + mount bolt sit in
+#     the clear space BELOW p1of2 (they no longer engage the p2of2 Face29/34/35
+#     outtake — this is a visual placement, not a working leadscrew nut).
+_ACME_ROD_X    = 206.0                    # rod centreline X = stepper Edge43 hole centre
+_ACME_Y        = 369.5                    # rod centreline Y = stepper Edge43 hole centre
+_ACME_ROD_D    = 8.0                      # O02 acme rod Ø (8×8 mm)
+_ACME_ROD_Z0   = 40.0                     # rod bottom (just below the bottom bearing)
+_ACME_ROD_Z1   = 324.0                    # rod top (up through the top bearing on Face3)
+_TSH_FACE3_Z   = 312.0                    # Top_Stepper_Holder.Face3 top face (bearing seats here)
+_ACME_HOLD_W   = 24.5                     # holder Y width
+_ACME_HOLD_R   = _ACME_HOLD_W / 2.0       # 12.25 — half-circle radius
+_ACME_HOLD_Z0  = 62.0                     # holder underside (below p1of2, above bottom bearing)
+_ACME_HOLD_TH  = 10.0                     # holder slab thickness (Z)
+_ACME_HOLD_LEN = 14.0                     # rectangle length in +X (from the rod bore)
+_ACME_BOLT_DX  = 10.0                     # mount-bolt bore offset +X from the rod centreline
+_ACME_BOLT_SZ  = 'M5'
+_ACME_NUT_AF   = 13.0                     # O03 acme nut across-flats
+_ACME_NUT_TH   = 8.0                      # O03 acme nut thickness (8×8)
+
+
+def _build_acme_holder():
+    """Horizontal keyhole nut-holder plate, world coords.  Rounded half-circle end at
+    −X (rod bore) + square rectangle end at +X (mount-bolt bore)."""
+    rx, y, r = _ACME_ROD_X, _ACME_Y, _ACME_HOLD_R
+    z0, th, w = _ACME_HOLD_Z0, _ACME_HOLD_TH, _ACME_HOLD_W
+    cap = Part.makeCylinder(r, th, FreeCAD.Vector(rx, y, z0))            # −X rounded end
+    rect = Part.makeBox(_ACME_HOLD_LEN, w, th,
+                        FreeCAD.Vector(rx, y - w / 2.0, z0))            # +X rectangle body
+    shape = cap.fuse(rect)
+    shape = shape.cut(Part.makeCylinder(_ACME_ROD_D / 2.0 + 0.25, th + 2,   # rod bore Ø8.5
+                                        FreeCAD.Vector(rx, y, z0 - 1)))
+    _bd = FASTENERS[_ACME_BOLT_SZ]["clearance"]
+    shape = shape.cut(Part.makeCylinder(_bd / 2.0, th + 2,                  # mount-bolt bore
+                                        FreeCAD.Vector(rx + _ACME_BOLT_DX, y, z0 - 1)))
+    try:
+        shape = shape.removeSplitter()
+    except Exception:
+        pass
+    return shape
+
+
+_ACME_BRG_SPAN = 24.0                     # KFL08 bolt-hole centre spacing (Y) = Edge27↔Edge44 (±12)
+_ACME_BRG_FLW  = 20.0                     # flange width in X
+_ACME_BRG_CAPR = 10.0                     # end-cap radius (flange Y347.5-391.5 stays on the stepper)
+_ACME_BRG_BOLT = 'M3'                     # Edge27/Edge44 are Ø3.4 (M3) holes
+
+
+def _build_kfl08(cz):
+    """A KFL08 2-bolt oval flange bearing (Ø8 bore), bore vertical (Z), centred at
+    (_ACME_ROD_X, _ACME_Y, cz), flange UNDERSIDE at cz-4.  The central boss rises
+    ABOVE the flange (so the flange can seat flat on a surface, e.g. the stepper
+    Face3, without the boss fouling it).  Ø8 bore + two Ø3.4 (M3) bolt holes."""
+    rx, y = _ACME_ROD_X, _ACME_Y
+    fl_th, fl_w = 8.0, _ACME_BRG_FLW       # flange thickness (Z) / width (X)
+    span, cap_r = _ACME_BRG_SPAN, _ACME_BRG_CAPR
+    z0 = cz - fl_th / 2.0
+    # stadium flange = box + two end caps, long axis Y
+    body = Part.makeBox(fl_w, span, fl_th, FreeCAD.Vector(rx - fl_w / 2.0, y - span / 2.0, z0))
+    for yy in (y - span / 2.0, y + span / 2.0):
+        body = body.fuse(Part.makeCylinder(cap_r, fl_th, FreeCAD.Vector(rx, yy, z0)))
+    boss = Part.makeCylinder(13.0, fl_th + 6.0, FreeCAD.Vector(rx, y, z0))         # boss rises above
+    shape = body.fuse(boss)
+    shape = shape.cut(Part.makeCylinder(_ACME_ROD_D / 2.0 + 0.3, fl_th + 16,
+                                        FreeCAD.Vector(rx, y, z0 - 5)))            # Ø8 bore
+    _bhd = FASTENERS[_ACME_BRG_BOLT]["clearance"]
+    for yy in (y - span / 2.0, y + span / 2.0):                                    # 2× M3 holes
+        shape = shape.cut(Part.makeCylinder(_bhd / 2.0, fl_th + 2, FreeCAD.Vector(rx, yy, z0 - 1)))
     try:
         shape = shape.removeSplitter()
     except Exception:
@@ -1806,6 +1898,46 @@ def _build_assembly(document):
         add_shape_obj("Router_Clamp_Bottom", _build_router_clamp(_rcb, _RC_Z_BOT)), dx=240)))
     gantry(z_slide(explode_with(
         add_shape_obj("Router_Clamp_Top", _build_router_clamp(_rct, _RC_Z_TOP)), dx=240)))
+
+    # ── ACME Z-DRIVE (anchored to the stepper — user 2026-07-18) ───────────────
+    # O02 acme rod (Ø8, vertical) through the stepper Ø10 rod hole Edge43; O19 KFL08
+    # top bearing seated ON the stepper Face3 (Z312), bolted through Edge27/Edge44
+    # (M3); rod passes down through the p1of2 Ø10 clearance bore to a bottom bearing.
+    # O03 nut + keyhole holder + mount bolt sit BELOW p1of2 (clear space) — detached
+    # from the p2of2 outtake.  The whole drive is gantry-fixed (rod rotates in place,
+    # it does NOT z-slide with the plate).
+    _acme_rod = add_shape_obj("Acme_Rod",
+        Part.makeCylinder(_ACME_ROD_D / 2.0, _ACME_ROD_Z1 - _ACME_ROD_Z0,
+                          FreeCAD.Vector(_ACME_ROD_X, _ACME_Y, _ACME_ROD_Z0)),
+        color=COL_RAIL)
+    gantry(explode_with(_acme_rod, dz=90))
+    _THREAD_SPEC[_acme_rod.Name] = "O02 acme rod Ø8×300 mm (8 mm lead)"
+
+    gantry(explode_with(
+        add_shape_obj("Acme_Nut_Holder", _build_acme_holder(), color=COL_METAL), dz=-70))
+    _acme_nut = add_nut("Acme_Nut", _ACME_ROD_X, _ACME_Y,
+                        _ACME_HOLD_Z0 + _ACME_HOLD_TH + _ACME_NUT_TH / 2.0,
+                        axis='+z', size=_ACME_BOLT_SZ,
+                        af=_ACME_NUT_AF, thick=_ACME_NUT_TH, inner_d=_ACME_ROD_D)
+    _THREAD_SPEC[_acme_nut.Name] = "O03 acme nut 8×8 mm"
+    gantry(explode_with(_acme_nut, dz=-90))
+
+    # mount bolt through the holder rectangle (head just below the holder, shaft up)
+    _hb = add_bolt("Bolt_Acme_Holder", _ACME_ROD_X + _ACME_BOLT_DX, _ACME_Y,
+                   _ACME_HOLD_Z0 - 8.0, axis='+z',
+                   size=_ACME_BOLT_SZ, shaft_l=_ACME_HOLD_TH + 12.0)
+    gantry(explode_with(_hb, dz=-110))
+
+    # O19 KFL08 bearings — top seats on the stepper Face3 (flange underside Z312),
+    # bottom below p1of2; two M3 bolts each through Edge27/Edge44 (heads on flange top).
+    for _tag, _bz in (("Top", _TSH_FACE3_Z + 4.0), ("Bot", 52.0)):
+        _brg = add_shape_obj(f"Bearing_KFL08_{_tag}", _build_kfl08(_bz), color=COL_METAL)
+        gantry(explode_with(_brg, dz=90 if _tag == "Top" else -90))
+        _THREAD_SPEC[_brg.Name] = "O19 KFL08 rod bearing (Ø8)"
+        for _s, _yy in (("L", _ACME_Y - _ACME_BRG_SPAN / 2.0), ("R", _ACME_Y + _ACME_BRG_SPAN / 2.0)):
+            _bb = add_bolt(f"Bolt_Bearing_{_tag}_{_s}", _ACME_ROD_X, _yy, _bz + 4.0 + 4.0,
+                           axis='-z', size=_ACME_BRG_BOLT, shaft_l=14.0)
+            gantry(explode_with(_bb, dz=90 if _tag == "Top" else -90))
 
     # ── TOP STEPPER HOLDER (M40.a) ────────────────────────────────────────────
     # Loaded + fixed by _build_stepper_plate (V items 1,3,5,6); the shape is in world
