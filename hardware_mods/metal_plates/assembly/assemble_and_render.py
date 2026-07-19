@@ -1260,6 +1260,11 @@ _MGN_CARR_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendo
 _MGN_RAIL_CACHE = None
 _MGN_CARR_CACHE = None
 _MGN_M = FreeCAD.Matrix(0, 1, 0, 0,  0, 0, 1, 0,  1, 0, 0, 0,  0, 0, 0, 1)   # world = (STEP.y, STEP.z, STEP.x)
+# render_improvements (user 2026-07-19): the MGN stack goes frame → rail → block → side plate, from
+# INSIDE (+Y left) to OUTSIDE (−Y left).  So the carriage mount-face points OUTWARD and the rail sits
+# INBOARD (against the frame).  _SP_DY shifts the side plates + their clamps/tie rods outward (and the
+# gantry beams extend) to open the 13 mm the rail+block need between the plate and the frame.
+_SP_DY = 13.0
 # After _MGN_M: carriage bbox X[197.3,242.7] Y[303,313] Z[521.5,548.5]; rail X[30,430] Y[300,308] Z[529,541].
 _MGN_CARR_MFACE_Y = 313.0     # carriage mount-face → world Y (before translate)
 _MGN_CARR_CX      = 220.0     # carriage centre → world X
@@ -1279,9 +1284,10 @@ def _build_mgn(which, dx, dy, dz, mirror_y=None):
         if _MGN_CARR_CACHE is None:
             _s = Part.Shape(); _s.read(_MGN_CARR_PATH); _MGN_CARR_CACHE = _s
         s = _MGN_CARR_CACHE.copy()
-    # rotation (_MGN_M) + translation baked into one matrix (separate .translate() is a no-op on
-    # the faceted Part.Shape).  world = (STEP.y+dx, STEP.z+dy, STEP.x+dz).
-    mat = FreeCAD.Matrix(0, 1, 0, dx,  0, 0, 1, dy,  1, 0, 0, dz,  0, 0, 0, 1)
+    # rotation + translation baked into one matrix (separate .translate() is a no-op on the faceted
+    # Part.Shape).  Row1 is −STEP.z so the stack flips: carriage mount-face → −Y (outer, to the plate),
+    # rail base → +Y (inboard, to the frame).  world = (STEP.y+dx, −STEP.z+dy, STEP.x+dz).
+    mat = FreeCAD.Matrix(0, 1, 0, dx,  0, 0, -1, dy,  1, 0, 0, dz,  0, 0, 0, 1)
     s = s.transformShape(mat, True)
     if mirror_y is not None:
         s = s.mirror(FreeCAD.Vector(0, mirror_y, 0), FreeCAD.Vector(0, 1, 0))
@@ -1745,11 +1751,11 @@ def _build_assembly(document):
             explode_with(add_beam(f"Frame_Vert_{vx}_{vy}", 30, 30, 80, vx, vy, -110,
                                   holes=[{'axis': 'z', 'u': 15, 'v': 15, 'd': hole_d('M8')}]), dz=-120)
 
-    # render_improvements (user 2026-07-19): use the real MGN12H rail STEP, on the plates' OUTER
-    # side (Left → Y−19..−11, Right → Y803..811), running along X.  Placed at pre-lift Z−6..6 so the
+    # render_improvements (user 2026-07-19): MGN12H rail STEP INBOARD against the frame (rail base on
+    # the frame side-beam face: Left Y0, Right Y793), running along X.  Placed at pre-lift Z−6..6 so the
     # frame lift (_FRAME_DZ=108) lands it at Z102-114 — the band the side-plate carriages wrap.
-    explode_with(add_shape_obj("Rail_Y_Left",  _build_mgn('rail', 30.0, -319.0, -535.0), color=COL_RAIL), dy=-80)
-    explode_with(add_shape_obj("Rail_Y_Right", _build_mgn('rail', 30.0, -319.0, -535.0, mirror_y=396.5), color=COL_RAIL), dy=+80)
+    explode_with(add_shape_obj("Rail_Y_Left",  _build_mgn('rail', 30.0, 300.0, -535.0), color=COL_RAIL), dy=-80)
+    explode_with(add_shape_obj("Rail_Y_Right", _build_mgn('rail', 30.0, 300.0, -535.0, mirror_y=396.5), color=COL_RAIL), dy=+80)
 
     # ── AXIS INDICATOR ────────────────────────────────────────────────────────
     AL, AW = 160, 18
@@ -1788,9 +1794,10 @@ def _build_assembly(document):
     _grail = [{'axis': 'x', 'u': ry + 10, 'v': 15.5, 'd': hole_d('M3')}
               for ry in (160, 290, 420, 550, 660)]
     _BW = _GANTRY_BEAM_W
-    gantry(explode_with(add_beam("Gantry_Beam_Upper1", _BW, 803, _BW, GX_BACK, -10, GZ_LOW,  holes=_grail), dz=100))
-    gantry(explode_with(add_beam("Gantry_Beam_Upper2", _BW, 803, _BW, GX_BACK, -10, GZ_HIGH, holes=_grail), dz=100))
-    gantry(explode_with(add_beam("Gantry_Beam_Lower",  _BW, 803, _BW, GX_LOW,  -10, GZ_LOW),  dz=100))
+    # beams extended by _SP_DY at each end so they still reach the side plates after the plates move out
+    gantry(explode_with(add_beam("Gantry_Beam_Upper1", _BW, 803 + 2*_SP_DY, _BW, GX_BACK, -10 - _SP_DY, GZ_LOW,  holes=_grail), dz=100))
+    gantry(explode_with(add_beam("Gantry_Beam_Upper2", _BW, 803 + 2*_SP_DY, _BW, GX_BACK, -10 - _SP_DY, GZ_HIGH, holes=_grail), dz=100))
+    gantry(explode_with(add_beam("Gantry_Beam_Lower",  _BW, 803 + 2*_SP_DY, _BW, GX_LOW,  -10 - _SP_DY, GZ_LOW),  dz=100))
     # render_improvements III.1: the X-rails move from the beams' −X face onto their +X
     # (back) face — so the p1of2 carriage blocks ride them from +X, on the far side of the
     # beams.  Rail low-X = the beam back face (_GBEAM_BACK), proud +X by _GRAIL_TX.
@@ -1863,21 +1870,22 @@ def _build_assembly(document):
     # render_improvements II: enlarge the odd small hole (Edge28 @ world (103,−6,98), Ø3.5) to Ø8
     # so all 8 MGN12H-block mount holes match and the block bolts pass through.  Local Z = world−93.
     _body = _body.cut(Part.makeCylinder(4.0, 12.0, FreeCAD.Vector(103.0, -7.0, 98.0 - 93.0), FreeCAD.Vector(0, 1, 0)))
-    gantry(explode_with(add_shape_obj("Side_Plate_Left", _body, z=93), dy=-90))
-    gantry(explode_with(add_shape_obj("Side_Plate_Left_R", _body, z=93, mirror_y=396.5), dy=+90))
+    gantry(explode_with(add_shape_obj("Side_Plate_Left", _body, y=-_SP_DY, z=93), dy=-90))
+    gantry(explode_with(add_shape_obj("Side_Plate_Left_R", _body, y=_SP_DY, z=93, mirror_y=396.5), dy=+90))
 
-    # render_improvements II (user 2026-07-19): two real MGN12H carriages per side plate, CLAMPING
-    # the outer Rail_Y, bolted through the eight Ø8 holes onto the plate's OUTER face (Left Y−6 /
-    # Right Y799), 4 bolts each.  Clusters A (X168) & B (X113), hole band Z98-118 (carriage centre
-    # Z108).  Carriages ride the gantry (not lifted); the rail lifts with the frame to meet them.
-    for _ps, _mir, _bhy, _bax, _ex in (("L", None, 4.0, '-y', -70.0), ("R", 396.5, 789.0, '+y', 70.0)):
+    # render_improvements II (user 2026-07-19): two MGN12H carriages per side plate, on the INSIDE
+    # (frame side) of the plate, CLAMPING the inboard rail, bolted through the eight Ø8 holes from the
+    # plate's OUTER face (Left Y−19 / Right Y812, after the _SP_DY plate shift) inward into the carriage.
+    # Clusters A (X168) & B (X113), hole band Z98-118 (carriage centre Z108).  Carriage mount-face at
+    # the plate inner face (Left Y−13 / Right Y806); rail base against the frame beam (Left Y0 / Y793).
+    for _ps, _mir, _bhy, _bax, _ex in (("L", None, -23.0, '+y', -70.0), ("R", 396.5, 816.0, '-y', 70.0)):
         for _cn, _cx in (("A", 168.0), ("B", 113.0)):
             gantry(explode_with(add_shape_obj(f"MGN12H_Block_SP{_ps}_{_cn}",
-                _build_mgn('carriage', _cx - 220.0, -319.0, -427.0, mirror_y=_mir), color=COL_BLOCK), dy=_ex))
+                _build_mgn('carriage', _cx - 220.0, 300.0, -427.0, mirror_y=_mir), color=COL_BLOCK), dy=_ex))
             for _hx in (_cx - 10.0, _cx + 10.0):
                 for _hz in (98.0, 118.0):
                     gantry(explode_with(add_bolt(f"Bolt_SP{_ps}_{_cn}_{int(_hx)}_{int(_hz)}",
-                                                 _hx, _bhy, _hz, axis=_bax, size='M5', shaft_l=22), dy=_ex))
+                                                 _hx, _bhy, _hz, axis=_bax, size='M5', shaft_l=16), dy=_ex))
 
     # (b) two upper-beam clamps → ONE fused U-bridge, 10 mm Y, seated coplanar with
     #     the mid plate and fastened by the two X studs (d) bottom and (e) top.
@@ -1909,9 +1917,9 @@ def _build_assembly(document):
     # holes land on the Y=-3 thread plane, lower hole at the tie rod's Z147 (constants).
     # For the mirrored (_R) copy the Y shift flips sign (mirror about Y=396.5).
     gantry(explode_with(add_shape_obj("Side_Plate_Front_Clamp", front,
-                        y=CLAMP_DY, z=93 + CLAMP_DZ), dy=-90))
+                        y=CLAMP_DY - _SP_DY, z=93 + CLAMP_DZ), dy=-90))
     gantry(explode_with(add_shape_obj("Side_Plate_Front_Clamp_R", front,
-                        y=-CLAMP_DY, z=93 + CLAMP_DZ, mirror_y=396.5), dy=+90))
+                        y=-CLAMP_DY + _SP_DY, z=93 + CLAMP_DZ, mirror_y=396.5), dy=+90))
 
     # (c) front U-fork clamp (U-outtake opening +X), seated at the plate's Y so its
     #     U-floor hole lines up with the plate's X bore for the tie thread.  Arms are
@@ -1927,12 +1935,12 @@ def _build_assembly(document):
     _notch = Part.makeBox(_nd + 1, _CY + 2, _nh,
                           FreeCAD.Vector(_cx0 + _CX - _nd, _cy0 - 1, _cz0 + (_CZ - _nh) / 2.0))
     beam_clamp = _xbore(_clamp.cut(_notch), 50.0, 82.0, TIE_Y, TIE_ZL)
-    gantry(explode_with(add_shape_obj("Side_Plate_Beam_Clamp", beam_clamp, z=93), dy=-90))
-    gantry(explode_with(add_shape_obj("Side_Plate_Beam_Clamp_R", beam_clamp, z=93, mirror_y=396.5), dy=+90))
+    gantry(explode_with(add_shape_obj("Side_Plate_Beam_Clamp", beam_clamp, y=-_SP_DY, z=93), dy=-90))
+    gantry(explode_with(add_shape_obj("Side_Plate_Beam_Clamp_R", beam_clamp, y=_SP_DY, z=93, mirror_y=396.5), dy=+90))
 
     # (d) the tie thread: M8 stud in X through the U-floor and the mid plate, with a
     #     washer + nut at each end
-    for _nm, _ex, _ty in [("", -90.0, TIE_Y), ("_R", +90.0, 793.0 - TIE_Y)]:
+    for _nm, _ex, _ty in [("", -90.0, TIE_Y - _SP_DY), ("_R", +90.0, 793.0 - TIE_Y + _SP_DY)]:
         _rod = doc.addObject("Part::Feature", f"Side_Plate_TieRod{_nm}")
         _rod.Shape = Part.makeCylinder(4.0, 168.0, FreeCAD.Vector(36.0, _ty, TIE_ZW),
                                        FreeCAD.Vector(1, 0, 0))
@@ -1946,7 +1954,7 @@ def _build_assembly(document):
     # (e) top clamp thread: an M8 X stud through the mid plate's top bore (a) and the
     #     front clamp's UPPER hole — the analogue of the bottom tie rod (d) for the top
     #     of the unified clamp.  Washer + nut each end.
-    for _nm, _ex, _ty in [("", -90.0, TOP_Y), ("_R", +90.0, 793.0 - TOP_Y)]:
+    for _nm, _ex, _ty in [("", -90.0, TOP_Y - _SP_DY), ("_R", +90.0, 793.0 - TOP_Y + _SP_DY)]:
         _rod = doc.addObject("Part::Feature", f"Side_Plate_TopRod{_nm}")
         _rod.Shape = Part.makeCylinder(4.0, 140.0, FreeCAD.Vector(70.0, _ty, TOP_ZW),
                                        FreeCAD.Vector(1, 0, 0))
@@ -2120,8 +2128,8 @@ def _build_assembly(document):
     # motor on the plate OUTER face (Y799), body outside the machine, shaft −Y inward through the
     # plate; at (X122,Z165) to clear the side-plate MGN12H carriage blocks (Z93-123) and the
     # gantry beams (the pulley sits just +X of Gantry_Beam_Lower which ends at X107).
-    gantry(explode_with(add_shape_obj("Stepper_Y", _build_stepper(122.0, 799.0, 165.0, '-y'), color=_COL_MOTOR), dy=70))
-    gantry(explode_with(add_shape_obj("Pulley_Y", _build_pulley(122.0, 785.0, 165.0, 'y', 22, 16), color=_COL_PULLEY), dy=70))
+    gantry(explode_with(add_shape_obj("Stepper_Y", _build_stepper(122.0, 799.0 + _SP_DY, 165.0, '-y'), color=_COL_MOTOR), dy=70))
+    gantry(explode_with(add_shape_obj("Pulley_Y", _build_pulley(122.0, 785.0 + _SP_DY, 165.0, 'y', 22, 16), color=_COL_PULLEY), dy=70))
     # frame-static (anchored to the fixed frame; the gantry's Y-stepper walks along it)
     explode_with(add_shape_obj("Belt_Y", Part.makeBox(893.0, _HTD5M_W, 3.0, FreeCAD.Vector(3.0, 13.0, 0.5)), color=_COL_BELT), dz=40)
     explode_with(add_box("Tensioner_Y", 30, 22, 18, 1.0, 4.0, 2.0, COL_METAL), dx=-40)
