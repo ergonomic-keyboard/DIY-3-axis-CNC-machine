@@ -1754,8 +1754,11 @@ def _build_assembly(document):
     # render_improvements (user 2026-07-19): MGN12H rail STEP INBOARD against the frame (rail base on
     # the frame side-beam face: Left Y0, Right Y793), running along X.  Placed at pre-lift Z−6..6 so the
     # frame lift (_FRAME_DZ=108) lands it at Z102-114 — the band the side-plate carriages wrap.
-    explode_with(add_shape_obj("Rail_Y_Left",  _build_mgn('rail', 30.0, 300.0, -535.0), color=COL_RAIL), dy=-80)
-    explode_with(add_shape_obj("Rail_Y_Right", _build_mgn('rail', 30.0, 300.0, -535.0, mirror_y=396.5), color=COL_RAIL), dy=+80)
+    # rail dz −543 (was −535): with the +8 mm larger frame lift below, the rail stays at Z102-114
+    # (still wrapped by the carriages) while the frame TOP rises to Z116 — so the rail top (114) ends
+    # up 2 mm BELOW the frame surface (Frame_Up_Left_Y.Edge11) instead of sticking 6 mm above it.
+    explode_with(add_shape_obj("Rail_Y_Left",  _build_mgn('rail', 30.0, 300.0, -543.0), color=COL_RAIL), dy=-80)
+    explode_with(add_shape_obj("Rail_Y_Right", _build_mgn('rail', 30.0, 300.0, -543.0, mirror_y=396.5), color=COL_RAIL), dy=+80)
 
     # ── AXIS INDICATOR ────────────────────────────────────────────────────────
     AL, AW = 160, 18
@@ -1913,6 +1916,13 @@ def _build_assembly(document):
                           FreeCAD.Vector(GX_BACK - _cc / 2, -100.0, (_bz0 - _cc / 2) - _fz)))
     # (No top trim: the imported top arm is kept so the upper outtake stays a U-clamp — the
     #  beam-profile relief above only opens the notch to the beam, not the whole top block.)
+    # render_improvements (user 2026-07-19): merge the coplanar seams left by the LOF+UPF fuse so the
+    # front face reads as ONE plate (Face2/Face7/Face19 → one face).  removeSplitter() only drops the
+    # redundant seam edges between continuous coplanar faces — no geometry change.
+    try:
+        front = front.removeSplitter()
+    except Exception:
+        pass
     # Seat coplanar with the mid plate: shift (via placement) so the two STEP bolt
     # holes land on the Y=-3 thread plane, lower hole at the tie rod's Z147 (constants).
     # For the mirrored (_R) copy the Y shift flips sign (mirror about Y=396.5).
@@ -2170,7 +2180,9 @@ def _build_assembly(document):
     # Lift the WHOLE FRAME up by _FRAME_DZ so Rail_Y (placed at pre-lift Z−6..6) rises to Z102-114 into
     # the carriages, and the frame bar rises under it.  Only frame-group parts (subcomponent I, minus
     # the axis triad) move; the verified gantry stays put.  Explode bases shift too (animation stays OK).
-    _FRAME_DZ = 108.0
+    # 116 (was 108): +8 mm so the frame TOP (Edge11 → Z116) sits 2 mm above the rail top (Z114) — the
+    # rail is recessed 2 mm BELOW the frame surface (the rail dz was lowered −8 to stay at Z102-114).
+    _FRAME_DZ = 116.0
     # (the axis triad stays at the world origin as a fixed reference — not lifted)
     _fnames = [o.Name for o in doc.Objects
                if _classify_subcomponent(o.Name) == "I" and not o.Name.startswith("Axis")
