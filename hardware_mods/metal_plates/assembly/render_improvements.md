@@ -14,8 +14,6 @@ R.4 If a parameter spans multiple items of a subcomponent, e.g. the holes of the
 ## I — Aluminium frame
 Render: `subcomponents/cnc_subcomponent_I_explode.gif`
 
-- **Y-belt:** add an HTD tensioner belt across the frame top rail (over `Frame_Up_Left_Y.Face3`), with a tensioner at one end. Y-axis drive — stepper lives in II_R.
-
 ---
 
 ## II — Left side plate & Y-axis (gantry holder)
@@ -51,7 +49,7 @@ Render: `subcomponents/cnc_subcomponent_IV_explode.gif`
 
 ## V — Top & bottom stepper plate (stepper, belt/gears, threaded rod)
 Render: `subcomponents/cnc_subcomponent_V_explode.gif`
-
+ You should flip the Stepper_Z 180 degrees around the X or Y axis, zo that it is on Top_Stepper_Holder.Face5 instead of on Top_Stepper_Holder.Face3.
 ---
 
 ## VI — Vertical engine plate p2of2 (+ two router clamps + rails)
