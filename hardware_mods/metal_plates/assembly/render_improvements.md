@@ -14,6 +14,7 @@ R.4 If a parameter spans multiple items of a subcomponent, e.g. the holes of the
 ## I — Aluminium frame
 Render: `subcomponents/cnc_subcomponent_I_explode.gif`
 
+- **Y-belt:** add an HTD tensioner belt across the frame top rail (over `Frame_Up_Left_Y.Face3`), with a tensioner at one end. Y-axis drive — stepper lives in II_R.
 
 ---
 
@@ -31,19 +32,26 @@ Render: `subcomponents/cnc_subcomponent_II_explode.gif`
 ## II_R — Right side plate & Y-axis (mirror of II)
 Render: `subcomponents/cnc_subcomponent_II_R_explode.gif`
 
+- **Y-stepper:** mount the Y-axis stepper on the cnc_assembly_live.Engine_Holder_P1.Edge156. Add the belt that dfirves those mid plates
 ---
 
 ## III — Gantry & X-axis (three steel cross bars + rails)
 Render: `subcomponents/cnc_subcomponent_III_explode.gif`
+
+- **X-belt:** HTD5M belt runs across the top of `Gantry_Beam_Upper1.Face3`, anchored on the gantry beam near the side-plate ends (`Side_Plate_Left.Face56` + right mirror). On the other end, a tensioner instead of a clamp is tensioned with a bolt through the side plate. Stepper + idlers in IV.
 
 ---
 
 ## IV — Vertical engine plate p1of2 (+ MGN12H blocks)
 Render: `subcomponents/cnc_subcomponent_IV_explode.gif`
 
+- **Y-drive stepper:** mount on p1of2 at `Engine_Holder_P1.Edge156`, bolted via the holes at `Engine_Holder_P1.Edge345`.
+- **X-belt drivers:** two HTD5M belt bearings in the two holes just below the stepper (`Engine_Holder_P1.Edge423` + the other). and the stepper would be in cnc_assembly_live.Side_Plate_Left.Edge17 it should move because it doesn't fit there anymore,  Feed the X-belt (III).
 
 ## V — Top & bottom stepper plate (stepper, belt/gears, threaded rod)
 Render: `subcomponents/cnc_subcomponent_V_explode.gif`
+
+- **Z-stepper:** seat the Z-axis stepper in the `Top_Stepper_Holder.Face31` hole, bolted with the four existing bolts `Bolt_TSH_235_506_M5` (`.Edge3` + the other three).
 
 ---
 

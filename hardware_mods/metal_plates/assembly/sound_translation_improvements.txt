@@ -1,1 +1,38 @@
-You should add the stepper motor at the engine holder P1.EDGE156 And the HDM5D belt Bearings in the two holes below them so Engine holder P1.EDGE423 And the other one and then the belt should run across the surface of gantry beam upper 1.FACE3 And it should be attached near the end of the side plate left face 56 And on the right side as well, or it should just be mounted on top of that gantry beam face And on one side it should have a tensioner instead of a clamp Then you should also add the Stepper motor in the hole of Top stepper holder face 31 and It should be bolted on using the four bolts in Top Bolt TSH underscore 235 underscore 506 underscore m5 dot edge 3 and the other three bolts, of course similarly the stepper motor for the Vertical plate part one of two Should be mounted using the holes in engine holder P1 dot edge 3 four to five and then you should also add a Hdm tensioner belt across the frame so over frame up left y dot face 3 and you should Include a stepper motor in the gian 3 side plate I think a hole side plate left end enscore are dot H4 teenagers 14 There were it should be on the other side authentic I think the position for stepper for the frame and has gone missing from the side plates due to the modification So perhaps it should be re included there the whole at least on theetta
+Sound-translation improvements — decoded voice notes.
+Steppers + belt drives to add to the 3D render. Part tokens are as hovered/copied;
+a few are garbled in the source (flagged). Allocated into render_improvements.md as noted.
+
+X-AXIS BELT DRIVE            → render_improvements IV (stepper + idlers) + III (belt)
+- Stepper motor on p1of2 at Engine_Holder_P1.Edge156, bolted via the holes at Engine_Holder_P1.Edge345.
+- Two HTD5M belt bearings (idler pulleys) in the two holes just below the stepper:
+  Engine_Holder_P1.Edge423 + the other one.
+- Belt runs across the top face of the upper gantry beam (Gantry_Beam_Upper1.Face3), anchored
+  near the side-plate ends (Side_Plate_Left.Face56 + right mirror) — or mounted directly on top
+  of the beam face.
+- One end = a tensioner instead of a clamp.
+
+Z-AXIS STEPPER              → render_improvements V
+- Stepper seated in the Top_Stepper_Holder.Face31 hole, bolted with the four existing bolts
+  Bolt_TSH_235_506_M5 (.Edge3 + the other three).
+
+Y-AXIS BELT DRIVE           → render_improvements I (belt) + II_R (stepper)
+- HTD tensioner belt across the frame top rail (Frame_Up_Left_Y.Face3), tensioner at one end.
+- Y-axis stepper on the right side plate (Side_Plate_Left_R); re-add the stepper mounting hole
+  that the metal modification removed (hole token garbled in source — ~.Edge14). Restore on the
+  side plate(s).
+
+--- raw transcript (source of truth for the ambiguous/garbled bits) ---
+You should add the stepper motor at the engine holder P1.EDGE156 And the HDM5D belt Bearings in
+the two holes below them so Engine holder P1.EDGE423 And the other one and then the belt should
+run across the surface of gantry beam upper 1.FACE3 And it should be attached near the end of the
+side plate left face 56 And on the right side as well, or it should just be mounted on top of that
+gantry beam face And on one side it should have a tensioner instead of a clamp Then you should also
+add the Stepper motor in the hole of Top stepper holder face 31 and It should be bolted on using
+the four bolts in Top Bolt TSH underscore 235 underscore 506 underscore m5 dot edge 3 and the other
+three bolts, of course similarly the stepper motor for the Vertical plate part one of two Should be
+mounted using the holes in engine holder P1 dot edge 3 four to five and then you should also add a
+Hdm tensioner belt across the frame so over frame up left y dot face 3 and you should Include a
+stepper motor in the gian 3 side plate I think a hole side plate left end enscore are dot H4
+teenagers 14 There were it should be on the other side authentic I think the position for stepper
+for the frame and has gone missing from the side plates due to the modification So perhaps it
+should be re included there the whole at least on theetta
