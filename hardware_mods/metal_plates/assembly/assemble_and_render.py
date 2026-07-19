@@ -496,7 +496,8 @@ def _assign_stages():
         if (name.startswith("Frame_") or
                 name in ("Rail_Y_Left", "Rail_Y_Right")):
             _STAGE[name] = 1
-        elif ("Side_Plate" in name or "Clip" in name):
+        elif ("Side_Plate" in name or "Clip" in name
+              or name.startswith(("MGN12H_Block_SP", "Bolt_SP"))):
             _STAGE[name] = 2
         elif (name.startswith("Gantry_Beam") or
               name.startswith("Rail_X")):
@@ -544,6 +545,12 @@ def _classify_subcomponent(name: str) -> str:
     # II. Left side plate & Y-axis (M20 series)
     if "Side_Plate" in name or "LClip" in name or name.startswith("Bolt_LClip_") \
        or name.startswith("Nut_LClip_"):
+        return "II"
+    # II / II_R side-plate Y-axis carriage blocks (render_improvements II) — before the IV
+    # "MGN12H_Block" catch-all so they group with their side plate, not the p1of2 carriage.
+    if name.startswith("MGN12H_Block_SPR") or name.startswith("Bolt_SPR"):
+        return "II_R"
+    if name.startswith("MGN12H_Block_SPL") or name.startswith("Bolt_SPL"):
         return "II"
     # III. Gantry & X-axis (includes gantry-beam tie rods)
     if (name.startswith("Gantry_Beam") or name.startswith("Rail_X") or
@@ -1353,16 +1360,16 @@ def _build_stepper_plate(path):
 
 def _add_stepper_holder_bolts(bolt_size: str = 'M5'):
     """
-    Four stepper-mount bolts (item 7, M40.a), one through each of the plate's
-    four slots.  The Z-stepper (NEMA17) now sits ON TOP of the holder (mount face
-    Z312), so these fasten it from BELOW: head just under the holder, shaft +Z up
-    through the slot and into the motor's mounting face.
+    Four stepper-mount bolts (item 7, M40.a), one through each of the plate's four
+    slots.  The Z-stepper (NEMA17) hangs UNDER the holder (mount face Z306 / Face5),
+    so these fasten it from ABOVE: head on the plate top, shaft −Z down through the
+    slot and into the motor's mounting face below.
     """
     for wx in _TSH_SLOT_X:
         for wy in _TSH_SLOT_Y:
             gantry(explode_with(
                 add_bolt(f"Bolt_TSH_{int(round(wx))}_{int(round(wy))}_{bolt_size}",
-                         wx + _TSH_DX, wy + _TSH_DY, 300.0 + _TSH_DZ, axis='+z', size=bolt_size, shaft_l=22),
+                         wx + _TSH_DX, wy + _TSH_DY, 316.0 + _TSH_DZ, axis='-z', size=bolt_size, shaft_l=28),
                 dz=70))
 
 
@@ -1815,8 +1822,27 @@ def _build_assembly(document):
                                    FreeCAD.Vector(40.0, -20.0, _CLAMP_Z0)))
     _body = _body.cut(Part.makeBox((_bx1 + _cc) - (_arm_tip + _cc), 40.0, _GANTRY_BEAM_W + _cc,
                                    FreeCAD.Vector(_arm_tip + _cc, -20.0, (GZ_LOW - _cc / 2) - 93.0)))
+    # render_improvements II: enlarge the odd small hole (Edge28 @ world (103,−6,98), Ø3.5) to Ø8
+    # so all 8 MGN12H-block mount holes match and the block bolts pass through.  Local Z = world−93.
+    _body = _body.cut(Part.makeCylinder(4.0, 12.0, FreeCAD.Vector(103.0, -7.0, 98.0 - 93.0), FreeCAD.Vector(0, 1, 0)))
     gantry(explode_with(add_shape_obj("Side_Plate_Left", _body, z=93), dy=-90))
     gantry(explode_with(add_shape_obj("Side_Plate_Left_R", _body, z=93, mirror_y=396.5), dy=+90))
+
+    # render_improvements II: two MGN12H carriage blocks per side plate (the Y-axis / gantry-along-
+    # frame travel), bolted through the eight Ø8 holes onto the plate's inner face, 4 bolts each.
+    # Clusters A (X158/178) & B (X103/123), hole band Z98-118.  NOTE: the blocks sit at Z93-123 but
+    # the frame Rail_Y is at Z−7..0 (~90 mm below) — the block↔rail engagement needs the rail
+    # raised (or the plate lowered); flagged, not resolved here.
+    for _ps, _iny, _bhy, _bax, _ex in (("L", 0.0, -10.0, '+y', -70.0), ("R", 793.0, 803.0, '-y', 70.0)):
+        _ydir = 1.0 if _ps == "L" else -1.0
+        for _cn, _hx0, _hx1 in (("A", 158.0, 178.0), ("B", 103.0, 123.0)):
+            _cx = (_hx0 + _hx1) / 2.0
+            gantry(explode_with(add_box(f"MGN12H_Block_SP{_ps}_{_cn}", 26, 12, 30,
+                                        _cx - 13, min(_iny, _iny + _ydir * 12), 93.0, COL_BLOCK), dy=_ex))
+            for _hx in (_hx0, _hx1):
+                for _hz in (98.0, 118.0):
+                    gantry(explode_with(add_bolt(f"Bolt_SP{_ps}_{_cn}_{int(_hx)}_{int(_hz)}",
+                                                 _hx, _bhy, _hz, axis=_bax, size='M5', shaft_l=20), dy=_ex))
 
     # (b) two upper-beam clamps → ONE fused U-bridge, 10 mm Y, seated coplanar with
     #     the mid plate and fastened by the two X studs (d) bottom and (e) top.
@@ -2025,11 +2051,12 @@ def _build_assembly(document):
     # stepper, I belt).  Coordinates from the hovered faces/edges; simple pulley/belt
     # stand-ins.  All belt-drive parts move with the gantry EXCEPT the Y-belt, which is
     # anchored to the (fixed) frame rail.
-    # V — Z stepper: NEMA17 above the Top_Stepper_Holder, centred on the 4 TSH bolts,
-    #     shaft DOWN through the holder; pulley on the shaft (drives the acme rod).
+    # V — Z stepper: NEMA17 mounted UNDER the Top_Stepper_Holder on Face5 (Z306) — flipped
+    #     180° from Face3 per render_improvements V; body hangs below, shaft UP through the
+    #     holder, pulley on the exposed shaft above it.  Centred on the 4 TSH bolts.
     _zx, _zy = 138.3, 369.6
-    gantry(explode_with(add_shape_obj("Stepper_Z", _build_stepper(_zx, _zy, 312.0, '-z'), color=_COL_MOTOR), dz=95))
-    gantry(explode_with(add_shape_obj("Pulley_Z", _build_pulley(_zx, _zy, 300.0, 'z', 22, 16), color=_COL_PULLEY), dz=95))
+    gantry(explode_with(add_shape_obj("Stepper_Z", _build_stepper(_zx, _zy, 306.0, '+z'), color=_COL_MOTOR), dz=-95))
+    gantry(explode_with(add_shape_obj("Pulley_Z", _build_pulley(_zx, _zy, 318.0, 'z', 22, 16), color=_COL_PULLEY), dz=-95))
 
     # IV — X-carriage drive: NEMA17 on the p1of2 front face at Edge156 (Ø36), shaft −X
     #     through the hole (pulley behind, toward the beam); 2 idlers in the Edge423 holes.
@@ -2042,15 +2069,24 @@ def _build_assembly(document):
     #     near the side-plate ends; a tensioner at the left end instead of a clamp.
     gantry(explode_with(add_shape_obj("Belt_X", Part.makeBox(_HTD5M_W, 786.0, 3.0, FreeCAD.Vector(156.5, 3.0, 163.0)), color=_COL_BELT), dz=55))
     gantry(explode_with(add_box("Tensioner_X", 22, 18, 26, 153.0, 2.0, 162.0, COL_METAL), dy=-45))   # sits on the beam top (Z162)
-    gantry(explode_with(add_box("Clamp_X",     22, 18, 26, 153.0, 773.0, 162.0, COL_METAL), dy=45))
+    # render_improvements II: the stray Engine_Sideways_Belt_Clamp is repurposed HERE as the
+    # X-belt clamp (its real home) instead of floating near the frame front.
+    gantry(explode_with(
+        add_step("Clamp_X",
+            f"{METAL}/III_gantry/MX1_engine_sideways_belt_clamp"
+            "/5_models_and_renders/engine_sideways_belt_clamp.step",
+            x=164, y=778, z=175),   # sits on the beam top (Z162), gripping the belt end
+        dy=45))
 
     # II_R / I — Y-gantry drive: NEMA17 on the right side plate (Side_Plate_Left_R), shaft
     #     −Y inward; HTD5M belt along the frame top rail (Frame_Up_Left_Y, Z0), anchored at
     #     the frame ends with a tensioner at one end.  (Token said left rail / right plate —
     #     left as-is per the source; likely wants same-side, user to confirm.)
-    # motor on the plate OUTER face (Y799), body outside the machine, shaft −Y inward through the plate
-    gantry(explode_with(add_shape_obj("Stepper_Y", _build_stepper(110.0, 799.0, 120.0, '-y'), color=_COL_MOTOR), dy=70))
-    gantry(explode_with(add_shape_obj("Pulley_Y", _build_pulley(110.0, 785.0, 120.0, 'y', 22, 16), color=_COL_PULLEY), dy=70))
+    # motor on the plate OUTER face (Y799), body outside the machine, shaft −Y inward through the
+    # plate; at (X122,Z165) to clear the side-plate MGN12H carriage blocks (Z93-123) and the
+    # gantry beams (the pulley sits just +X of Gantry_Beam_Lower which ends at X107).
+    gantry(explode_with(add_shape_obj("Stepper_Y", _build_stepper(122.0, 799.0, 165.0, '-y'), color=_COL_MOTOR), dy=70))
+    gantry(explode_with(add_shape_obj("Pulley_Y", _build_pulley(122.0, 785.0, 165.0, 'y', 22, 16), color=_COL_PULLEY), dy=70))
     # frame-static (anchored to the fixed frame; the gantry's Y-stepper walks along it)
     explode_with(add_shape_obj("Belt_Y", Part.makeBox(893.0, _HTD5M_W, 3.0, FreeCAD.Vector(3.0, 7.5, 0.5)), color=_COL_BELT), dz=40)
     explode_with(add_box("Tensioner_Y", 30, 22, 18, 1.0, 4.0, 2.0, COL_METAL), dx=-40)
@@ -2065,13 +2101,8 @@ def _build_assembly(document):
         "/5_models_and_renders/engine_holder_top_plate.step")
     gantry(explode_with(add_shape_obj("Top_Stepper_Holder", _tsh, x=_TSH_DX, y=_TSH_DY, z=_TSH_DZ), dz=70))
 
-    # ── ENGINE SIDEWAYS BELT CLAMP (MX.1) ─────────────────────────────────────
-    gantry(explode_with(
-        add_step("Engine_Sideways_Belt_Clamp",
-            f"{METAL}/III_gantry/MX1_engine_sideways_belt_clamp"
-            "/5_models_and_renders/engine_sideways_belt_clamp.step",
-            x=137, y=-10, z=93+50),
-        dy=-80))
+    # (Engine_Sideways_Belt_Clamp removed — it was floating near the frame front with no
+    #  clear purpose; render_improvements II relocates it as the X-belt Clamp_X above.)
 
     # ── FASTENERS ─────────────────────────────────────────────────────────────
     _add_p1of2_outtake_bolts()
