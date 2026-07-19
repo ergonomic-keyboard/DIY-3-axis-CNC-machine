@@ -1250,6 +1250,44 @@ def _load_nema17():
     return _NEMA17_CACHE.copy()
 
 
+# ── MGN12H linear guide (downloaded STEP: rail + carriage, faceted, pre-assembled) ──
+# STEP frame: rail axis = STEP+Y (400 mm), width STEP±X (12/27), stack STEP+Z (rail→carriage).
+# Machine frame wants: rail axis = world+X (travel), carriage mount-face against the vertical side
+# plate (world±Y), rail on the OUTER side.  _MGN_M rotates STEP→world as world=(STEP.y, STEP.z, STEP.x):
+# rail axis STEP+Y→world+X, carriage mount-face normal STEP+Z→world+Y, widths STEP+X→world+Z (vertical).
+_MGN_RAIL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendor_parts", "mgn12h_rail400.step")
+_MGN_CARR_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendor_parts", "mgn12h_carriage.step")
+_MGN_RAIL_CACHE = None
+_MGN_CARR_CACHE = None
+_MGN_M = FreeCAD.Matrix(0, 1, 0, 0,  0, 0, 1, 0,  1, 0, 0, 0,  0, 0, 0, 1)   # world = (STEP.y, STEP.z, STEP.x)
+# After _MGN_M: carriage bbox X[197.3,242.7] Y[303,313] Z[521.5,548.5]; rail X[30,430] Y[300,308] Z[529,541].
+_MGN_CARR_MFACE_Y = 313.0     # carriage mount-face → world Y (before translate)
+_MGN_CARR_CX      = 220.0     # carriage centre → world X
+_MGN_CARR_CZ      = 535.0     # carriage centre → world Z  (holes symmetric about this)
+_MGN_RAIL_CX      = 230.0     # rail centre → world X
+
+
+def _build_mgn(which, dx, dy, dz, mirror_y=None):
+    """Load the MGN12H rail/carriage STEP, rotate to the machine frame (_MGN_M), translate by
+    (dx,dy,dz); optional Y-mirror (right side).  which ∈ {'rail','carriage'}."""
+    global _MGN_RAIL_CACHE, _MGN_CARR_CACHE
+    if which == 'rail':
+        if _MGN_RAIL_CACHE is None:
+            _s = Part.Shape(); _s.read(_MGN_RAIL_PATH); _MGN_RAIL_CACHE = _s
+        s = _MGN_RAIL_CACHE.copy()
+    else:
+        if _MGN_CARR_CACHE is None:
+            _s = Part.Shape(); _s.read(_MGN_CARR_PATH); _MGN_CARR_CACHE = _s
+        s = _MGN_CARR_CACHE.copy()
+    # rotation (_MGN_M) + translation baked into one matrix (separate .translate() is a no-op on
+    # the faceted Part.Shape).  world = (STEP.y+dx, STEP.z+dy, STEP.x+dz).
+    mat = FreeCAD.Matrix(0, 1, 0, dx,  0, 0, 1, dy,  1, 0, 0, dz,  0, 0, 0, 1)
+    s = s.transformShape(mat, True)
+    if mirror_y is not None:
+        s = s.mirror(FreeCAD.Vector(0, mirror_y, 0), FreeCAD.Vector(0, 1, 0))
+    return s
+
+
 def _build_stepper(mx, my, mz, axis):
     """Place the NEMA17 STEP so its shaft points along world `axis` and its mount-face
     centre lands at (mx,my,mz); the body extends opposite `axis`, shaft protrudes ~20 mm."""
@@ -1544,12 +1582,12 @@ def _add_frame_rail_bolts(bolt_size: str = 'M3'):
     of the rail/frame geometry and are tracked as a FreeCAD design task.)
     """
     fs = fastener(bolt_size)
-    for side, ry, expl in [("L", -4.5, -80), ("R", 797.5, +80)]:
-        for rx in (200, 350, 500, 650):
+    for side, ry, expl in [("L", 4.5, -80), ("R", 788.5, +80)]:   # rails at inner Y (4.5 / 788.5)
+        for rx in (150, 300, 450, 600, 730):
             explode_with(
                 add_bolt(f"Bolt_RailY_{side}_{rx}_{bolt_size}",
-                         rx, ry, fs["head_h"], axis='-z',
-                         size=bolt_size, shaft_l=15),
+                         rx, ry, 7.0 + fs["head_h"], axis='-z',   # head on the proud rail top (Z7)
+                         size=bolt_size, shaft_l=22),
                 dy=expl)
 
 
@@ -1707,11 +1745,11 @@ def _build_assembly(document):
             explode_with(add_beam(f"Frame_Vert_{vx}_{vy}", 30, 30, 80, vx, vy, -110,
                                   holes=[{'axis': 'z', 'u': 15, 'v': 15, 'd': hole_d('M8')}]), dz=-120)
 
-    _rail_holes = [{'axis': 'z', 'u': rx - 150, 'v': 4.5, 'd': hole_d('M3')} for rx in RAIL_UX]
-    explode_with(add_beam("Rail_Y_Left",  600, 9, 7, 150,  -9, -7,
-                          wall=0, holes=_rail_holes, color=COL_RAIL), dy=-80)
-    explode_with(add_beam("Rail_Y_Right", 600, 9, 7, 150, 793, -7,
-                          wall=0, holes=_rail_holes, color=COL_RAIL), dy=+80)
+    # render_improvements (user 2026-07-19): use the real MGN12H rail STEP, on the plates' OUTER
+    # side (Left → Y−19..−11, Right → Y803..811), running along X.  Placed at pre-lift Z−6..6 so the
+    # frame lift (_FRAME_DZ=108) lands it at Z102-114 — the band the side-plate carriages wrap.
+    explode_with(add_shape_obj("Rail_Y_Left",  _build_mgn('rail', 30.0, -319.0, -535.0), color=COL_RAIL), dy=-80)
+    explode_with(add_shape_obj("Rail_Y_Right", _build_mgn('rail', 30.0, -319.0, -535.0, mirror_y=396.5), color=COL_RAIL), dy=+80)
 
     # ── AXIS INDICATOR ────────────────────────────────────────────────────────
     AL, AW = 160, 18
@@ -1828,21 +1866,18 @@ def _build_assembly(document):
     gantry(explode_with(add_shape_obj("Side_Plate_Left", _body, z=93), dy=-90))
     gantry(explode_with(add_shape_obj("Side_Plate_Left_R", _body, z=93, mirror_y=396.5), dy=+90))
 
-    # render_improvements II: two MGN12H carriage blocks per side plate (the Y-axis / gantry-along-
-    # frame travel), bolted through the eight Ø8 holes onto the plate's inner face, 4 bolts each.
-    # Clusters A (X158/178) & B (X103/123), hole band Z98-118.  NOTE: the blocks sit at Z93-123 but
-    # the frame Rail_Y is at Z−7..0 (~90 mm below) — the block↔rail engagement needs the rail
-    # raised (or the plate lowered); flagged, not resolved here.
-    for _ps, _iny, _bhy, _bax, _ex in (("L", 0.0, -10.0, '+y', -70.0), ("R", 793.0, 803.0, '-y', 70.0)):
-        _ydir = 1.0 if _ps == "L" else -1.0
-        for _cn, _hx0, _hx1 in (("A", 158.0, 178.0), ("B", 103.0, 123.0)):
-            _cx = (_hx0 + _hx1) / 2.0
-            gantry(explode_with(add_box(f"MGN12H_Block_SP{_ps}_{_cn}", 26, 12, 30,
-                                        _cx - 13, min(_iny, _iny + _ydir * 12), 93.0, COL_BLOCK), dy=_ex))
-            for _hx in (_hx0, _hx1):
+    # render_improvements II (user 2026-07-19): two real MGN12H carriages per side plate, CLAMPING
+    # the outer Rail_Y, bolted through the eight Ø8 holes onto the plate's OUTER face (Left Y−6 /
+    # Right Y799), 4 bolts each.  Clusters A (X168) & B (X113), hole band Z98-118 (carriage centre
+    # Z108).  Carriages ride the gantry (not lifted); the rail lifts with the frame to meet them.
+    for _ps, _mir, _bhy, _bax, _ex in (("L", None, 4.0, '-y', -70.0), ("R", 396.5, 789.0, '+y', 70.0)):
+        for _cn, _cx in (("A", 168.0), ("B", 113.0)):
+            gantry(explode_with(add_shape_obj(f"MGN12H_Block_SP{_ps}_{_cn}",
+                _build_mgn('carriage', _cx - 220.0, -319.0, -427.0, mirror_y=_mir), color=COL_BLOCK), dy=_ex))
+            for _hx in (_cx - 10.0, _cx + 10.0):
                 for _hz in (98.0, 118.0):
                     gantry(explode_with(add_bolt(f"Bolt_SP{_ps}_{_cn}_{int(_hx)}_{int(_hz)}",
-                                                 _hx, _bhy, _hz, axis=_bax, size='M5', shaft_l=20), dy=_ex))
+                                                 _hx, _bhy, _hz, axis=_bax, size='M5', shaft_l=22), dy=_ex))
 
     # (b) two upper-beam clamps → ONE fused U-bridge, 10 mm Y, seated coplanar with
     #     the mid plate and fastened by the two X studs (d) bottom and (e) top.
@@ -2088,7 +2123,7 @@ def _build_assembly(document):
     gantry(explode_with(add_shape_obj("Stepper_Y", _build_stepper(122.0, 799.0, 165.0, '-y'), color=_COL_MOTOR), dy=70))
     gantry(explode_with(add_shape_obj("Pulley_Y", _build_pulley(122.0, 785.0, 165.0, 'y', 22, 16), color=_COL_PULLEY), dy=70))
     # frame-static (anchored to the fixed frame; the gantry's Y-stepper walks along it)
-    explode_with(add_shape_obj("Belt_Y", Part.makeBox(893.0, _HTD5M_W, 3.0, FreeCAD.Vector(3.0, 7.5, 0.5)), color=_COL_BELT), dz=40)
+    explode_with(add_shape_obj("Belt_Y", Part.makeBox(893.0, _HTD5M_W, 3.0, FreeCAD.Vector(3.0, 13.0, 0.5)), color=_COL_BELT), dz=40)
     explode_with(add_box("Tensioner_Y", 30, 22, 18, 1.0, 4.0, 2.0, COL_METAL), dx=-40)
     explode_with(add_box("Clamp_Y",     30, 22, 18, 869.0, 4.0, 2.0, COL_METAL), dx=40)
 
@@ -2114,12 +2149,33 @@ def _build_assembly(document):
     #  where no clamp is any more — so they just floated in mid air.  The front
     #  clamp is now fastened by the two X studs (d)/(e) in the SIDE PLATES block.)
     _add_router_clamp_bolts()
-    _add_frame_rail_bolts()      # I-7:   MGN12H frame-rail screws
+    # _add_frame_rail_bolts() disabled: the box Rail_Y was replaced by the MGN12H rail STEP on the
+    # outer side; its own countersunk mounting holes are part of the STEP (frame-mount is a follow-up).
     _add_gantry_rail_bolts()     # III-1/2: X-rail → gantry-beam screws
     _add_p2of2_rail_bolts()      # VI:    Z-rail → p2of2 mounting bolts
     _add_vblock_bolts()          # VI:    vertical MGN12H block → p1of2 mounting bolts
     _add_frame_tie_rods()        # I-1/2/3: vertical tie rods + washers + nuts (recessed)
     _add_frame_side_rods()       # A.1-A.4: 4 long horizontal tie rods + washers + nuts
+
+    # render_improvements (2026-07-19): the gantry sat ~111 mm too high above the frame — its
+    # side-plate MGN12H carriages ride the gantry at Z94.5-121.5 (wrapping the rail at Z102-114).
+    # Lift the WHOLE FRAME up by _FRAME_DZ so Rail_Y (placed at pre-lift Z−6..6) rises to Z102-114 into
+    # the carriages, and the frame bar rises under it.  Only frame-group parts (subcomponent I, minus
+    # the axis triad) move; the verified gantry stays put.  Explode bases shift too (animation stays OK).
+    _FRAME_DZ = 108.0
+    # (the axis triad stays at the world origin as a fixed reference — not lifted)
+    _fnames = [o.Name for o in doc.Objects
+               if _classify_subcomponent(o.Name) == "I" and not o.Name.startswith("Axis")
+               and hasattr(o, "Placement")]
+    for _n in _fnames:
+        _o = doc.getObject(_n)
+        _p = _o.Placement
+        _o.Placement = FreeCAD.Placement(
+            FreeCAD.Vector(_p.Base.x, _p.Base.y, _p.Base.z + _FRAME_DZ), _p.Rotation)
+        if _n in _explode_bases:
+            _b = _explode_bases[_n]
+            _explode_bases[_n] = FreeCAD.Placement(
+                FreeCAD.Vector(_b.Base.x, _b.Base.y, _b.Base.z + _FRAME_DZ), _b.Rotation)
 
     # C.4 — attach the thread spec to each fastener as a FreeCAD label so the
     # BOM export and any downstream reader can inspect it without inferring
