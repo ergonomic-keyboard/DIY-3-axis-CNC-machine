@@ -504,7 +504,8 @@ def _assign_stages():
         elif any(tok in name for tok in (
                 "Engine_Holder", "Rail_Z", "MGN12H_Block",
                 "Router_Clamp", "Top_Stepper", "Engine_Sideways",
-                "Acme_Rod", "Acme_Nut_Holder", "Bearing_KFL08")):
+                "Acme_Rod", "Acme_Nut_Holder", "Bearing_KFL08",
+                "Stepper_", "Pulley_", "Idler_", "Belt_", "Tensioner_", "Clamp_X", "Clamp_Y")):
             _STAGE[name] = 4
         else:
             _STAGE[name] = 5   # all bolts, nuts, threaded rods
@@ -566,6 +567,17 @@ def _classify_subcomponent(name: str) -> str:
             name.startswith("Rail_Z") or name.startswith("Bolt_RailZ_") or
             name.startswith("Acme_Nut") or name.startswith("Bolt_Acme_")):
         return "VI"
+    # Belt drives (sound_translation_improvements): allocate by axis
+    if name.startswith(("Stepper_Z", "Pulley_Z")):
+        return "V"
+    if name.startswith(("Stepper_X", "Pulley_X", "Idler_X")):
+        return "IV"
+    if name.startswith(("Belt_X", "Tensioner_X", "Clamp_X")):
+        return "III"
+    if name.startswith(("Stepper_Y", "Pulley_Y")):
+        return "II_R"
+    if name.startswith(("Belt_Y", "Tensioner_Y", "Clamp_Y")):
+        return "I"
     # Default catch-all: axis indicator etc.
     return "I"
 
@@ -1208,6 +1220,56 @@ def _build_kfl08(cz):
     return shape
 
 
+# ── Belt-drive hardware: NEMA17 steppers + HTD5M (15 mm) pulleys/idlers/belts ──────
+# sound_translation_improvements.txt.  Steppers use the downloaded FreeCAD-library STEP
+# (vendor_parts/nema17.step); pulleys/idlers are cylinder stand-ins; belts are 15-mm-wide
+# flat strips (O17 HTD5M).  Instructions were partly inconsistent — placements use the
+# hovered face/edge coordinates and best-effort assumptions (the user refines afterward).
+_NEMA17_PATH  = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendor_parts", "nema17.step")
+_NEMA17_CACHE = None
+_NEMA_FACE_Z  = 42.0          # local Z of the mount/shaft face (body Z0-42, shaft protrudes to Z62)
+_HTD5M_W      = 15.0          # O17 belt width (mm)
+_COL_MOTOR    = (0.13, 0.13, 0.16)
+_COL_PULLEY   = (0.32, 0.33, 0.36)
+_COL_BELT     = (0.08, 0.08, 0.09)
+_AXVEC = {'+x': (1, 0, 0), '-x': (-1, 0, 0), '+y': (0, 1, 0), '-y': (0, -1, 0), '+z': (0, 0, 1), '-z': (0, 0, -1)}
+
+
+def _load_nema17():
+    global _NEMA17_CACHE
+    if _NEMA17_CACHE is None:
+        s = Part.Shape(); s.read(_NEMA17_PATH)
+        _NEMA17_CACHE = s
+    return _NEMA17_CACHE.copy()
+
+
+def _build_stepper(mx, my, mz, axis):
+    """Place the NEMA17 STEP so its shaft points along world `axis` and its mount-face
+    centre lands at (mx,my,mz); the body extends opposite `axis`, shaft protrudes ~20 mm."""
+    sh = _load_nema17()
+    rot = FreeCAD.Rotation(FreeCAD.Vector(0, 0, 1), FreeCAD.Vector(*_AXVEC[axis]))
+    base = rot.multVec(FreeCAD.Vector(0, 0, _NEMA_FACE_Z))
+    pl = FreeCAD.Placement(FreeCAD.Vector(mx, my, mz) - base, rot)
+    return sh.transformShape(pl.Matrix, True)
+
+
+def _build_pulley(cx, cy, cz, axis, d, w, bore=5.0):
+    """HTD5M pulley / idler stand-in: Ø d cylinder, length w along `axis`, centred at
+    (cx,cy,cz), with two end flanges (Ø d+4) and a Ø bore."""
+    dv = FreeCAD.Vector(*_AXVEC['+' + axis[-1]])   # axis is 'x'/'y'/'z' (sign irrelevant for length)
+    base = FreeCAD.Vector(cx, cy, cz) - dv * (w / 2.0)
+    body = Part.makeCylinder(d / 2.0, w, base, dv)
+    for t in (0.0, w - 2.0):
+        body = body.fuse(Part.makeCylinder(d / 2.0 + 2.0, 2.0, base + dv * t, dv))
+    if bore:
+        body = body.cut(Part.makeCylinder(bore / 2.0, w + 4.0, base - dv * 2.0, dv))
+    try:
+        body = body.removeSplitter()
+    except Exception:
+        pass
+    return body
+
+
 def _add_p2of2_bolts(bolt_size: str = 'M3'):
     """
     p2of2 (the sliding plate) rides on the four MGN12H block carriages.
@@ -1292,15 +1354,15 @@ def _build_stepper_plate(path):
 def _add_stepper_holder_bolts(bolt_size: str = 'M5'):
     """
     Four stepper-mount bolts (item 7, M40.a), one through each of the plate's
-    four slots, pointing −Z down into the stepper motor below.  Head sits on the
-    plate top, shaft runs through the slot and into the stepper.  (Replaces the
-    old two bolts, which floated off the plate.)
+    four slots.  The Z-stepper (NEMA17) now sits ON TOP of the holder (mount face
+    Z312), so these fasten it from BELOW: head just under the holder, shaft +Z up
+    through the slot and into the motor's mounting face.
     """
     for wx in _TSH_SLOT_X:
         for wy in _TSH_SLOT_Y:
             gantry(explode_with(
                 add_bolt(f"Bolt_TSH_{int(round(wx))}_{int(round(wy))}_{bolt_size}",
-                         wx + _TSH_DX, wy + _TSH_DY, 316.0 + _TSH_DZ, axis='-z', size=bolt_size, shaft_l=28),
+                         wx + _TSH_DX, wy + _TSH_DY, 300.0 + _TSH_DZ, axis='+z', size=bolt_size, shaft_l=22),
                 dz=70))
 
 
@@ -1957,6 +2019,42 @@ def _build_assembly(document):
             _bb = add_bolt(f"Bolt_Bearing_{_tag}_{_s}", _ACME_ROD_X, _yy, _bz + 4.0 + 4.0,
                            axis='-z', size=_ACME_BRG_BOLT, shaft_l=14.0)
             gantry(explode_with(_bb, dz=90 if _tag == "Top" else -90))
+
+    # ── BELT-DRIVE HARDWARE (sound_translation_improvements: NEMA17 + HTD5M/O17) ──
+    # Three drives: Z (V), X-carriage (IV stepper+idlers, III belt), Y-gantry (II_R
+    # stepper, I belt).  Coordinates from the hovered faces/edges; simple pulley/belt
+    # stand-ins.  All belt-drive parts move with the gantry EXCEPT the Y-belt, which is
+    # anchored to the (fixed) frame rail.
+    # V — Z stepper: NEMA17 above the Top_Stepper_Holder, centred on the 4 TSH bolts,
+    #     shaft DOWN through the holder; pulley on the shaft (drives the acme rod).
+    _zx, _zy = 138.3, 369.6
+    gantry(explode_with(add_shape_obj("Stepper_Z", _build_stepper(_zx, _zy, 312.0, '-z'), color=_COL_MOTOR), dz=95))
+    gantry(explode_with(add_shape_obj("Pulley_Z", _build_pulley(_zx, _zy, 300.0, 'z', 22, 16), color=_COL_PULLEY), dz=95))
+
+    # IV — X-carriage drive: NEMA17 on the p1of2 front face at Edge156 (Ø36), shaft −X
+    #     through the hole (pulley behind, toward the beam); 2 idlers in the Edge423 holes.
+    gantry(explode_with(add_shape_obj("Stepper_X", _build_stepper(211.0, 459.0, 218.3, '-x'), color=_COL_MOTOR), dx=120))
+    gantry(explode_with(add_shape_obj("Pulley_X", _build_pulley(199.0, 459.0, 218.3, 'x', 22, 16), color=_COL_PULLEY), dx=120))
+    for _n, _iy in (("1", 473.5), ("2", 444.5)):
+        gantry(explode_with(add_shape_obj(f"Idler_X_{_n}", _build_pulley(203.0, _iy, 178.3, 'x', 16, 16), color=_COL_PULLEY), dx=120))
+
+    # III — X-belt: 15 mm HTD5M strip along the gantry-beam Upper1 top (Z162), anchored
+    #     near the side-plate ends; a tensioner at the left end instead of a clamp.
+    gantry(explode_with(add_shape_obj("Belt_X", Part.makeBox(_HTD5M_W, 786.0, 3.0, FreeCAD.Vector(156.5, 3.0, 163.0)), color=_COL_BELT), dz=55))
+    gantry(explode_with(add_box("Tensioner_X", 22, 18, 26, 153.0, 2.0, 162.0, COL_METAL), dy=-45))   # sits on the beam top (Z162)
+    gantry(explode_with(add_box("Clamp_X",     22, 18, 26, 153.0, 773.0, 162.0, COL_METAL), dy=45))
+
+    # II_R / I — Y-gantry drive: NEMA17 on the right side plate (Side_Plate_Left_R), shaft
+    #     −Y inward; HTD5M belt along the frame top rail (Frame_Up_Left_Y, Z0), anchored at
+    #     the frame ends with a tensioner at one end.  (Token said left rail / right plate —
+    #     left as-is per the source; likely wants same-side, user to confirm.)
+    # motor on the plate OUTER face (Y799), body outside the machine, shaft −Y inward through the plate
+    gantry(explode_with(add_shape_obj("Stepper_Y", _build_stepper(110.0, 799.0, 120.0, '-y'), color=_COL_MOTOR), dy=70))
+    gantry(explode_with(add_shape_obj("Pulley_Y", _build_pulley(110.0, 785.0, 120.0, 'y', 22, 16), color=_COL_PULLEY), dy=70))
+    # frame-static (anchored to the fixed frame; the gantry's Y-stepper walks along it)
+    explode_with(add_shape_obj("Belt_Y", Part.makeBox(893.0, _HTD5M_W, 3.0, FreeCAD.Vector(3.0, 7.5, 0.5)), color=_COL_BELT), dz=40)
+    explode_with(add_box("Tensioner_Y", 30, 22, 18, 1.0, 4.0, 2.0, COL_METAL), dx=-40)
+    explode_with(add_box("Clamp_Y",     30, 22, 18, 869.0, 4.0, 2.0, COL_METAL), dx=40)
 
     # ── TOP STEPPER HOLDER (M40.a) ────────────────────────────────────────────
     # Loaded + fixed by _build_stepper_plate (V items 1,3,5,6); the shape is in world
