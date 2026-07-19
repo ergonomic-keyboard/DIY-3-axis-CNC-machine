@@ -59,27 +59,5 @@ Render: `subcomponents/cnc_subcomponent_VI_explode.gif`
 
 
 ### Constellation
-The Green Y-axis on the cnc beams points in the opposite direction as the green y-axis in the bottom right of the screen. Make it point in the same direction (By moving it to the other corner of the rectangular frame).
-
 
 ## Additional components
-When looking at the plastic shopping website at:
-http://127.0.0.1:8000/DIY-3-axis-CNC-machine/shopping/
-
-Add O03 acme threaded rod nut (8x8mm) (bolt that to a small rectangle with a half circle on top with the O03 center for the rod at the center of that half circle. the width of that rectangle and half circle should be the width between Engine_holder_P2.Face35 and Engine_holder_P2.Face34 and in the rectangle a hole should be made for the bolt that has its bolt head in the bolt outtake at Engine_Holder_P2.Face29. The half cicrcle points in negative x direction, and the rectangle in positive x direction, the z-axis goes through the centerline of the holes.
-O02 acme threaded rod 300mm 8x8mm
-and the O19 KFL08 rod beraring(8mm)
-To the 3d render, and add its bolts.
-
-## Move
-Ensure the bolt Bolt_Bearing_Top_L.Face3 goes through Top_Stepper_Holder.Edge27 (and such that the Bearing_KL09_Top element is on top of Top_Stepper_Holder.Face3.
-
-
-
-
-and that the Bolt_Bearing_Top_R.Face3 bolt is through Top_Stepper_Holder.Edge44. Ensure Acme_Rod rod goes through Top_Stepper_Holder.Edge43 hole.
-
-
-
-
-If there is something that does not fit, ask me how to resolve.
