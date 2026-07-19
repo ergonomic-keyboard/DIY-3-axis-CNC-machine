@@ -1104,8 +1104,15 @@ def _build_p1of2_plate(path):
     # Edge43 hole, so the Ø8 rod passes straight down through this plate — drill a Ø10
     # through-bore at the rod centreline (matches the stepper Edge43 Ø10).  This shape is
     # returned PRE-shift and add_shape_obj adds +_P1_DX in X, so cut at (rodX − _P1_DX).
-    shape = shape.cut(Part.makeCylinder(5.0, 260.0,
-                                        FreeCAD.Vector(_ACME_ROD_X - _P1_DX, _ACME_Y, 80.0)))
+    _rbx = _ACME_ROD_X - _P1_DX
+    shape = shape.cut(Part.makeCylinder(5.0, 260.0, FreeCAD.Vector(_rbx, _ACME_Y, 80.0)))
+    # acme-nut clearance pocket: the nut + keyhole holder wrap the rod (which is embedded in
+    # this plate), so cut a window through the plate over the holder/nut Z band so they clear
+    # it.  (Sized for the static assembled position; the full Z travel would need a taller
+    # slot.)  Width = holder Y (24.5) + margin, X = through the whole plate thickness.
+    shape = shape.cut(Part.makeBox(14.0, _ACME_HOLD_W + 3.0, 24.0,
+                                   FreeCAD.Vector(_rbx - 7.0, _ACME_Y - (_ACME_HOLD_W + 3.0) / 2.0,
+                                                  _ACME_HOLD_Z0 - 3.0)))
     try:
         shape = shape.removeSplitter()
     except Exception:
@@ -1130,12 +1137,18 @@ _ACME_ROD_D    = 8.0                      # O02 acme rod Ø (8×8 mm)
 _ACME_ROD_Z0   = 40.0                     # rod bottom (just below the bottom bearing)
 _ACME_ROD_Z1   = 324.0                    # rod top (up through the top bearing on Face3)
 _TSH_FACE3_Z   = 312.0                    # Top_Stepper_Holder.Face3 top face (bearing seats here)
+# The p2of2 sliding carriage is shifted −Y so its central outtake (Face29/34/35) re-centres
+# on the acme rod (Y369.5) — this lets the nut holder wrap the rod and bolt into the plate
+# "as before" (user 2026-07-18).  Applied to the plate, its Z-rails, the vertical blocks, the
+# router clamps, and all of their bolts.
+_P2_DY         = _ACME_Y - 425.0          # −55.5 — p2of2-carriage Y shift (outtake → rod)
 _ACME_HOLD_W   = 24.5                     # holder Y width
 _ACME_HOLD_R   = _ACME_HOLD_W / 2.0       # 12.25 — half-circle radius
-_ACME_HOLD_Z0  = 62.0                     # holder underside (below p1of2, above bottom bearing)
+_ACME_HOLD_Z0  = 275.0                    # holder underside — in the plate top slot, just clear of
+#                                           the fixed gantry-carriage block RU (top Z274)
 _ACME_HOLD_TH  = 10.0                     # holder slab thickness (Z)
-_ACME_HOLD_LEN = 14.0                     # rectangle length in +X (from the rod bore)
-_ACME_BOLT_DX  = 10.0                     # mount-bolt bore offset +X from the rod centreline
+_ACME_HOLD_LEN = 36.0                     # rectangle length in +X: from the rod (X206) to the plate front (X242)
+_ACME_BOLT_DX  = 31.0                     # mount-bolt bore offset +X from the rod → X237 (over the Face29 outtake)
 _ACME_BOLT_SZ  = 'M5'
 _ACME_NUT_AF   = 13.0                     # O03 acme nut across-flats
 _ACME_NUT_TH   = 8.0                      # O03 acme nut thickness (8×8)
@@ -1440,7 +1453,7 @@ def _add_router_clamp_bolts(bolt_size: str = 'M4'):
         for cy in (470,):            # single cross-bolt above the bore (item 9)
             gantry(z_slide(explode_with(
                 add_bolt(f"Bolt_RC_{int(clamp_z)}_{cy}_{bolt_size}",
-                         _RC_X - 7, cy, clamp_z,
+                         _RC_X - 7, cy + _P2_DY, clamp_z,
                          axis='+x', size=bolt_size, shaft_l=28),
                 dx=240)))
         # plate-mount bolts (render_improvements Router.1 flipped the clamp): head at the
@@ -1448,7 +1461,7 @@ def _add_router_clamp_bolts(bolt_size: str = 'M4'):
         for cy in (_RC_MOUNT_YR, _RC_MOUNT_YL):
             gantry(z_slide(explode_with(
                 add_bolt(f"Bolt_RC_Mount_{int(clamp_z)}_{int(cy)}_M6",
-                         xb, cy, clamp_z, axis='-x', size='M6', shaft_l=115),
+                         xb, cy + _P2_DY, clamp_z, axis='-x', size='M6', shaft_l=115),
                 dx=240)))
 
 
@@ -1499,7 +1512,7 @@ def _add_p2of2_rail_bolts(bolt_size: str = 'M3'):
     fs = fastener(bolt_size)
     rail_front_x = _P2_RAIL_X                         # rail −X (exposed) face (226, sunk)
     shaft_l = _P2_X0 + _P2_THK - rail_front_x - fs["head_h"]   # reach flush to the plate back
-    for side, rcy, expl_y in [("L", _P2_RAIL_YC[0], +40), ("R", _P2_RAIL_YC[1], -40)]:
+    for side, rcy, expl_y in [("L", _P2_RAIL_YC[0] + _P2_DY, +40), ("R", _P2_RAIL_YC[1] + _P2_DY, -40)]:
         for rz in _P2_RAIL_Z:
             gantry(z_slide(explode_with(
                 add_bolt(f"Bolt_RailZ_{side}_{int(rz)}_{bolt_size}",
@@ -1518,7 +1531,7 @@ def _add_vblock_bolts(bolt_size: str = 'M3'):
     fs = fastener(bolt_size)
     head_base_x = _P2_BLK_X0 + _MGN_DX + fs["head_h"]    # block +X face + head height
     for blk_y0, blk_z0 in [(444, 140), (444, 240), (379, 140), (379, 240)]:
-        bc_y = blk_y0 + 13
+        bc_y = blk_y0 + 13 + _P2_DY
         bc_z = blk_z0 + 17
         for n, (dy, dz) in enumerate([(+8, +10), (+8, -10), (-8, +10), (-8, -10)]):
             gantry(explode_with(
@@ -1859,18 +1872,21 @@ def _build_assembly(document):
     # Vertical MGN12H blocks BOLTED TO p1of2 (render_improvements VI 2026-07-18): fixed to
     # the p1of2 front (+X) face → gantry group only (they do NOT z-slide); the p2of2 rails
     # slide through them.  Low-X at _P2_BLK_X0 (211→224).  (Named *_Front_* historically.)
+    # (render_improvements "Additional components" follow-up, user 2026-07-18): the whole
+    # p2of2 carriage — these vertical blocks, the Z-rails, the plate and the router clamps —
+    # is shifted by _P2_DY so the plate's central outtake re-centres on the acme rod (Y369.5).
     for blk_name, by, bz in [
         ("MGN12H_Block_Front_LL", 444, 140),
         ("MGN12H_Block_Front_LU", 444, 240),
         ("MGN12H_Block_Front_RL", 379, 140),
         ("MGN12H_Block_Front_RU", 379, 240),
     ]:
-        gantry(explode_with(add_box(blk_name, _MGN_DX, 26, 34, _P2_BLK_X0, by, bz, COL_BLOCK), dx=130))
+        gantry(explode_with(add_box(blk_name, _MGN_DX, 26, 34, _P2_BLK_X0, by + _P2_DY, bz, COL_BLOCK), dx=130))
     # Vertical Z-rails belong to p2of2 (render_improvements VI 2026-07-18): they bed in the
     # p2of2 rail outtakes and slide through the p1of2 blocks → gantry + z_slide (move with
     # p2of2).  Low-X at _P2_RAIL_X (=_RAILZ_X0=224), sitting just +X of the blocks.
-    gantry(z_slide(explode_with(add_box("Rail_Z_Left",  _P2_RAIL_TX,_P2_RAIL_W,200, _P2_RAIL_X,451,100,COL_RAIL), dx=190)))
-    gantry(z_slide(explode_with(add_box("Rail_Z_Right", _P2_RAIL_TX,_P2_RAIL_W,200, _P2_RAIL_X,386,100,COL_RAIL), dx=190)))
+    gantry(z_slide(explode_with(add_box("Rail_Z_Left",  _P2_RAIL_TX,_P2_RAIL_W,200, _P2_RAIL_X,451+_P2_DY,100,COL_RAIL), dx=190)))
+    gantry(z_slide(explode_with(add_box("Rail_Z_Right", _P2_RAIL_TX,_P2_RAIL_W,200, _P2_RAIL_X,386+_P2_DY,100,COL_RAIL), dx=190)))
 
     # p2of2 (M36.b): sliding plate.  Rebuilt by _build_p2of2_plate (VI plate items
     # 1-6) — the shape is already in world coords, so it is added at the origin.
@@ -1882,10 +1898,10 @@ def _build_assembly(document):
     # _build_p2of2_plate (rail outtakes now face −X, over its rails) and shifted +_P2_DX so
     # its rails ride the p1of2 blocks.  _P2_DX places the flipped shape at X232-242.
     if os.path.exists(P2):
-        _p2obj = add_shape_obj("Engine_Holder_P2", _build_p2of2_plate(P2), x=_P2_DX)
+        _p2obj = add_shape_obj("Engine_Holder_P2", _build_p2of2_plate(P2), x=_P2_DX, y=_P2_DY)
     else:
         _p2obj = add_step("Engine_Holder_P2", P2,
-                          x=166+_P2_DX, y=425, z=210, yaw=90, pitch=180, roll=-90,
+                          x=166+_P2_DX, y=425+_P2_DY, z=210, yaw=90, pitch=180, roll=-90,
                           fallback_box=(6, 145, 200))
     gantry(z_slide(explode_with(_p2obj, dx=190)))
 
@@ -1895,17 +1911,17 @@ def _build_assembly(document):
     _rcb = f"{VI}/M24a_router_clamp_bottom/5_models_and_renders/router_clamp.step"
     _rct = f"{VI}/M24b_router_clamp_top/5_models_and_renders/router_clamp.step"
     gantry(z_slide(explode_with(
-        add_shape_obj("Router_Clamp_Bottom", _build_router_clamp(_rcb, _RC_Z_BOT)), dx=240)))
+        add_shape_obj("Router_Clamp_Bottom", _build_router_clamp(_rcb, _RC_Z_BOT), y=_P2_DY), dx=240)))
     gantry(z_slide(explode_with(
-        add_shape_obj("Router_Clamp_Top", _build_router_clamp(_rct, _RC_Z_TOP)), dx=240)))
+        add_shape_obj("Router_Clamp_Top", _build_router_clamp(_rct, _RC_Z_TOP), y=_P2_DY), dx=240)))
 
-    # ── ACME Z-DRIVE (anchored to the stepper — user 2026-07-18) ───────────────
-    # O02 acme rod (Ø8, vertical) through the stepper Ø10 rod hole Edge43; O19 KFL08
-    # top bearing seated ON the stepper Face3 (Z312), bolted through Edge27/Edge44
-    # (M3); rod passes down through the p1of2 Ø10 clearance bore to a bottom bearing.
-    # O03 nut + keyhole holder + mount bolt sit BELOW p1of2 (clear space) — detached
-    # from the p2of2 outtake.  The whole drive is gantry-fixed (rod rotates in place,
-    # it does NOT z-slide with the plate).
+    # ── ACME Z-DRIVE (rod anchored to the stepper; nut/holder on p2of2 — user 2026-07-18) ─
+    # O02 acme rod (Ø8, vertical) through the stepper Ø10 rod hole Edge43; O19 KFL08 top
+    # bearing seated ON the stepper Face3 (Z312), bolted through Edge27/Edge44 (M3); rod
+    # passes down through the p1of2 Ø10 bore to a bottom bearing.  The p2of2 carriage was
+    # shifted −_P2_DY so its central outtake re-centres on the rod, and the O03 nut + keyhole
+    # holder + mount bolt are bolted to the plate outtake "as before" (they wrap the rod at
+    # X206 and travel with p2of2 → gantry + z_slide).  Rod + bearings are gantry-fixed.
     _acme_rod = add_shape_obj("Acme_Rod",
         Part.makeCylinder(_ACME_ROD_D / 2.0, _ACME_ROD_Z1 - _ACME_ROD_Z0,
                           FreeCAD.Vector(_ACME_ROD_X, _ACME_Y, _ACME_ROD_Z0)),
@@ -1913,20 +1929,23 @@ def _build_assembly(document):
     gantry(explode_with(_acme_rod, dz=90))
     _THREAD_SPEC[_acme_rod.Name] = "O02 acme rod Ø8×300 mm (8 mm lead)"
 
-    gantry(explode_with(
-        add_shape_obj("Acme_Nut_Holder", _build_acme_holder(), color=COL_METAL), dz=-70))
+    # keyhole holder: half-circle wraps the rod (X206), rectangle reaches +X to the plate,
+    # resting on the Z270 shoulder; travels with p2of2.
+    gantry(z_slide(explode_with(
+        add_shape_obj("Acme_Nut_Holder", _build_acme_holder(), color=COL_METAL), dx=140)))
+    # nut seats on top of the holder, inside the plate's 25-wide top slot (Face34↔Face35)
     _acme_nut = add_nut("Acme_Nut", _ACME_ROD_X, _ACME_Y,
                         _ACME_HOLD_Z0 + _ACME_HOLD_TH + _ACME_NUT_TH / 2.0,
                         axis='+z', size=_ACME_BOLT_SZ,
                         af=_ACME_NUT_AF, thick=_ACME_NUT_TH, inner_d=_ACME_ROD_D)
     _THREAD_SPEC[_acme_nut.Name] = "O03 acme nut 8×8 mm"
-    gantry(explode_with(_acme_nut, dz=-90))
+    gantry(z_slide(explode_with(_acme_nut, dz=-40)))
 
-    # mount bolt through the holder rectangle (head just below the holder, shaft up)
-    _hb = add_bolt("Bolt_Acme_Holder", _ACME_ROD_X + _ACME_BOLT_DX, _ACME_Y,
-                   _ACME_HOLD_Z0 - 8.0, axis='+z',
-                   size=_ACME_BOLT_SZ, shaft_l=_ACME_HOLD_TH + 12.0)
-    gantry(explode_with(_hb, dz=-110))
+    # mount bolt: head seated in the plate's Face29 outtake (floor Z205), shaft up through
+    # the holder rectangle bore — bolts the holder to the p2of2 plate "as before".
+    _hb = add_bolt("Bolt_Acme_Holder", _ACME_ROD_X + _ACME_BOLT_DX, _ACME_Y, 205.0, axis='+z',
+                   size=_ACME_BOLT_SZ, shaft_l=_ACME_HOLD_Z0 + _ACME_HOLD_TH - 205.0 - 3.0)
+    gantry(z_slide(explode_with(_hb, dz=-60)))
 
     # O19 KFL08 bearings — top seats on the stepper Face3 (flange underside Z312),
     # bottom below p1of2; two M3 bolts each through Edge27/Edge44 (heads on flange top).
