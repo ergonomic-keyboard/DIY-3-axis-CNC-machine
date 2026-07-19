@@ -25,6 +25,13 @@ Render: `subcomponents/cnc_subcomponent_II_explode.gif`
 
 ![Physical reference — left- and right-side plate clamps holding the gantry beams (M20cd front clips)](../examples/II_side_plates/M20cd_front_clips/Screenshot%20From%202026-06-27%2000-24-02.png)
 
+side_plate_mgn12h_blocks.png shows that the cnc_assembly_live.Side_Plate_Left.Edge25 and cnc_assembly_live.Side_Plate_Left.Edge26 cnc_assembly_live.Side_Plate_Left.Edge30 cnc_assembly_live.Side_Plate_Left.Edge29 holes are for the right (most x-positive mgn12h block and that the
+
+cnc_assembly_live.Side_Plate_Left.Edge32, cnc_assembly_live.Side_Plate_Left.Edge31,cnc_assembly_live.Side_Plate_Left.Edge27, cnc_assembly_live.Side_Plate_Left.Edge25, cnc_assembly_live.Side_Plate_Left.Edge28 holes are for the left most (most negative x-position)) mgn12h block. Those holes all should get teh same diameter, such that the mgn12h block bolts go through them. Then those 2 mgn12hblocks should sit on the insides of the cnc_assembly_live.Side_Plate_Left, so between that cnc_assembly_live.Side_Plate_Left plate and the Rail_Y_Left.Face2. the other side is symmetric, so the Side_Plate_Left_R.Face5 should have the two mgn12h blocks mounted on it, and those blocks should then go on the Rail_Y_Right.Face4. PS that Rail is for the x-axis mobilitiy so its name is not quite sensible. (The Z-rails are correctly named, but the Belt_X.Face6 is for the y-direction mobility, so that is also not correctly named.)
+
+cnc_assembly_live.Engine_Sideways_Belt_Clamp.Face3 that clamp should not be there, I don't know for which it is supposed to be. It should be at Clamp_X instead.
+
+
 ### Mid-plate
 
 ---
@@ -32,26 +39,18 @@ Render: `subcomponents/cnc_subcomponent_II_explode.gif`
 ## II_R — Right side plate & Y-axis (mirror of II)
 Render: `subcomponents/cnc_subcomponent_II_R_explode.gif`
 
-- **Y-stepper:** mount the Y-axis stepper on the cnc_assembly_live.Engine_Holder_P1.Edge156. Add the belt that dfirves those mid plates
 ---
 
 ## III — Gantry & X-axis (three steel cross bars + rails)
 Render: `subcomponents/cnc_subcomponent_III_explode.gif`
-
-- **X-belt:** HTD5M belt runs across the top of `Gantry_Beam_Upper1.Face3`, anchored on the gantry beam near the side-plate ends (`Side_Plate_Left.Face56` + right mirror). On the other end, a tensioner instead of a clamp is tensioned with a bolt through the side plate. Stepper + idlers in IV.
 
 ---
 
 ## IV — Vertical engine plate p1of2 (+ MGN12H blocks)
 Render: `subcomponents/cnc_subcomponent_IV_explode.gif`
 
-- **Y-drive stepper:** mount on p1of2 at `Engine_Holder_P1.Edge156`, bolted via the holes at `Engine_Holder_P1.Edge345`.
-- **X-belt drivers:** two HTD5M belt bearings in the two holes just below the stepper (`Engine_Holder_P1.Edge423` + the other). and the stepper would be in cnc_assembly_live.Side_Plate_Left.Edge17 it should move because it doesn't fit there anymore,  Feed the X-belt (III).
-
 ## V — Top & bottom stepper plate (stepper, belt/gears, threaded rod)
 Render: `subcomponents/cnc_subcomponent_V_explode.gif`
-
-- **Z-stepper:** seat the Z-axis stepper in the `Top_Stepper_Holder.Face31` hole, bolted with the four existing bolts `Bolt_TSH_235_506_M5` (`.Edge3` + the other three).
 
 ---
 
